@@ -1,0 +1,17 @@
+FROM alpine:latest
+
+ARG CONSUL_HOST=127.0.0.1
+ARG CONSUL_PORT=8500
+ARG CONSUL_PREFIX=product
+
+ENV CONSUL_HOST=$CONSUL_HOST \
+	CONSUL_PORT=$CONSUL_PORT \
+	CONSUL_PREFIX=$CONSUL_PREFIX
+
+COPY product /var/product
+
+RUN chmod +x /var/product
+
+WORKDIR /var
+
+CMD [ "./product" ]
