@@ -10,7 +10,6 @@ pipeline {
 	stages {
 		stage('Build') {
 			when {
-				beforeAgent: true
 				anyOf {
 					branch 'dev'
 					expression { return env.TAG_NAME != null }
@@ -23,28 +22,8 @@ pipeline {
 				echo 'Build success'
 			}
 		}
-		stage('Test') {
-			when {
-				beforeAgent: true
-				anyOf {
-					branch 'dev'
-					expression { return env.TAG_NAME != null }
-				}
-			}
-			steps {
-				if (env.TAG_NAME) {
-					DOCKER_TAG = "${env.TAG_NAME}"
-				}
-				sh 'if [ ! -d "tests" ]; then
-					echo "echo Test skipped"
-				else
-					echo "go test -v"
-				fi'
-			}
-		}
 		stage('Build and Push Docker Image') {
 			when {
-				beforeAgent: true
 				anyOf {
 					branch 'dev'
 					expression { return env.TAG_NAME != null }
@@ -61,7 +40,6 @@ pipeline {
 		}
 		stage('Deploy to Kubernetes') {
 			when {
-				beforeAgent: true
 				anyOf {
 					branch 'dev'
 					expression { return env.TAG_NAME != null }
@@ -70,9 +48,7 @@ pipeline {
 			steps {
 				echo 'Starting to deploy...'
 				withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "${KUBERNETES_API_SERVER}", namespace: 'dev']) {
-					sh ```
-					    kubectl --kubeconfig=$KUBECONFIG set image deployment/product-service ${DOCKER_IMAGE}:${DOCKER_TAG}
-					```
+					sh 'kubectl --kubeconfig=$KUBECONFIG set image deployment/product-service ${DOCKER_IMAGE}:${DOCKER_TAG}'
 				}
 				echo 'Deploy to kubernetes success'
 			}
