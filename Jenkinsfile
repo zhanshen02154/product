@@ -23,25 +23,6 @@ pipeline {
 				echo 'Build success'
 			}
 		}
-		stage('Test') {
-			when {
-				beforeAgent: true
-				anyOf {
-					branch 'dev'
-					expression { return env.TAG_NAME != null }
-				}
-			}
-			steps {
-				if (env.TAG_NAME) {
-					DOCKER_TAG = "${env.TAG_NAME}"
-				}
-				sh 'if [ ! -d "tests" ]; then
-					echo "echo Test skipped"
-				else
-					echo "go test -v"
-				fi'
-			}
-		}
 		stage('Build and Push Docker Image') {
 			when {
 				beforeAgent: true
