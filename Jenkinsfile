@@ -44,7 +44,7 @@ pipeline {
 					if (env.TAG_NAME) {
 						DOCKER_TAG = "${env.TAG_NAME}"
 					}
-					docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=${CONSUL_HOST} --build-arg CONSUL_PORT=${CONSUL_PORT} --build-arg CONSUL_PREFIX=product")
+					docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=${CONSUL_HOST} --build-arg CONSUL_PORT=${CONSUL_PORT} --build-arg CONSUL_PREFIX=product .")
 					docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
 						docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
 					}
