@@ -61,9 +61,7 @@ pipeline {
 			steps {
 				withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "${KUBERNETES_API_SERVER}", namespace: 'dev']) {
 					sh """
-					echo 'Starting to deploy...'
 					/usr/bin/kubectl --kubeconfig=$KUBECONFIG set image deployment/product-service product-container=${DOCKER_IMAGE}:${DOCKER_TAG} -n dev
-					echo 'Deploy to kubernetes success'
 					"""
 				}
 			}
