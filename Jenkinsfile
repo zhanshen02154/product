@@ -10,7 +10,6 @@ pipeline {
 	stages {
 		stage('Build') {
 			when {
-				beforeAgent: true
 				anyOf {
 					branch 'dev'
 					expression { return env.TAG_NAME != null }
@@ -25,7 +24,6 @@ pipeline {
 		}
 		stage('Build and Push Docker Image') {
 			when {
-				beforeAgent: true
 				anyOf {
 					branch 'dev'
 					expression { return env.TAG_NAME != null }
@@ -42,7 +40,6 @@ pipeline {
 		}
 		stage('Deploy to Kubernetes') {
 			when {
-				beforeAgent: true
 				anyOf {
 					branch 'dev'
 					expression { return env.TAG_NAME != null }
