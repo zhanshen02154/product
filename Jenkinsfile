@@ -74,7 +74,7 @@ pipeline {
 	}
 	post {
 		always {
-			cleanWs()
+			deleteDir()
 		}
 		success {
 			echo "🎉Pipeline ${DOCKER_IMAGE}:${DOCKER_TAG} deploy succeeded"
