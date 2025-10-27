@@ -9,6 +9,7 @@ pipeline {
 		DOCKER_IMAGE = '192.168.0.62/microservice/product'
 		DOCKER_TAG = "${env.GIT_BRANCH}-${env.GIT_COMMIT.substring(0, 8)}"
 		KUBERNETES_API_SERVER = credentials('kubernetes-api-server')
+		GOPROXY = 'https://goproxy.cn,direct'
 	}
 	stages {
 		stage('Build') {
@@ -21,6 +22,10 @@ pipeline {
 			steps {
 				sh """
 				echo 'Building project...'
+				export CGO_ENABLED=0
+				export GOOS=linux
+				export GOARCH=amd64
+				go env -w GO111MODULE=on
 				go mod download
 				go build -o product cmd/main.go
 				echo 'Build success'
