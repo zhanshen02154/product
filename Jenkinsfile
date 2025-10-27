@@ -41,8 +41,8 @@ pipeline {
 					if (env.TAG_NAME) {
 						DOCKER_TAG = "${env.TAG_NAME}"
 					}
-					withCredentials([string(credentialsId: 'CONSUL_HOST', variable: consul_host), 
-						string(credentialsId: 'CONSUL_PORT', variable: consul_port)
+					withCredentials([string(credentialsId: 'CONSUL_HOST', variable: 'consul_host'), 
+						string(credentialsId: 'CONSUL_PORT', variable: 'consul_port')
 						]) {
 						sh 'set +x'
 						docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=$consul_host --build-arg CONSUL_PORT=$consul_port --build-arg CONSUL_PREFIX=product .")
@@ -61,7 +61,7 @@ pipeline {
 				}
 			}
 			steps {
-				withCredentials([string(credentialsId: 'kubernetes-api-server', variable: k8s_api_server)]) {
+				withCredentials([string(credentialsId: 'kubernetes-api-server', variable: 'k8s_api_server')]) {
 					sh 'set +x'
 					withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
 						sh '''
