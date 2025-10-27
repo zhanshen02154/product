@@ -4,11 +4,8 @@ pipeline {
 	    go 'go-1.20.10'
 	}
 	environment {
-		CONSUL_HOST = credentials('CONSUL_HOST')
-		CONSUL_PORT = credentials('CONSUL_PORT')
 		DOCKER_IMAGE = '192.168.0.62/microservice/product'
 		DOCKER_TAG = "${env.GIT_BRANCH}-${env.GIT_COMMIT.substring(0, 8)}"
-		KUBERNETES_API_SERVER = credentials('kubernetes-api-server')
 		GOPROXY = 'https://goproxy.cn,direct'
 	}
 	stages {
@@ -44,10 +41,14 @@ pipeline {
 					if (env.TAG_NAME) {
 						DOCKER_TAG = "${env.TAG_NAME}"
 					}
-					wi
-					docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=${CONSUL_HOST} --build-arg CONSUL_PORT=${CONSUL_PORT} --build-arg CONSUL_PREFIX=product .")
-					docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
-						docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
+					withCredentials([string(credentialsId: 'CONSUL_HOST', variable: consul_host), 
+						string(credentialsId: 'CONSUL_PORT', variable: consul_port)
+						]) {
+						sh 'set +x'
+						docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=$consul_host --build-arg CONSUL_PORT=$consul_port --build-arg CONSUL_PREFIX=product .")
+						docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
+							docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
+						}
 					}
 				}
 			}
@@ -60,10 +61,13 @@ pipeline {
 				}
 			}
 			steps {
-				withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "${KUBERNETES_API_SERVER}", namespace: 'dev']) {
-					sh '''
-					/usr/bin/kubectl set image deployment/product-service product-container=${DOCKER_IMAGE}:${DOCKER_TAG} -n dev
-					'''
+				withCredentials([string(credentialsId: 'kubernetes-api-server', variable: k8s_api_server)]) {
+					sh 'set +x'
+					withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
+						sh '''
+						/usr/bin/kubectl set image deployment/product-service product-container=${DOCKER_IMAGE}:${DOCKER_TAG} -n dev
+						'''
+					}
 				}
 			}
 		}
