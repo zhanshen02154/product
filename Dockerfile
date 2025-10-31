@@ -10,7 +10,8 @@ ENV CONSUL_HOST=$CONSUL_HOST \
 
 COPY product /var/product
 
-RUN apk add --no-cache tzdata \
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
+    && apk add --no-cache tzdata \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && chmod +x /var/product
 
