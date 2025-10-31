@@ -49,6 +49,7 @@ pipeline {
 						docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
 							docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
 						}
+						sh 'docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}'
 					}
 				}
 			}
@@ -78,8 +79,7 @@ pipeline {
 							withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
 								sh '''
 								set +x
-								lastReversion=$(/usr/bin/kubectl rollout history deployment/product-service -n dev | awk '{print $1}' | tail -n 2)
-								/usr/bin/kubectl rollout undo deployment/product-service -n dev --to-revision=$lastReversion
+								/usr/bin/kubectl rollout undo deployment/product-service -n dev --to-revision=$(/usr/bin/kubectl rollout history deployment/product-service -n dev | awk '{print $1}' | tail -n 2)
 								'''
 							}
 						}
