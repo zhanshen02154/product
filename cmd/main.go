@@ -2,21 +2,19 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/util/log"
 	service2 "github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/config"
 	config2 "github.com/zhanshen02154/product/internal/infrastructure/config"
-	gorm2 "github.com/zhanshen02154/product/internal/infrastructure/persistence/gorm"
 	registry2 "github.com/zhanshen02154/product/internal/infrastructure/registry"
 	"github.com/zhanshen02154/product/internal/intefaces/handler"
 	"github.com/zhanshen02154/product/proto/product"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"net/http"
 	"net/url"
 	"time"
-	_ "time/tzdata"
 )
 
 func main() {
@@ -39,12 +37,6 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("error: %v", err))
 	}
-	defer func() {
-		if db != nil { // 关键检查
-			db.Close()
-		}
-	}()
-	rp := gorm2.NewProductRepository(db)
 
 	// New Service
 	service := micro.NewService(
@@ -69,7 +61,7 @@ func main() {
 
 		// readinessProbe
 		http.HandleFunc("/ready", func(writer http.ResponseWriter, request *http.Request) {
-			if err := db.DB().Ping(); err != nil {
+			if err := checkDB(db); err != nil {
 				writer.WriteHeader(http.StatusServiceUnavailable)
 				writer.Write([]byte("Not Ready"))
 			} else {
@@ -85,7 +77,7 @@ func main() {
 		}
 	}()
 
-	productService := service2.NewProductApplicationService(rp)
+	productService := service2.NewProductApplicationService(db)
 	err = product.RegisterProductHandler(service.Server(), &handler.ProductHandler{ProductApplicationService: productService})
 	if err != nil {
 		log.Error(err)
@@ -109,11 +101,18 @@ func initDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
 		url.QueryEscape(confInfo.Loc),
 	)
 	fmt.Println(dsn)
-	db, err := gorm.Open("mysql", dsn)
+	db, err := gorm.Open(mysql.New(mysql.Config{
+		DSN:                       dsn,
+		SkipInitializeWithVersion: false,
+		DefaultStringSize:         255,
+	}), &gorm.Config{SkipDefaultTransaction: true})
 	if err != nil {
 		return nil, err
 	}
-	sqlDB := db.DB()
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
 	if sqlDB == nil {
 		return nil, fmt.Errorf("获取SQL DB失败: %w", err)
 	}
@@ -130,4 +129,15 @@ func initDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
 
 	log.Info("数据库连接成功")
 	return db, nil
+}
+
+func checkDB(db *gorm.DB) error {
+	sqlDb, err := db.DB()
+	if err != nil {
+		return err
+	}
+	if err = sqlDb.Ping(); err != nil {
+		return err
+	}
+	return nil
 }
