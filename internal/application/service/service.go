@@ -2,25 +2,36 @@ package service
 
 import (
 	"context"
-	"git.imooc.com/zhanshen1614/product/common"
-	"git.imooc.com/zhanshen1614/product/internal/application/dto"
-	"git.imooc.com/zhanshen1614/product/internal/domain/model"
-	"git.imooc.com/zhanshen1614/product/internal/domain/repository"
-	"git.imooc.com/zhanshen1614/product/internal/domain/service"
+	"github.com/zhanshen02154/product/internal/application/dto"
+	"github.com/zhanshen02154/product/internal/domain/model"
+	"github.com/zhanshen02154/product/internal/domain/repository"
+	"github.com/zhanshen02154/product/internal/domain/service"
+	"github.com/zhanshen02154/product/pkg/swap"
 )
 
+type IProductApplicationService interface {
+	AddProduct(ctx context.Context, productInfo *dto.ProductDto) (*dto.AddProductResponse, error)
+}
+
 type ProductApplicationService struct {
-	productRepo repository.IProductRepository
+	productRepo          repository.IProductRepository
 	productDomainService service.IProductDataService
 }
 
-// 添加产品
-func (srv *ProductApplicationService) AddProduct(ctx context.Context, productInfo *dto.ProductDto) (*dto.AddProductResponse, error) {
+func NewProductApplicationService(productRepo repository.IProductRepository) IProductApplicationService {
+	return &ProductApplicationService{
+		productDomainService: service.NewProductDataService(productRepo),
+		productRepo:          productRepo,
+	}
+}
+
+// AddProduct 添加产品
+func (appService *ProductApplicationService) AddProduct(ctx context.Context, productInfo *dto.ProductDto) (*dto.AddProductResponse, error) {
 	productModel := &model.Product{}
-	if err := common.SwapTo(productInfo, productModel); err != nil {
+	if err := swap.SwapTo(productInfo, productModel); err != nil {
 		return nil, err
 	}
-	productId, err := srv.productDomainService.AddProduct(productModel)
+	productId, err := appService.productDomainService.AddProduct(productModel)
 	if err != nil {
 		return nil, err
 	}

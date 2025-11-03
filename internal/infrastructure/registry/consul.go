@@ -3,9 +3,9 @@ package registry
 import (
 	"context"
 	"fmt"
-	"git.imooc.com/zhanshen1614/product/internal/config"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-plugins/registry/consul/v2"
+	"github.com/zhanshen02154/product/internal/config"
 	"time"
 )
 

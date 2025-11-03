@@ -1,7 +1,7 @@
 package repository
 
 import (
-	model2 "git.imooc.com/zhanshen1614/product/internal/domain/model"
+	model2 "github.com/zhanshen02154/product/internal/domain/model"
 )
 
 type IProductRepository interface {

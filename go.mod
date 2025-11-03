@@ -1,4 +1,4 @@
-module git.imooc.com/zhanshen1614/product
+module github.com/zhanshen02154/product
 
 go 1.20
 

@@ -1,31 +1,31 @@
 package gorm
 
 import (
-	model2 "git.imooc.com/zhanshen1614/product/internal/domain/model"
-	"git.imooc.com/zhanshen1614/product/internal/domain/repository"
 	"github.com/jinzhu/gorm"
+	model2 "github.com/zhanshen02154/product/internal/domain/model"
+	"github.com/zhanshen02154/product/internal/domain/repository"
 )
 
 // ProductRepository
 // @Description: 仓储层
 type ProductRepository struct {
-	mysqlDb *gorm.DB
+	db *gorm.DB
 }
 
 // FindProductByID 根据ID查找Product信息
 func (u *ProductRepository) FindProductByID(productID int64) (product *model2.Product, err error) {
 	product = &model2.Product{}
-	return product, u.mysqlDb.Preload("ProductImage").Preload("ProductSize").Preload("ProductSeo").First(product, productID).Error
+	return product, u.db.Preload("ProductImage").Preload("ProductSize").Preload("ProductSeo").First(product, productID).Error
 }
 
 // CreateProduct 创建Product信息
 func (u *ProductRepository) CreateProduct(product *model2.Product) (int64, error) {
-	return product.Id, u.mysqlDb.Create(product).Error
+	return product.Id, u.db.Create(product).Error
 }
 
 // DeleteProductByID 根据ID删除Product信息
 func (u *ProductRepository) DeleteProductByID(productID int64) error {
-	tx := u.mysqlDb.Begin()
+	tx := u.db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
 			tx.Rollback()
@@ -53,20 +53,20 @@ func (u *ProductRepository) DeleteProductByID(productID int64) error {
 		return err
 	}
 
-	return u.mysqlDb.Commit().Error
+	return u.db.Commit().Error
 }
 
 // UpdateProduct 更新Product信息
 func (u *ProductRepository) UpdateProduct(product *model2.Product) error {
-	return u.mysqlDb.Model(product).Update(product).Error
+	return u.db.Model(product).Update(product).Error
 }
 
 // FindAll 获取结果集
 func (u *ProductRepository) FindAll() (productAll []model2.Product, err error) {
-	return productAll, u.mysqlDb.Preload("ProductImage").Preload("ProductSize").Preload("ProductSeo").Find(&productAll).Error
+	return productAll, u.db.Preload("ProductImage").Preload("ProductSize").Preload("ProductSeo").Find(&productAll).Error
 }
 
 // NewProductRepository 创建productRepository
 func NewProductRepository(db *gorm.DB) repository.IProductRepository {
-	return &ProductRepository{mysqlDb: db}
+	return &ProductRepository{db: db}
 }

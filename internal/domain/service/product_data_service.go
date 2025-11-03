@@ -1,8 +1,8 @@
 package service
 
 import (
-	"git.imooc.com/zhanshen1614/product/internal/domain/model"
-	"git.imooc.com/zhanshen1614/product/internal/domain/repository"
+	"github.com/zhanshen02154/product/internal/domain/model"
+	"github.com/zhanshen02154/product/internal/domain/repository"
 )
 
 type IProductDataService interface {

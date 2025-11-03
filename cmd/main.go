@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
-	"git.imooc.com/zhanshen1614/product/handler"
-	"git.imooc.com/zhanshen1614/product/internal/config"
-	service2 "git.imooc.com/zhanshen1614/product/internal/domain/service"
-	config2 "git.imooc.com/zhanshen1614/product/internal/infrastructure/config"
-	gorm2 "git.imooc.com/zhanshen1614/product/internal/infrastructure/persistence/gorm"
-	registry2 "git.imooc.com/zhanshen1614/product/internal/infrastructure/registry"
-	"git.imooc.com/zhanshen1614/product/proto/product"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/util/log"
+	service2 "github.com/zhanshen02154/product/internal/application/service"
+	"github.com/zhanshen02154/product/internal/config"
+	config2 "github.com/zhanshen02154/product/internal/infrastructure/config"
+	gorm2 "github.com/zhanshen02154/product/internal/infrastructure/persistence/gorm"
+	registry2 "github.com/zhanshen02154/product/internal/infrastructure/registry"
+	"github.com/zhanshen02154/product/internal/intefaces/handler"
+	"github.com/zhanshen02154/product/proto/product"
 	"net/http"
 	"net/url"
 	"time"
@@ -35,7 +35,7 @@ func main() {
 	//defer io.Close()
 	//opetracing2.SetGlobalTracer(tracer)
 
-	db, err := initDB(confInfo)
+	db, err := initDB(&confInfo.Database)
 	if err != nil {
 		panic(fmt.Sprintf("error: %v", err))
 	}
@@ -85,8 +85,8 @@ func main() {
 		}
 	}()
 
-	productService := service2.NewProductDataService(rp)
-	err = product.RegisterProductHandler(service.Server(), &handler.Product{ProductDataService: productService})
+	productService := service2.NewProductApplicationService(rp)
+	err = product.RegisterProductHandler(service.Server(), &handler.ProductHandler{ProductApplicationService: productService})
 	if err != nil {
 		log.Error(err)
 	}
@@ -98,15 +98,15 @@ func main() {
 }
 
 // 加载数据库
-func initDB(confInfo *config.SysConfig) (*gorm.DB, error) {
+func initDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=%s",
-		confInfo.Database.User,
-		confInfo.Database.Password,
-		confInfo.Database.Host,
-		confInfo.Database.Port,
-		confInfo.Database.Database,
-		confInfo.Database.Charset,
-		url.QueryEscape(confInfo.Database.Loc),
+		confInfo.User,
+		confInfo.Password,
+		confInfo.Host,
+		confInfo.Port,
+		confInfo.Database,
+		confInfo.Charset,
+		url.QueryEscape(confInfo.Loc),
 	)
 	fmt.Println(dsn)
 	db, err := gorm.Open("mysql", dsn)
@@ -119,9 +119,9 @@ func initDB(confInfo *config.SysConfig) (*gorm.DB, error) {
 	}
 
 	// 配置连接池
-	sqlDB.SetMaxOpenConns(1000)
-	sqlDB.SetMaxIdleConns(100)
-	sqlDB.SetConnMaxLifetime(time.Hour)
+	sqlDB.SetMaxOpenConns(confInfo.MaxOpenConns)
+	sqlDB.SetMaxIdleConns(confInfo.MaxIdleConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(confInfo.ConnMaxLifeTime) * time.Second)
 
 	// 验证连接
 	if err := sqlDB.Ping(); err != nil {
