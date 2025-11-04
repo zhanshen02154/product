@@ -151,7 +151,8 @@ func (x *ResponseProduct) GetProductId() int64 {
 
 type OrderDetailReq struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderDetail   []*OrderDetailItem     `protobuf:"bytes,1,rep,name=order_detail,json=orderDetail,proto3" json:"order_detail,omitempty"`
+	OrderId       int64                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Products      []*ProductInvetoryItem `protobuf:"bytes,2,rep,name=products,proto3" json:"products,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -186,38 +187,43 @@ func (*OrderDetailReq) Descriptor() ([]byte, []int) {
 	return file_proto_product_product_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *OrderDetailReq) GetOrderDetail() []*OrderDetailItem {
+func (x *OrderDetailReq) GetOrderId() int64 {
 	if x != nil {
-		return x.OrderDetail
+		return x.OrderId
+	}
+	return 0
+}
+
+func (x *OrderDetailReq) GetProducts() []*ProductInvetoryItem {
+	if x != nil {
+		return x.Products
 	}
 	return nil
 }
 
-type OrderDetailItem struct {
+type ProductInvetoryItem struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	ProductId     int64                  `protobuf:"varint,2,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
-	ProductNum    int64                  `protobuf:"varint,3,opt,name=product_num,json=productNum,proto3" json:"product_num,omitempty"`
-	ProductSizeId int64                  `protobuf:"varint,4,opt,name=product_size_id,json=productSizeId,proto3" json:"product_size_id,omitempty"`
-	OrderId       int64                  `protobuf:"varint,5,opt,name=OrderId,proto3" json:"OrderId,omitempty"`
+	ProductId     int64                  `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
+	ProductNum    int64                  `protobuf:"varint,2,opt,name=product_num,json=productNum,proto3" json:"product_num,omitempty"`
+	ProductSizeId int64                  `protobuf:"varint,3,opt,name=product_size_id,json=productSizeId,proto3" json:"product_size_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *OrderDetailItem) Reset() {
-	*x = OrderDetailItem{}
+func (x *ProductInvetoryItem) Reset() {
+	*x = ProductInvetoryItem{}
 	mi := &file_proto_product_product_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *OrderDetailItem) String() string {
+func (x *ProductInvetoryItem) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*OrderDetailItem) ProtoMessage() {}
+func (*ProductInvetoryItem) ProtoMessage() {}
 
-func (x *OrderDetailItem) ProtoReflect() protoreflect.Message {
+func (x *ProductInvetoryItem) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_product_product_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -229,42 +235,28 @@ func (x *OrderDetailItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use OrderDetailItem.ProtoReflect.Descriptor instead.
-func (*OrderDetailItem) Descriptor() ([]byte, []int) {
+// Deprecated: Use ProductInvetoryItem.ProtoReflect.Descriptor instead.
+func (*ProductInvetoryItem) Descriptor() ([]byte, []int) {
 	return file_proto_product_product_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *OrderDetailItem) GetId() int64 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *OrderDetailItem) GetProductId() int64 {
+func (x *ProductInvetoryItem) GetProductId() int64 {
 	if x != nil {
 		return x.ProductId
 	}
 	return 0
 }
 
-func (x *OrderDetailItem) GetProductNum() int64 {
+func (x *ProductInvetoryItem) GetProductNum() int64 {
 	if x != nil {
 		return x.ProductNum
 	}
 	return 0
 }
 
-func (x *OrderDetailItem) GetProductSizeId() int64 {
+func (x *ProductInvetoryItem) GetProductSizeId() int64 {
 	if x != nil {
 		return x.ProductSizeId
-	}
-	return 0
-}
-
-func (x *OrderDetailItem) GetOrderId() int64 {
-	if x != nil {
-		return x.OrderId
 	}
 	return 0
 }
@@ -328,17 +320,16 @@ const file_proto_product_product_proto_rawDesc = "" +
 	"\x13product_category_id\x18\x06 \x01(\x03R\x11productCategoryId\"0\n" +
 	"\x0fResponseProduct\x12\x1d\n" +
 	"\n" +
-	"product_id\x18\x01 \x01(\x03R\tproductId\"V\n" +
-	"\x0eOrderDetailReq\x12D\n" +
-	"\forder_detail\x18\x01 \x03(\v2!.go.micro.service.OrderDetailItemR\vorderDetail\"\xa3\x01\n" +
-	"\x0fOrderDetailItem\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"product_id\x18\x01 \x01(\x03R\tproductId\"n\n" +
+	"\x0eOrderDetailReq\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\x03R\aorderId\x12A\n" +
+	"\bproducts\x18\x02 \x03(\v2%.go.micro.service.ProductInvetoryItemR\bproducts\"}\n" +
+	"\x13ProductInvetoryItem\x12\x1d\n" +
 	"\n" +
-	"product_id\x18\x02 \x01(\x03R\tproductId\x12\x1f\n" +
-	"\vproduct_num\x18\x03 \x01(\x03R\n" +
+	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x1f\n" +
+	"\vproduct_num\x18\x02 \x01(\x03R\n" +
 	"productNum\x12&\n" +
-	"\x0fproduct_size_id\x18\x04 \x01(\x03R\rproductSizeId\x12\x18\n" +
-	"\aOrderId\x18\x05 \x01(\x03R\aOrderId\"2\n" +
+	"\x0fproduct_size_id\x18\x03 \x01(\x03R\rproductSizeId\"2\n" +
 	"\x10OrderProductResp\x12\x1e\n" +
 	"\n" +
 	"StatusCode\x18\x01 \x01(\tR\n" +
@@ -362,14 +353,14 @@ func file_proto_product_product_proto_rawDescGZIP() []byte {
 
 var file_proto_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_product_product_proto_goTypes = []any{
-	(*ProductInfo)(nil),      // 0: go.micro.service.ProductInfo
-	(*ResponseProduct)(nil),  // 1: go.micro.service.ResponseProduct
-	(*OrderDetailReq)(nil),   // 2: go.micro.service.OrderDetailReq
-	(*OrderDetailItem)(nil),  // 3: go.micro.service.OrderDetailItem
-	(*OrderProductResp)(nil), // 4: go.micro.service.OrderProductResp
+	(*ProductInfo)(nil),         // 0: go.micro.service.ProductInfo
+	(*ResponseProduct)(nil),     // 1: go.micro.service.ResponseProduct
+	(*OrderDetailReq)(nil),      // 2: go.micro.service.OrderDetailReq
+	(*ProductInvetoryItem)(nil), // 3: go.micro.service.ProductInvetoryItem
+	(*OrderProductResp)(nil),    // 4: go.micro.service.OrderProductResp
 }
 var file_proto_product_product_proto_depIdxs = []int32{
-	3, // 0: go.micro.service.OrderDetailReq.order_detail:type_name -> go.micro.service.OrderDetailItem
+	3, // 0: go.micro.service.OrderDetailReq.products:type_name -> go.micro.service.ProductInvetoryItem
 	0, // 1: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
 	2, // 2: go.micro.service.Product.DeductInvetory:input_type -> go.micro.service.OrderDetailReq
 	1, // 3: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct

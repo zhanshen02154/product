@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
@@ -45,8 +46,10 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 
 // DeductInvetory 扣减订单的库存
 func (appService *ProductApplicationService) DeductInvetory(ctx context.Context, req *product.OrderDetailReq) error {
-	appService.txManager.ExecuteTransaction(ctx, func(txCtx context.Context) error {
+	return appService.txManager.ExecuteTransaction(ctx, func(txCtx context.Context) error {
+		if len(req.Products) == 0 || len(req.Products) == 0 {
+			return errors.New("没有数据")
+		}
 		return appService.productDomainService.DeductInvetory(ctx, req)
 	})
-	return nil
 }

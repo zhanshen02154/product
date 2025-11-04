@@ -23,15 +23,14 @@ message ResponseProduct {
 }
 
 message OrderDetailReq {
-  repeated OrderDetailItem order_detail = 1;
+  int64 order_id = 1;
+  repeated ProductInvetoryItem products = 2;
 }
 
-message OrderDetailItem {
-  int64 id = 1;
-  int64 product_id = 2;
-  int64 product_num = 3;
-  int64 product_size_id = 4;
-  int64 OrderId = 5;
+message ProductInvetoryItem {
+  int64 product_id = 1;
+  int64 product_num = 2;
+  int64 product_size_id = 3;
 }
 
 message OrderProductResp {
