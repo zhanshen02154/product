@@ -1,19 +1,22 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/micro/go-micro/v2"
 	"github.com/micro/go-micro/v2/util/log"
 	service2 "github.com/zhanshen02154/product/internal/application/service"
-	"github.com/zhanshen02154/product/internal/config"
+	"github.com/zhanshen02154/product/internal/infrastructure"
 	config2 "github.com/zhanshen02154/product/internal/infrastructure/config"
+	"github.com/zhanshen02154/product/internal/infrastructure/persistence"
+	gorm2 "github.com/zhanshen02154/product/internal/infrastructure/persistence/gorm"
 	registry2 "github.com/zhanshen02154/product/internal/infrastructure/registry"
 	"github.com/zhanshen02154/product/internal/intefaces/handler"
 	"github.com/zhanshen02154/product/proto/product"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
-	"net/http"
-	"net/url"
+	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 	"time"
 )
 
@@ -33,10 +36,17 @@ func main() {
 	//defer io.Close()
 	//opetracing2.SetGlobalTracer(tracer)
 
-	db, err := initDB(&confInfo.Database)
+	db, err := persistence.InitDB(&confInfo.Database)
 	if err != nil {
 		panic(fmt.Sprintf("error: %v", err))
 	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	probeServer := infrastructure.NewProbeServer(":8080", db)
+	probeServer.Start(ctx)
+
+	txManager := gorm2.NewGormTransactionManager(db)
+	productRepo := gorm2.NewProductRepository(db)
 
 	// New Service
 	service := micro.NewService(
@@ -52,92 +62,31 @@ func main() {
 	// Initialise service
 	service.Init()
 
-	go func() {
-		// livenessProbe
-		http.HandleFunc("/healthz", func(writer http.ResponseWriter, request *http.Request) {
-			writer.WriteHeader(http.StatusOK)
-			writer.Write([]byte("OK"))
-		})
-
-		// readinessProbe
-		http.HandleFunc("/ready", func(writer http.ResponseWriter, request *http.Request) {
-			if err := checkDB(db); err != nil {
-				writer.WriteHeader(http.StatusServiceUnavailable)
-				writer.Write([]byte("Not Ready"))
-			} else {
-				writer.WriteHeader(http.StatusOK)
-				writer.Write([]byte("Ok"))
-			}
-		})
-		err = http.ListenAndServe(":8080", nil)
-		if err != nil {
-			log.Fatalf("check status http api error: %v", err)
-		} else {
-			log.Info("listen http server on: 8080")
-		}
-	}()
-
-	productService := service2.NewProductApplicationService(db)
+	productService := service2.NewProductApplicationService(txManager, productRepo)
 	err = product.RegisterProductHandler(service.Server(), &handler.ProductHandler{ProductApplicationService: productService})
 	if err != nil {
 		log.Error(err)
 	}
 
 	// Run service
-	if err := service.Run(); err != nil {
-		log.Fatal(err)
-	}
-}
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		select {
+		case <-sigChan:
+			cancel()
+		}
+	}()
 
-// 加载数据库
-func initDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=%s",
-		confInfo.User,
-		confInfo.Password,
-		confInfo.Host,
-		confInfo.Port,
-		confInfo.Database,
-		confInfo.Charset,
-		url.QueryEscape(confInfo.Loc),
-	)
-	fmt.Println(dsn)
-	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN:                       dsn,
-		SkipInitializeWithVersion: false,
-		DefaultStringSize:         255,
-	}), &gorm.Config{SkipDefaultTransaction: true})
-	if err != nil {
-		return nil, err
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
-	if sqlDB == nil {
-		return nil, fmt.Errorf("获取SQL DB失败: %w", err)
-	}
-
-	// 配置连接池
-	sqlDB.SetMaxOpenConns(confInfo.MaxOpenConns)
-	sqlDB.SetMaxIdleConns(confInfo.MaxIdleConns)
-	sqlDB.SetConnMaxLifetime(time.Duration(confInfo.ConnMaxLifeTime) * time.Second)
-
-	// 验证连接
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("数据库连接验证失败: %w", err)
-	}
-
-	log.Info("数据库连接成功")
-	return db, nil
-}
-
-func checkDB(db *gorm.DB) error {
-	sqlDb, err := db.DB()
-	if err != nil {
-		return err
-	}
-	if err = sqlDb.Ping(); err != nil {
-		return err
-	}
-	return nil
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err = service.Run(); err != nil {
+			log.Fatal(err)
+			cancel()
+		}
+	}()
+	wg.Wait()
+	probeServer.Wait()
 }

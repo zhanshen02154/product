@@ -32,3 +32,12 @@ func (h *ProductHandler) AddProduct(ctx context.Context, req *product.ProductInf
 	resp.ProductId = productRespDto.Id
 	return nil
 }
+
+func (h *ProductHandler) DeductInvetory(ctx context.Context, in *product.OrderDetailReq, out *product.OrderProductResp) error {
+	err := h.ProductApplicationService.DeductInvetory(ctx, in)
+	if err != nil {
+		return err
+	}
+	out.StatusCode = "0000"
+	return nil
+}

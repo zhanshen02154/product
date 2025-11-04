@@ -5,6 +5,7 @@ import (
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // ProductRepository
@@ -29,4 +30,20 @@ func (u *ProductRepository) FindProductByID(ctx context.Context, id int64) (prod
 func (u *ProductRepository) CreateProduct(ctx context.Context, product *model.Product) (int64, error) {
 	db := GetDBFromContext(ctx, u.db)
 	return product.Id, db.Create(product).Error
+}
+
+// FindProductSizeListByIds 查找产品规格
+func (u *ProductRepository) FindProductSizeListByIds(ctx context.Context, ids []int64) ([]model.ProductSize, error) {
+	db := GetDBFromContext(ctx, u.db)
+	var productSizeList []model.ProductSize
+	err := db.Debug().Model(model.ProductSize{}).Clauses(clause.Locking{Strength: "UPDATE"}).Select("id", "stock").Where("id IN ?", ids).Find(&productSizeList).Error
+	return productSizeList, err
+}
+
+// FindProductListByIds 根据多个ID查找产品
+func (u *ProductRepository) FindProductListByIds(ctx context.Context, productIds []int64) ([]model.Product, error) {
+	db := GetDBFromContext(ctx, u.db)
+	var list []model.Product
+	err := db.Debug().Model(model.Product{}).Clauses(clause.Locking{Strength: "UPDATE"}).Select("id", "stock").Where("id in ?", productIds).Find(&list).Error
+	return list, err
 }
