@@ -33,7 +33,6 @@ func main() {
 		consul.WithPrefix(consulPrefix),
 		//consul.StripPrefix(true),
 		source.WithEncoder(yaml.NewEncoder()),
-		consul.StripPrefix(true),
 	)
 	configInfo, err := config2.NewConfig()
 	defer func() {
@@ -54,7 +53,7 @@ func main() {
 	}
 
 	var confInfo configstruct.SysConfig
-	if err = configInfo.Get("order").Scan(&confInfo); err != nil {
+	if err = configInfo.Get(consulPrefix).Scan(&confInfo); err != nil {
 		log.Fatal(err)
 		return
 	}
