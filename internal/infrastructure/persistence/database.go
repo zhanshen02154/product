@@ -21,7 +21,6 @@ func InitDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
 		confInfo.Charset,
 		url.QueryEscape(confInfo.Loc),
 	)
-	fmt.Println(dsn)
 	db, err := gorm.Open(mysql.New(mysql.Config{
 		DSN:                       dsn,
 		SkipInitializeWithVersion: false,

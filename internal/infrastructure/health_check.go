@@ -6,14 +6,15 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"sync"
-	"time"
+	"sync/atomic"
 )
 
 // ProbeServer 健康检查探针
 type ProbeServer struct {
-	server *http.Server
-	db     *gorm.DB
-	wg     sync.WaitGroup
+	server         *http.Server
+	db             *gorm.DB
+	wg             sync.WaitGroup
+	isShuttingDown atomic.Bool
 }
 
 func NewProbeServer(port string, db *gorm.DB) *ProbeServer {
@@ -28,7 +29,7 @@ func NewProbeServer(port string, db *gorm.DB) *ProbeServer {
 			writer.WriteHeader(http.StatusServiceUnavailable)
 			writer.Write([]byte("Not Ready"))
 		} else {
-			if err := sqlDB.Ping(); err != nil {
+			if err = sqlDB.Ping(); err != nil {
 				writer.WriteHeader(http.StatusServiceUnavailable)
 				writer.Write([]byte("Not Ready"))
 			} else {
@@ -40,35 +41,29 @@ func NewProbeServer(port string, db *gorm.DB) *ProbeServer {
 	return &ProbeServer{
 		server: &http.Server{Addr: port, Handler: mx},
 		db:     db,
-		wg:     sync.WaitGroup{},
 	}
 }
 
 // Start 启动服务器
-func (probeServe *ProbeServer) Start(ctx context.Context) {
+func (probeServe *ProbeServer) Start() error {
 	probeServe.wg.Add(1)
 	go func() {
 		defer probeServe.wg.Done()
-		go func() {
-			err := probeServe.server.ListenAndServe()
-			if err != nil && err != http.ErrServerClosed {
-				log.Fatalf("Health check server start error: %v", err)
-			}
-		}()
-
-		<-ctx.Done()
-		log.Info("收到关闭信号，正在停止健康检查服务器...")
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		if err := probeServe.server.Shutdown(shutdownCtx); err != nil {
-			log.Infof("健康检查探针服务关闭错误: %v", err)
-		} else {
-			log.Info("健康检查探针服务已关闭")
+		err := probeServe.server.ListenAndServe()
+		if err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Health check server error: %v", err)
 		}
 	}()
+	return nil
 }
 
-func (probeServe *ProbeServer) Wait() {
+// Shutdown 关闭服务器
+func (probeServe *ProbeServer) Shutdown(ctx context.Context) error {
+	probeServe.isShuttingDown.Store(true)
+	if err := probeServe.server.Shutdown(ctx); err != nil {
+		return err
+	}
 	probeServe.wg.Wait()
+	log.Info("健康检查服务器已关闭")
+	return nil
 }
