@@ -149,6 +149,162 @@ func (x *ResponseProduct) GetProductId() int64 {
 	return 0
 }
 
+type OrderDetailReq struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       int64                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	Products      []*ProductInvetoryItem `protobuf:"bytes,2,rep,name=products,proto3" json:"products,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrderDetailReq) Reset() {
+	*x = OrderDetailReq{}
+	mi := &file_proto_product_product_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderDetailReq) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderDetailReq) ProtoMessage() {}
+
+func (x *OrderDetailReq) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_product_product_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderDetailReq.ProtoReflect.Descriptor instead.
+func (*OrderDetailReq) Descriptor() ([]byte, []int) {
+	return file_proto_product_product_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *OrderDetailReq) GetOrderId() int64 {
+	if x != nil {
+		return x.OrderId
+	}
+	return 0
+}
+
+func (x *OrderDetailReq) GetProducts() []*ProductInvetoryItem {
+	if x != nil {
+		return x.Products
+	}
+	return nil
+}
+
+type ProductInvetoryItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ProductId     int64                  `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
+	ProductNum    int64                  `protobuf:"varint,2,opt,name=product_num,json=productNum,proto3" json:"product_num,omitempty"`
+	ProductSizeId int64                  `protobuf:"varint,3,opt,name=product_size_id,json=productSizeId,proto3" json:"product_size_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProductInvetoryItem) Reset() {
+	*x = ProductInvetoryItem{}
+	mi := &file_proto_product_product_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProductInvetoryItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProductInvetoryItem) ProtoMessage() {}
+
+func (x *ProductInvetoryItem) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_product_product_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProductInvetoryItem.ProtoReflect.Descriptor instead.
+func (*ProductInvetoryItem) Descriptor() ([]byte, []int) {
+	return file_proto_product_product_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *ProductInvetoryItem) GetProductId() int64 {
+	if x != nil {
+		return x.ProductId
+	}
+	return 0
+}
+
+func (x *ProductInvetoryItem) GetProductNum() int64 {
+	if x != nil {
+		return x.ProductNum
+	}
+	return 0
+}
+
+func (x *ProductInvetoryItem) GetProductSizeId() int64 {
+	if x != nil {
+		return x.ProductSizeId
+	}
+	return 0
+}
+
+type OrderProductResp struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	StatusCode    string                 `protobuf:"bytes,1,opt,name=StatusCode,proto3" json:"StatusCode,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *OrderProductResp) Reset() {
+	*x = OrderProductResp{}
+	mi := &file_proto_product_product_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *OrderProductResp) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*OrderProductResp) ProtoMessage() {}
+
+func (x *OrderProductResp) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_product_product_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use OrderProductResp.ProtoReflect.Descriptor instead.
+func (*OrderProductResp) Descriptor() ([]byte, []int) {
+	return file_proto_product_product_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *OrderProductResp) GetStatusCode() string {
+	if x != nil {
+		return x.StatusCode
+	}
+	return ""
+}
+
 var File_proto_product_product_proto protoreflect.FileDescriptor
 
 const file_proto_product_product_proto_rawDesc = "" +
@@ -164,10 +320,24 @@ const file_proto_product_product_proto_rawDesc = "" +
 	"\x13product_category_id\x18\x06 \x01(\x03R\x11productCategoryId\"0\n" +
 	"\x0fResponseProduct\x12\x1d\n" +
 	"\n" +
-	"product_id\x18\x01 \x01(\x03R\tproductId2[\n" +
+	"product_id\x18\x01 \x01(\x03R\tproductId\"n\n" +
+	"\x0eOrderDetailReq\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\x03R\aorderId\x12A\n" +
+	"\bproducts\x18\x02 \x03(\v2%.go.micro.service.ProductInvetoryItemR\bproducts\"}\n" +
+	"\x13ProductInvetoryItem\x12\x1d\n" +
+	"\n" +
+	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x1f\n" +
+	"\vproduct_num\x18\x02 \x01(\x03R\n" +
+	"productNum\x12&\n" +
+	"\x0fproduct_size_id\x18\x03 \x01(\x03R\rproductSizeId\"2\n" +
+	"\x10OrderProductResp\x12\x1e\n" +
+	"\n" +
+	"StatusCode\x18\x01 \x01(\tR\n" +
+	"StatusCode2\xb5\x01\n" +
 	"\aProduct\x12P\n" +
 	"\n" +
-	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00B\x11Z\x0f./proto/productb\x06proto3"
+	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00\x12X\n" +
+	"\x0eDeductInvetory\x12 .go.micro.service.OrderDetailReq\x1a\".go.micro.service.OrderProductResp\"\x00B\x11Z\x0f./proto/productb\x06proto3"
 
 var (
 	file_proto_product_product_proto_rawDescOnce sync.Once
@@ -181,19 +351,25 @@ func file_proto_product_product_proto_rawDescGZIP() []byte {
 	return file_proto_product_product_proto_rawDescData
 }
 
-var file_proto_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_proto_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_proto_product_product_proto_goTypes = []any{
-	(*ProductInfo)(nil),     // 0: go.micro.service.ProductInfo
-	(*ResponseProduct)(nil), // 1: go.micro.service.ResponseProduct
+	(*ProductInfo)(nil),         // 0: go.micro.service.ProductInfo
+	(*ResponseProduct)(nil),     // 1: go.micro.service.ResponseProduct
+	(*OrderDetailReq)(nil),      // 2: go.micro.service.OrderDetailReq
+	(*ProductInvetoryItem)(nil), // 3: go.micro.service.ProductInvetoryItem
+	(*OrderProductResp)(nil),    // 4: go.micro.service.OrderProductResp
 }
 var file_proto_product_product_proto_depIdxs = []int32{
-	0, // 0: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
-	1, // 1: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: go.micro.service.OrderDetailReq.products:type_name -> go.micro.service.ProductInvetoryItem
+	0, // 1: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
+	2, // 2: go.micro.service.Product.DeductInvetory:input_type -> go.micro.service.OrderDetailReq
+	1, // 3: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
+	4, // 4: go.micro.service.Product.DeductInvetory:output_type -> go.micro.service.OrderProductResp
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_proto_product_product_proto_init() }
@@ -207,7 +383,7 @@ func file_proto_product_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_product_product_proto_rawDesc), len(file_proto_product_product_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

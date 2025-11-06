@@ -1,8 +1,9 @@
-package common
+package swap
 
 import "encoding/json"
 
 // SwapTo
+//
 //	@Description: 转换
 //	@param request
 //	@param category
