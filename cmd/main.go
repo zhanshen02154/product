@@ -75,7 +75,7 @@ func main() {
 	}
 
 	// 健康检查
-	probeServer := infrastructure.NewProbeServer(":8081", db)
+	probeServer := infrastructure.NewProbeServer(confInfo.Service.HeathCheckAddr, db)
 	if err = probeServer.Start(); err != nil {
 		log.Fatalf("健康检查服务器启动失败")
 	}
