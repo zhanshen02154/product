@@ -119,7 +119,7 @@ func main() {
 	)
 
 	// Initialise service
-	service.Init()
+	//service.Init()
 
 	productService := service2.NewProductApplicationService(txManager, productRepo)
 	err = product.RegisterProductHandler(service.Server(), &handler.ProductHandler{ProductApplicationService: productService})
