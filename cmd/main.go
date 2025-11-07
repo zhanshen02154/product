@@ -93,9 +93,9 @@ func main() {
 		micro.RegisterInterval(time.Duration(confInfo.Consul.RegisterInterval)*time.Second),
 		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		micro.BeforeStop(func() error {
-			log.Info("收到关闭信号，正在停止健康检查服务器...")
-			shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 			defer cancel()
+			log.Info("收到关闭信号，正在停止健康检查服务器...")
 			err = probeServer.Shutdown(shutdownCtx)
 			if err != nil {
 				return err
@@ -110,9 +110,9 @@ func main() {
 				if err1 != nil {
 					log.Infof("关闭GORM连接失败： %v", err1)
 					return err1
+				} else {
+					log.Info("GORM数据库连接已关闭")
 				}
-			} else {
-				log.Info("数据库已关闭")
 			}
 			return nil
 		}),
