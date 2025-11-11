@@ -1,8 +1,7 @@
 package registry
 
 import (
-	"context"
-	"fmt"
+	"github.com/hashicorp/consul/api"
 	"github.com/micro/go-micro/v2/registry"
 	"github.com/micro/go-plugins/registry/consul/v2"
 	"github.com/zhanshen02154/product/internal/config"
@@ -11,11 +10,15 @@ import (
 
 // ConsulRegister consul注册
 func ConsulRegister(confInfo *config.ConsulInfo) registry.Registry {
-	return consul.NewRegistry(func(options *registry.Options) {
-		options.Addrs = []string{
-			fmt.Sprintf("%s:%d", confInfo.Addr, confInfo.Port),
-		}
-		options.Timeout = time.Duration(confInfo.Timeout) * time.Second
-		options.Context = context.WithValue(context.Background(), "api.token", confInfo.Token)
-	})
+	queryOpts := &api.QueryOptions{
+		WaitTime: time.Duration(60) * time.Second,
+	}
+	return consul.NewRegistry(
+		registry.Addrs(confInfo.RegistryAddrs...),
+		registry.Timeout(time.Duration(confInfo.Timeout)*time.Second),
+		consul.QueryOptions(queryOpts),
+		consul.Config(&api.Config{
+			WaitTime: time.Duration(60) * time.Second,
+		}),
+	)
 }
