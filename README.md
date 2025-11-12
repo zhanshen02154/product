@@ -1,14 +1,11 @@
 ## 微服务架构演进实践之——商品服务
 
-微服务架构演进实践之商品服务，使用DDD领域驱动架构构建，通信方式为GRPC。
-// 后续待补充
+微服务架构演进实践之商品服务，订单服务为领域驱动架构，包含领域层、应用层、基础设施层、接口层；通信方式为GRPC。
 
 ## 目录结构
 ```treeofiles
-├─cmd
-├─common
-├─config
-├─handler
+├─cmd                  // 入口文件
+├─common               // 公共模块
 ├─internal
 │  ├─application       // 应用层
 │  │  ├─dto            // DTO
@@ -25,7 +22,7 @@
 │  │  │  └─gorm         // gorm具体仓储实现类
 │  │  ├─registry        // 注册中心
 │  │  └─rpc             // RPC服务
-│  └─intefaces
+│  └─intefaces          // 接口层
 ├─pkg                   // 组件包
 ├─proto                 protobuf
 │  └─product
