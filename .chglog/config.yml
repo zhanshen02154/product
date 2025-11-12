@@ -23,7 +23,7 @@ options:
       - Type
       - Scope
       - Subject
-    issues:
+  issues:
     prefix:
       - "#"
   notes:
