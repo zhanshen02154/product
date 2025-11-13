@@ -1,29 +1,63 @@
 package main
 
 import (
+	"context"
 	"fmt"
-	"git.imooc.com/zhanshen1614/product/handler"
-	"git.imooc.com/zhanshen1614/product/internal/config"
-	service2 "git.imooc.com/zhanshen1614/product/internal/domain/service"
-	config2 "git.imooc.com/zhanshen1614/product/internal/infrastructure/config"
-	gorm2 "git.imooc.com/zhanshen1614/product/internal/infrastructure/persistence/gorm"
-	registry2 "git.imooc.com/zhanshen1614/product/internal/infrastructure/registry"
-	"git.imooc.com/zhanshen1614/product/proto/product"
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	"github.com/micro/go-micro/v2"
+	config2 "github.com/micro/go-micro/v2/config"
+	"github.com/micro/go-micro/v2/config/encoder/yaml"
+	"github.com/micro/go-micro/v2/config/source"
 	"github.com/micro/go-micro/v2/util/log"
-	"net/http"
-	"net/url"
+	"github.com/micro/go-plugins/config/source/consul/v2"
+	service2 "github.com/zhanshen02154/product/internal/application/service"
+	configstruct "github.com/zhanshen02154/product/internal/config"
+	"github.com/zhanshen02154/product/internal/infrastructure"
+	"github.com/zhanshen02154/product/internal/infrastructure/persistence"
+	gorm2 "github.com/zhanshen02154/product/internal/infrastructure/persistence/gorm"
+	registry2 "github.com/zhanshen02154/product/internal/infrastructure/registry"
+	"github.com/zhanshen02154/product/internal/intefaces/handler"
+	"github.com/zhanshen02154/product/pkg/env"
+	"github.com/zhanshen02154/product/proto/product"
 	"time"
-	_ "time/tzdata"
 )
 
 func main() {
-	confInfo, err := config2.LoadSystemConfig()
+	// 从consul获取配置
+	consulHost := env.GetEnv("CONSUL_HOST", "192.168.83.131")
+	consulPort := env.GetEnv("CONSUL_PORT", "8500")
+	consulPrefix := env.GetEnv("CONSUL_PREFIX", "product")
+	consulSource := consul.NewSource(
+		// Set configuration address
+		consul.WithAddress(fmt.Sprintf("%s:%s", consulHost, consulPort)),
+		//前缀 默认：product
+		consul.WithPrefix(consulPrefix),
+		//consul.StripPrefix(true),
+		source.WithEncoder(yaml.NewEncoder()),
+	)
+	configInfo, err := config2.NewConfig()
+	defer func() {
+		err = configInfo.Close()
+		if err != nil {
+			log.Fatal(err)
+			return
+		}
+	}()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+		return
 	}
+	err = configInfo.Load(consulSource)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+
+	var confInfo configstruct.SysConfig
+	if err = configInfo.Get(consulPrefix).Scan(&confInfo); err != nil {
+		log.Fatal(err)
+		return
+	}
+
 	// 注册到Consul
 	consulRegistry := registry2.ConsulRegister(&confInfo.Consul)
 
@@ -35,16 +69,19 @@ func main() {
 	//defer io.Close()
 	//opetracing2.SetGlobalTracer(tracer)
 
-	db, err := initDB(confInfo)
+	db, err := persistence.InitDB(&confInfo.Database)
 	if err != nil {
 		panic(fmt.Sprintf("error: %v", err))
 	}
-	defer func() {
-		if db != nil { // 关键检查
-			db.Close()
-		}
-	}()
-	rp := gorm2.NewProductRepository(db)
+
+	// 健康检查
+	probeServer := infrastructure.NewProbeServer(confInfo.Service.HeathCheckAddr, db)
+	if err = probeServer.Start(); err != nil {
+		log.Fatalf("健康检查服务器启动失败")
+	}
+
+	txManager := gorm2.NewGormTransactionManager(db)
+	productRepo := gorm2.NewProductRepository(db)
 
 	// New Service
 	service := micro.NewService(
@@ -55,79 +92,44 @@ func main() {
 		micro.RegisterTTL(time.Duration(confInfo.Consul.RegisterTtl)*time.Second),
 		micro.RegisterInterval(time.Duration(confInfo.Consul.RegisterInterval)*time.Second),
 		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
+		micro.BeforeStop(func() error {
+			shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			log.Info("收到关闭信号，正在停止健康检查服务器...")
+			err = probeServer.Shutdown(shutdownCtx)
+			if err != nil {
+				return err
+			}
+			sqlDB, err := db.DB()
+			if err != nil {
+				log.Errorf("failed to close database: %v", err)
+				return err
+			}
+			if err = sqlDB.Ping(); err == nil {
+				err1 := sqlDB.Close()
+				if err1 != nil {
+					log.Infof("关闭GORM连接失败： %v", err1)
+					return err1
+				} else {
+					log.Info("GORM数据库连接已关闭")
+				}
+			}
+			return nil
+		}),
 	)
 
 	// Initialise service
-	service.Init()
+	//service.Init()
 
-	go func() {
-		// livenessProbe
-		http.HandleFunc("/healthz", func(writer http.ResponseWriter, request *http.Request) {
-			writer.WriteHeader(http.StatusOK)
-			writer.Write([]byte("OK"))
-		})
-
-		// readinessProbe
-		http.HandleFunc("/ready", func(writer http.ResponseWriter, request *http.Request) {
-			if err := db.DB().Ping(); err != nil {
-				writer.WriteHeader(http.StatusServiceUnavailable)
-				writer.Write([]byte("Not Ready"))
-			} else {
-				writer.WriteHeader(http.StatusOK)
-				writer.Write([]byte("Ok"))
-			}
-		})
-		err = http.ListenAndServe(":8080", nil)
-		if err != nil {
-			log.Fatalf("check status http api error: %v", err)
-		} else {
-			log.Info("listen http server on: 8080")
-		}
-	}()
-
-	productService := service2.NewProductDataService(rp)
-	err = product.RegisterProductHandler(service.Server(), &handler.Product{ProductDataService: productService})
+	productService := service2.NewProductApplicationService(txManager, productRepo)
+	err = product.RegisterProductHandler(service.Server(), &handler.ProductHandler{ProductApplicationService: productService})
 	if err != nil {
 		log.Error(err)
+		return
 	}
 
 	// Run service
-	if err := service.Run(); err != nil {
+	if err = service.Run(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-// 加载数据库
-func initDB(confInfo *config.SysConfig) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=%s",
-		confInfo.Database.User,
-		confInfo.Database.Password,
-		confInfo.Database.Host,
-		confInfo.Database.Port,
-		confInfo.Database.Database,
-		confInfo.Database.Charset,
-		url.QueryEscape(confInfo.Database.Loc),
-	)
-	fmt.Println(dsn)
-	db, err := gorm.Open("mysql", dsn)
-	if err != nil {
-		return nil, err
-	}
-	sqlDB := db.DB()
-	if sqlDB == nil {
-		return nil, fmt.Errorf("获取SQL DB失败: %w", err)
-	}
-
-	// 配置连接池
-	sqlDB.SetMaxOpenConns(1000)
-	sqlDB.SetMaxIdleConns(100)
-	sqlDB.SetConnMaxLifetime(time.Hour)
-
-	// 验证连接
-	if err := sqlDB.Ping(); err != nil {
-		return nil, fmt.Errorf("数据库连接验证失败: %w", err)
-	}
-
-	log.Info("数据库连接成功")
-	return db, nil
 }

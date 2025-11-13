@@ -6,6 +6,7 @@ package go.micro.service;
 
 service Product {
   rpc AddProduct(ProductInfo) returns (ResponseProduct){}
+  rpc DeductInvetory(OrderDetailReq) returns (OrderProductResp) {}
 }
 
 message ProductInfo {
@@ -19,4 +20,19 @@ message ProductInfo {
 
 message ResponseProduct {
   int64 product_id = 1;
+}
+
+message OrderDetailReq {
+  int64 order_id = 1;
+  repeated ProductInvetoryItem products = 2;
+}
+
+message ProductInvetoryItem {
+  int64 product_id = 1;
+  int64 product_num = 2;
+  int64 product_size_id = 3;
+}
+
+message OrderProductResp {
+  string StatusCode = 1;
 }

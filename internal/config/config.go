@@ -1,14 +1,15 @@
 package config
 
 type SysConfig struct {
-	Service ServiceInfo `json:"service" yaml:"service"`
+	Service  ServiceInfo `json:"service" yaml:"service"`
 	Database MySqlConfig `json:"database" yaml:"database"`
-	Consul  ConsulInfo  `json:"consul" yaml:"consul"`
+	Consul   ConsulInfo  `json:"consul" yaml:"consul"`
 }
 
 type ServiceInfo struct {
-	Name    string `json:"name" yaml:"name"`
-	Version string `json:"version" yaml:"version"`
-	Listen  string `json:"listen" yaml:"listen"`
-	Port    uint   `json:"port" yaml:"port"`
+	Name           string `json:"name" yaml:"name"`
+	Version        string `json:"version" yaml:"version"`
+	Listen         string `json:"listen" yaml:"listen"`
+	Port           uint   `json:"port" yaml:"port"`
+	HeathCheckAddr string `json:"heath_check_addr" yaml:"heath_check_addr"`
 }
