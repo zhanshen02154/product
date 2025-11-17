@@ -49,7 +49,9 @@ pipeline {
 						docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
 							docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
 						}
-						sh 'docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}'
+						sh '''
+						docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}
+						'''
 					}
 				}
 			}
