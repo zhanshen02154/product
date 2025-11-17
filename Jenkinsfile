@@ -77,10 +77,10 @@ pipeline {
 					catch(exc) {
 						withCredentials([string(credentialsId: 'kubernetes-api-server', variable: 'k8s_api_server')]) {
 							withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
-								sh """
+								sh '''
 								set +x
 								/usr/bin/kubectl rollout undo deployment/product-service -n dev --to-revision=$(/usr/bin/kubectl rollout history deployment/product-service -n dev | awk '{print $1}' | tail -n 2)
-								"""
+								'''
 							}
 						}
 					}
