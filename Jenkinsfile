@@ -66,21 +66,21 @@ pipeline {
 					try {
 						withCredentials([string(credentialsId: 'kubernetes-api-server', variable: 'k8s_api_server')]) {
 							withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
-								sh '''
+								sh """
 								set +x
 								/usr/bin/kubectl set image deployment/product-service product-container=${DOCKER_IMAGE}:${DOCKER_TAG} -n dev --record
 								/usr/bin/kubectl rollout status deployment/product-service -n dev --timeout 120s
-								'''
+								"""
 							}
 						}
 					}
 					catch(exc) {
 						withCredentials([string(credentialsId: 'kubernetes-api-server', variable: 'k8s_api_server')]) {
 							withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
-								sh '''
+								sh """
 								set +x
 								/usr/bin/kubectl rollout undo deployment/product-service -n dev --to-revision=$(/usr/bin/kubectl rollout history deployment/product-service -n dev | awk '{print $1}' | tail -n 2)
-								'''
+								"""
 							}
 						}
 					}
