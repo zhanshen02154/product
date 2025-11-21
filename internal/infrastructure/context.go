@@ -29,7 +29,7 @@ func NewServiceContext(conf *config.SysConfig, serviceReg registry.Registry) (*S
 	}
 
 	// 加载ETCD分布式锁
-	lockMgr, err := NewEtcdLockManager(&conf)
+	lockMgr, err := NewEtcdLockManager(conf.Etcd)
 	if err != nil {
 		logger.Fatalf(fmt.Sprintf("failed to load lock manager: %v", err))
 		return nil, err
