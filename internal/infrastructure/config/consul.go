@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
-	"github.com/micro/go-micro/v2/config"
-	"github.com/micro/go-plugins/config/source/consul/v2"
+	"github.com/go-micro/plugins/v4/config/source/consul"
 	config2 "github.com/zhanshen02154/product/internal/config"
+	"go-micro.dev/v4/config"
 )
 
 func GetConsulConfig(conf *config2.SysConfig) (config.Config, error) {

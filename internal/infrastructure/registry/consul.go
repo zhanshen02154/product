@@ -1,10 +1,10 @@
 package registry
 
 import (
+	"github.com/go-micro/plugins/v4/registry/consul"
 	"github.com/hashicorp/consul/api"
-	"github.com/micro/go-micro/v2/registry"
-	"github.com/micro/go-plugins/registry/consul/v2"
 	"github.com/zhanshen02154/product/internal/config"
+	"go-micro.dev/v4/registry"
 	"time"
 )
 
