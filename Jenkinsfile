@@ -49,7 +49,7 @@ pipeline {
 						docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
 							docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
 						}
-						sh 'docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}'
+						sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}"
 					}
 				}
 			}
@@ -66,11 +66,11 @@ pipeline {
 					try {
 						withCredentials([string(credentialsId: 'kubernetes-api-server', variable: 'k8s_api_server')]) {
 							withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
-								sh '''
+								sh """
 								set +x
 								/usr/bin/kubectl set image deployment/product-service product-container=${DOCKER_IMAGE}:${DOCKER_TAG} -n dev --record
 								/usr/bin/kubectl rollout status deployment/product-service -n dev --timeout 120s
-								'''
+								"""
 							}
 						}
 					}

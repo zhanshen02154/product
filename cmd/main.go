@@ -38,23 +38,23 @@ func main() {
 	defer func() {
 		err = configInfo.Close()
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
 			return
 		}
 	}()
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 	err = configInfo.Load(consulSource)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 
 	var confInfo configstruct.SysConfig
 	if err = configInfo.Get(consulPrefix).Scan(&confInfo); err != nil {
-		log.Fatal(err)
+		log.Error(err)
 		return
 	}
 
@@ -64,7 +64,7 @@ func main() {
 	//链路追踪
 	//tracer, io, err := common.NewTracer(cmd.SERVICE_NAME, cmd.TRACER_ADDR)
 	//if err != nil {
-	//	log.Fatal(err)
+	//	log.Error(err)
 	//}
 	//defer io.Close()
 	//opetracing2.SetGlobalTracer(tracer)
@@ -77,7 +77,7 @@ func main() {
 	// 健康检查
 	probeServer := infrastructure.NewProbeServer(confInfo.Service.HeathCheckAddr, db)
 	if err = probeServer.Start(); err != nil {
-		log.Fatalf("健康检查服务器启动失败")
+		log.Errorf("健康检查服务器启动失败")
 	}
 
 	txManager := gorm2.NewGormTransactionManager(db)
@@ -130,6 +130,6 @@ func main() {
 
 	// Run service
 	if err = service.Run(); err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 }
