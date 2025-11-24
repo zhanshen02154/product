@@ -2,14 +2,16 @@ package service
 
 import (
 	"context"
+	"errors"
+	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
-	"github.com/zhanshen02154/product/proto/product"
 )
 
 type IProductDataService interface {
 	AddProduct(ctx context.Context, productInfo *model.Product) (int64, error)
-	DeductInvetory(ctx context.Context, req *product.OrderDetailReq) error
+	DeductOrderInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error
+	DeductOrderInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 }
 
 // NewProductDataService 创建
@@ -26,15 +28,44 @@ func (u *ProductDataService) AddProduct(ctx context.Context, product *model.Prod
 	return u.productRepository.CreateProduct(ctx, product)
 }
 
-// DeductInvetory 扣减库存
-func (u *ProductDataService) DeductInvetory(ctx context.Context, req *product.OrderDetailReq) error {
+// DeductOrderInvetory 扣减库存
+func (u *ProductDataService) DeductOrderInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
 	var err error
-	for _, item := range req.Products {
-		err = u.productRepository.DeductProductInvetory(ctx, item.ProductId, item.ProductNum)
+	for _, item := range req.ProductInvetory {
+		err = u.productRepository.DeductProductInvetory(ctx, item.Id, item.Count)
 		if err != nil {
 			break
 		}
-		err = u.productRepository.DeductProductSizeInvetory(ctx, item.ProductSizeId, item.ProductNum)
+	}
+	if err != nil {
+		return err
+	}
+	for _, item := range req.ProductSizeInvetory {
+		err = u.productRepository.DeductProductSizeInvetory(ctx, item.Id, item.Count)
+		if err != nil {
+			break
+		}
+	}
+	return err
+}
+
+// DeductOrderInvetoryRevert 扣减订单库存补偿操作
+func (u *ProductDataService) DeductOrderInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+	var err error
+	if len(req.ProductSizeInvetory) == 0 || len(req.ProductSizeInvetory) == 0 {
+		err = errors.New("product data cannot be empty")
+	}
+	for _, item := range req.ProductInvetory {
+		err = u.productRepository.DeductProductInvetoryRevert(ctx, item.Id, item.Count)
+		if err != nil {
+			break
+		}
+	}
+	if err != nil {
+		return err
+	}
+	for _, item := range req.ProductSizeInvetory {
+		err = u.productRepository.DeductProductSizeInvetoryRevert(ctx, item.Id, item.Count)
 		if err != nil {
 			break
 		}
