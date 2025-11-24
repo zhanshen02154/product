@@ -3,31 +3,29 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/model"
-	"github.com/zhanshen02154/product/internal/domain/repository"
 	"github.com/zhanshen02154/product/internal/domain/service"
-	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction"
+	"github.com/zhanshen02154/product/internal/infrastructure"
 	"github.com/zhanshen02154/product/pkg/swap"
-	"github.com/zhanshen02154/product/proto/product"
 )
 
 type IProductApplicationService interface {
 	AddProduct(ctx context.Context, productInfo *dto.ProductDto) (*dto.AddProductResponse, error)
-	DeductInvetory(ctx context.Context, req *product.OrderDetailReq) error
+	DeductInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error
+	DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 }
 
 type ProductApplicationService struct {
-	productRepo          repository.IProductRepository
 	productDomainService service.IProductDataService
-	txManager            transaction.TransactionManager
+	serviceContext       *infrastructure.ServiceContext
 }
 
-func NewProductApplicationService(txManager transaction.TransactionManager, productRepo repository.IProductRepository) IProductApplicationService {
+func NewProductApplicationService(serviceContext *infrastructure.ServiceContext) IProductApplicationService {
 	return &ProductApplicationService{
-		productDomainService: service.NewProductDataService(productRepo),
-		productRepo:          productRepo,
-		txManager:            txManager,
+		productDomainService: service.NewProductDataService(serviceContext.OrderRepository),
+		serviceContext:       serviceContext,
 	}
 }
 
@@ -45,11 +43,39 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 }
 
 // DeductInvetory 扣减订单的库存
-func (appService *ProductApplicationService) DeductInvetory(ctx context.Context, req *product.OrderDetailReq) error {
-	return appService.txManager.ExecuteTransaction(ctx, func(txCtx context.Context) error {
-		if len(req.Products) == 0 || len(req.Products) == 0 {
-			return errors.New("没有数据")
-		}
-		return appService.productDomainService.DeductInvetory(ctx, req)
+func (appService *ProductApplicationService) DeductInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetory:%d", req.OrderId), 30)
+	if err != nil {
+		return err
+	}
+	ok, err := lock.TryLock(ctx)
+	defer lock.UnLock(ctx)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New(fmt.Sprintf("duplicate notify: %d", req.OrderId))
+	}
+	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
+		return appService.productDomainService.DeductOrderInvetory(txCtx, req)
+	})
+}
+
+// DeductInvetoryRevert 扣减订单的库存补偿
+func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert:%d", req.OrderId), 30)
+	if err != nil {
+		return err
+	}
+	ok, err := lock.TryLock(ctx)
+	defer lock.UnLock(ctx)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return errors.New(fmt.Sprintf("duplicate notify: %d", req.OrderId))
+	}
+	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
+		return appService.productDomainService.DeductOrderInvetoryRevert(txCtx, req)
 	})
 }

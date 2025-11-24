@@ -2,6 +2,8 @@ package gorm
 
 import (
 	"context"
+	"database/sql"
+	"github.com/dtm-labs/client/dtmgrpc"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction"
 	"gorm.io/gorm"
 )
@@ -12,20 +14,11 @@ type GormTransactionManager struct {
 
 type txKey struct{}
 
-func (gtm *GormTransactionManager) ExecuteTransaction(ctx context.Context, fn func(txCtx context.Context) error) error {
-	tx := gtm.db.Begin()
-	if tx.Error != nil {
-		return tx.Error
-	}
-
-	txCtx := context.WithValue(ctx, txKey{}, tx)
-	err := fn(txCtx)
-	if err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	return tx.Commit().Error
+func (gtm *GormTransactionManager) Execute(ctx context.Context, fn func(txCtx context.Context) error) error {
+	return gtm.db.Transaction(func(tx *gorm.DB) error {
+		txCtx := context.WithValue(ctx, txKey{}, tx)
+		return fn(txCtx)
+	})
 }
 
 func NewGormTransactionManager(db *gorm.DB) transaction.TransactionManager {
@@ -38,4 +31,28 @@ func GetDBFromContext(ctx context.Context, defaultDB *gorm.DB) *gorm.DB {
 		return tx // 返回事务实例
 	}
 	return defaultDB // 返回默认的非事务实例
+}
+
+// ExecuteWithBarrier 开启子事务屏障的事务
+func (gtm *GormTransactionManager) ExecuteWithBarrier(ctx context.Context, fn func(txCtx context.Context) error) error {
+	barrier, err := dtmgrpc.BarrierFromGrpc(ctx)
+	if err != nil {
+		return err
+	}
+	sqlDb, err := gtm.db.DB()
+	if err != nil {
+		return err
+	}
+	session := gtm.db.Session(&gorm.Session{
+		SkipHooks:                false,
+		SkipDefaultTransaction:   true,
+		DisableNestedTransaction: true,
+		Context:                  ctx,
+		CreateBatchSize:          2000,
+	})
+	return barrier.CallWithDB(sqlDb, func(tx1 *sql.Tx) error {
+		session.Statement.ConnPool = tx1
+		txCtx := context.WithValue(ctx, txKey{}, session)
+		return fn(txCtx)
+	})
 }
