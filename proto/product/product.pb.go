@@ -263,7 +263,8 @@ func (x *ProductInvetoryItem) GetProductSizeId() int64 {
 
 type OrderProductResp struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	StatusCode    string                 `protobuf:"bytes,1,opt,name=StatusCode,proto3" json:"StatusCode,omitempty"`
+	OrderId       int64                  `protobuf:"varint,1,opt,name=order_id,json=orderId,proto3" json:"order_id,omitempty"`
+	StatusCode    string                 `protobuf:"bytes,2,opt,name=StatusCode,proto3" json:"StatusCode,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -298,6 +299,13 @@ func (*OrderProductResp) Descriptor() ([]byte, []int) {
 	return file_proto_product_product_proto_rawDescGZIP(), []int{4}
 }
 
+func (x *OrderProductResp) GetOrderId() int64 {
+	if x != nil {
+		return x.OrderId
+	}
+	return 0
+}
+
 func (x *OrderProductResp) GetStatusCode() string {
 	if x != nil {
 		return x.StatusCode
@@ -329,15 +337,17 @@ const file_proto_product_product_proto_rawDesc = "" +
 	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x1f\n" +
 	"\vproduct_num\x18\x02 \x01(\x03R\n" +
 	"productNum\x12&\n" +
-	"\x0fproduct_size_id\x18\x03 \x01(\x03R\rproductSizeId\"2\n" +
-	"\x10OrderProductResp\x12\x1e\n" +
+	"\x0fproduct_size_id\x18\x03 \x01(\x03R\rproductSizeId\"M\n" +
+	"\x10OrderProductResp\x12\x19\n" +
+	"\border_id\x18\x01 \x01(\x03R\aorderId\x12\x1e\n" +
 	"\n" +
-	"StatusCode\x18\x01 \x01(\tR\n" +
-	"StatusCode2\xb5\x01\n" +
+	"StatusCode\x18\x02 \x01(\tR\n" +
+	"StatusCode2\x95\x02\n" +
 	"\aProduct\x12P\n" +
 	"\n" +
 	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00\x12X\n" +
-	"\x0eDeductInvetory\x12 .go.micro.service.OrderDetailReq\x1a\".go.micro.service.OrderProductResp\"\x00B\x11Z\x0f./proto/productb\x06proto3"
+	"\x0eDeductInvetory\x12 .go.micro.service.OrderDetailReq\x1a\".go.micro.service.OrderProductResp\"\x00\x12^\n" +
+	"\x14DeductInvetoryRevert\x12 .go.micro.service.OrderDetailReq\x1a\".go.micro.service.OrderProductResp\"\x00B\x11Z\x0f./proto/productb\x06proto3"
 
 var (
 	file_proto_product_product_proto_rawDescOnce sync.Once
@@ -363,10 +373,12 @@ var file_proto_product_product_proto_depIdxs = []int32{
 	3, // 0: go.micro.service.OrderDetailReq.products:type_name -> go.micro.service.ProductInvetoryItem
 	0, // 1: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
 	2, // 2: go.micro.service.Product.DeductInvetory:input_type -> go.micro.service.OrderDetailReq
-	1, // 3: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
-	4, // 4: go.micro.service.Product.DeductInvetory:output_type -> go.micro.service.OrderProductResp
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
+	2, // 3: go.micro.service.Product.DeductInvetoryRevert:input_type -> go.micro.service.OrderDetailReq
+	1, // 4: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
+	4, // 5: go.micro.service.Product.DeductInvetory:output_type -> go.micro.service.OrderProductResp
+	4, // 6: go.micro.service.Product.DeductInvetoryRevert:output_type -> go.micro.service.OrderProductResp
+	4, // [4:7] is the sub-list for method output_type
+	1, // [1:4] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
 	1, // [1:1] is the sub-list for extension extendee
 	0, // [0:1] is the sub-list for field type_name

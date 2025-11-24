@@ -38,6 +38,7 @@ func NewProductEndpoints() []*api.Endpoint {
 type ProductService interface {
 	AddProduct(ctx context.Context, in *ProductInfo, opts ...client.CallOption) (*ResponseProduct, error)
 	DeductInvetory(ctx context.Context, in *OrderDetailReq, opts ...client.CallOption) (*OrderProductResp, error)
+	DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, opts ...client.CallOption) (*OrderProductResp, error)
 }
 
 type productService struct {
@@ -72,17 +73,29 @@ func (c *productService) DeductInvetory(ctx context.Context, in *OrderDetailReq,
 	return out, nil
 }
 
+func (c *productService) DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, opts ...client.CallOption) (*OrderProductResp, error) {
+	req := c.c.NewRequest(c.name, "Product.DeductInvetoryRevert", in)
+	out := new(OrderProductResp)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Product service
 
 type ProductHandler interface {
 	AddProduct(context.Context, *ProductInfo, *ResponseProduct) error
 	DeductInvetory(context.Context, *OrderDetailReq, *OrderProductResp) error
+	DeductInvetoryRevert(context.Context, *OrderDetailReq, *OrderProductResp) error
 }
 
 func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server.HandlerOption) error {
 	type product interface {
 		AddProduct(ctx context.Context, in *ProductInfo, out *ResponseProduct) error
 		DeductInvetory(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error
+		DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error
 	}
 	type Product struct {
 		product
@@ -101,4 +114,8 @@ func (h *productHandler) AddProduct(ctx context.Context, in *ProductInfo, out *R
 
 func (h *productHandler) DeductInvetory(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error {
 	return h.ProductHandler.DeductInvetory(ctx, in, out)
+}
+
+func (h *productHandler) DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error {
+	return h.ProductHandler.DeductInvetoryRevert(ctx, in, out)
 }
