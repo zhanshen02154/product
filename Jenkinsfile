@@ -45,7 +45,7 @@ pipeline {
 						string(credentialsId: 'CONSUL_PORT', variable: 'consul_port')
 						]) {
 						sh 'set +x'
-						docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=$consul_host --build-arg CONSUL_PORT=$consul_port --build-arg CONSUL_PREFIX=product .")
+						docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=$consul_host --build-arg CONSUL_PORT=$consul_port --build-arg CONSUL_PREFIX=/micro/ .")
 						docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
 							docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
 						}
@@ -79,7 +79,7 @@ pipeline {
 							withKubeConfig([credentialsId: 'kubernetes-config', serverUrl: "$k8s_api_server", namespace: 'dev']) {
 								sh '''
 								set +x
-								/usr/bin/kubectl rollout undo deployment/product-service -n dev --to-revision=$(/usr/bin/kubectl rollout history deployment/product-service -n dev | awk '{print $1}' | tail -n 2)
+								/usr/bin/kubectl rollout undo deployment/product-service -n dev
 								'''
 							}
 						}
