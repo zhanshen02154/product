@@ -12,9 +12,10 @@ import (
 	"time"
 )
 
-// 分布式锁接口
+// DistributedLock 分布式锁接口
 type DistributedLock interface {
 	Lock(ctx context.Context) (bool, error)
+	TryLock(ctx context.Context) (bool, error)
 	UnLock(ctx context.Context) (bool, error)
 	GetKey(ctx context.Context) string
 }
@@ -27,12 +28,12 @@ type EtcdLock struct {
 	isLocked atomic.Bool
 }
 
-// 获取键名
+// GetKey 获取键名
 func (l *EtcdLock) GetKey(ctx context.Context) string {
 	return l.mutex.Key()
 }
 
-// 加锁
+// Lock 加锁
 func (l *EtcdLock) Lock(ctx context.Context) (bool, error) {
 	if l.isLocked.Load() {
 		return false, errors.New(fmt.Sprintf("key: %s was locked", l.prefix))
@@ -49,12 +50,12 @@ func (l *EtcdLock) Lock(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-// 解锁
+// UnLock 解锁
 func (l *EtcdLock) UnLock(ctx context.Context) (bool, error) {
 	defer func() {
 		err := l.session.Close()
 		if err != nil {
-			logger.Fatalf(fmt.Sprintf("prefix key: %s session close failed: %s", l.prefix, err))
+			logger.Errorf(fmt.Sprintf("prefix key: %s session close failed: %s", l.prefix, err))
 		}
 	}()
 	if err := l.mutex.Unlock(ctx); err != nil {
@@ -86,7 +87,6 @@ func (elm *EtcdLockManager) NewLock(ctx context.Context, key string, ttl int) (D
 	session, err := concurrency.NewSession(elm.ecli, concurrency.WithTTL(ttl), concurrency.WithContext(ctx))
 	if err != nil {
 		logger.Infof("failed to create session: %v", err)
-		err = session.Close()
 		if err != nil {
 			return nil, err
 		}
@@ -96,6 +96,23 @@ func (elm *EtcdLockManager) NewLock(ctx context.Context, key string, ttl int) (D
 		session: session,
 		prefix:  fmt.Sprintf("%slock/%s", elm.prefix, key),
 	}, nil
+}
+
+// TryLock 加锁（尝试获取锁）
+func (l *EtcdLock) TryLock(ctx context.Context) (bool, error) {
+	if l.isLocked.Load() {
+		return false, errors.New(fmt.Sprintf("key: %s was locked", l.prefix))
+	}
+	l.mutex = concurrency.NewMutex(l.session, l.prefix)
+	if err := l.mutex.TryLock(ctx); err != nil {
+		err = l.session.Close()
+		if err != nil {
+			return false, errors.New(fmt.Sprintf("prefix key: %s session close failed: %s", l.prefix, err))
+		}
+		return false, err
+	}
+	l.isLocked.Store(true)
+	return true, nil
 }
 
 // NewEtcdLockManager 创建分布式锁
