@@ -1,7 +1,8 @@
-package infrastructure
+package server
 
 import (
 	"context"
+	"github.com/zhanshen02154/product/internal/infrastructure"
 	"go-micro.dev/v4/logger"
 	"net/http"
 	"sync"
@@ -13,10 +14,10 @@ type ProbeServer struct {
 	server         *http.Server
 	wg             sync.WaitGroup
 	isShuttingDown atomic.Bool
-	serviceContext *ServiceContext
+	serviceContext *infrastructure.ServiceContext
 }
 
-func NewProbeServer(port string, serviceContext *ServiceContext) *ProbeServer {
+func NewProbeServer(port string, serviceContext *infrastructure.ServiceContext) *ProbeServer {
 	mx := http.NewServeMux()
 	mx.HandleFunc("/healthz", func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)
@@ -45,7 +46,7 @@ func (probeServe *ProbeServer) Start() error {
 		defer probeServe.wg.Done()
 		err := probeServe.server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			logger.Fatalf("Health check server error: %v", err)
+			logger.Errorf("Health check server error: %v", err)
 		}
 	}()
 	return nil
