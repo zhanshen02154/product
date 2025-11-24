@@ -9,7 +9,6 @@ import (
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction/dtm"
 	"go-micro.dev/v4/logger"
-	"go-micro.dev/v4/registry"
 	"gorm.io/gorm"
 )
 
@@ -22,7 +21,7 @@ type ServiceContext struct {
 	Dtm             *dtm.Server
 }
 
-func NewServiceContext(conf *config.SysConfig, serviceReg registry.Registry) (*ServiceContext, error) {
+func NewServiceContext(conf *config.SysConfig) (*ServiceContext, error) {
 	db, err := persistence.InitDB(conf.Database)
 	if err != nil {
 		return nil, err
@@ -31,7 +30,7 @@ func NewServiceContext(conf *config.SysConfig, serviceReg registry.Registry) (*S
 	// 加载ETCD分布式锁
 	lockMgr, err := NewEtcdLockManager(conf.Etcd)
 	if err != nil {
-		logger.Fatalf(fmt.Sprintf("failed to load lock manager: %v", err))
+		logger.Errorf(fmt.Sprintf("failed to load lock manager: %v", err))
 		return nil, err
 	}
 	return &ServiceContext{
@@ -48,11 +47,11 @@ func NewServiceContext(conf *config.SysConfig, serviceReg registry.Registry) (*S
 func (svc *ServiceContext) Close() {
 	// 关闭数据库
 	if err := svc.closeDB(); err != nil {
-		logger.Fatalf("close database error: %v", err)
+		logger.Errorf("close database error: %v", err)
 	}
 	// 关闭ETCD
 	if err := svc.closeEtcd(); err != nil {
-		logger.Fatalf("close etcd error: %v", err)
+		logger.Errorf("close etcd error: %v", err)
 	}
 }
 
@@ -66,7 +65,7 @@ func (svc *ServiceContext) closeDB() error {
 		logger.Info("Preparing to close GORM")
 	}
 	if err := sqlDB.Close(); err != nil {
-		logger.Fatalf("Failed to close database instance: %v", err)
+		logger.Errorf("Failed to close database instance: %v", err)
 		return err
 	} else {
 		logger.Info("GORM数据库连接已关闭")
@@ -78,7 +77,7 @@ func (svc *ServiceContext) closeDB() error {
 func (svc *ServiceContext) closeEtcd() error {
 	err := svc.LockManager.Close()
 	if err != nil {
-		logger.Fatalf("Failed to close etcd lock manager: %v", err)
+		logger.Errorf("Failed to close etcd lock manager: %v", err)
 	} else {
 		logger.Info("ETCD lock manager closed")
 	}
@@ -92,7 +91,7 @@ func (svc *ServiceContext) CheckHealth() error {
 		return err
 	}
 	if err := sqlDB.Ping(); err != nil {
-		logger.Fatalf("Failed to close database instance: %v", err)
+		logger.Errorf("Failed to close database instance: %v", err)
 	}
 	return nil
 }
