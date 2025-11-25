@@ -49,12 +49,12 @@ func (l *EtcdLock) TryLock(ctx context.Context) (bool, error) {
 // UnLock 解锁
 func (l *EtcdLock) UnLock(ctx context.Context) (bool, error) {
 	defer func() {
-		if l.cancelFunc != nil {
-			l.cancelFunc()
-		}
 		err := l.session.Close()
 		if err != nil {
 			logger.Errorf("prefix key: %s session close failed: %s", l.mutex.Key(), err)
+		}
+		if l.cancelFunc != nil {
+			l.cancelFunc()
 		}
 	}()
 	if err := l.mutex.Unlock(ctx); err != nil {
