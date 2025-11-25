@@ -51,6 +51,7 @@ func (productInvetoryDto *OrderProductInvetoryDto) Reset() {
 
 // ConvertToOrderProductInvetoryDto 将GRPC请求转换为DTO
 func (productInvetoryDto *OrderProductInvetoryDto) ConvertToOrderProductInvetoryDto(req *product.OrderDetailReq) {
+	productInvetoryDto.OrderId = req.OrderId
 	productCountMap := make(map[int64]int64)
 	for _, item := range req.Products {
 		if _, ok := productCountMap[item.ProductId]; ok {
