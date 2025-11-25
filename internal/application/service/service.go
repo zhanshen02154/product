@@ -44,7 +44,7 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 
 // DeductInvetory 扣减订单的库存
 func (appService *ProductApplicationService) DeductInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetory:%d", req.OrderId), 30)
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetory-%d", req.OrderId))
 	if err != nil {
 		return err
 	}
@@ -63,7 +63,7 @@ func (appService *ProductApplicationService) DeductInvetory(ctx context.Context,
 
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert:%d", req.OrderId), 30)
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert-%d", req.OrderId))
 	if err != nil {
 		return err
 	}
