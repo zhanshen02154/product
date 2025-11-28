@@ -29,9 +29,11 @@
 ```
 
 ## 技术选型
-| 开发语言           | 开发框架           | 数据库          | 服务注册/发现      |
-|----------------|----------------|--------------|--------------|
-| Golang 1.20.10 | Go-micro 2.9.1 | MySQL 5.7.26 | Consul 1.7.3 |
+- 开发语言：Golang 1.20.10
+- 框架：Go micro 4.11.0
+- 数据库：MySQL 5.7.26
+- 服务注册/发现：Consul 1.7.3
+- 分布式锁：ETCD 3.5.7
 
 ## 服务器配置
 | 厂商  | 配置               | 数量 | 操作系统       | Docker版本 | Kubernetes版本 |
@@ -47,7 +49,7 @@
 ```
 3. 安装Go-micro对应版本的protoc-gen-micro。
 ```bash
-  go install github.com/micro/micro/v2/cmd/protoc-gen-micro@v2.9.1
+  go install go-micro.dev/v4/cmd/micro@latest
 ```
 4. 在根目录下生成Protobuf对应的go文件及go-micro文件
 ```bash

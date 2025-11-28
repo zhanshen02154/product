@@ -2,8 +2,8 @@ package persistence
 
 import (
 	"fmt"
-	"github.com/micro/go-micro/v2/util/log"
 	"github.com/zhanshen02154/product/internal/config"
+	"go-micro.dev/v4/logger"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"net/url"
@@ -47,6 +47,6 @@ func InitDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
 		return nil, fmt.Errorf("数据库连接验证失败: %w", err)
 	}
 
-	log.Info("数据库连接成功")
+	logger.Info("数据库连接成功")
 	return db, nil
 }

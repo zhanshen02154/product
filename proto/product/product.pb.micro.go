@@ -5,27 +5,21 @@ package product
 
 import (
 	fmt "fmt"
-	proto "github.com/golang/protobuf/proto"
+	proto "google.golang.org/protobuf/proto"
 	math "math"
 )
 
 import (
 	context "context"
-	api "github.com/micro/go-micro/v2/api"
-	client "github.com/micro/go-micro/v2/client"
-	server "github.com/micro/go-micro/v2/server"
+	api "go-micro.dev/v4/api"
+	client "go-micro.dev/v4/client"
+	server "go-micro.dev/v4/server"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the proto package it is being compiled against.
-// A compilation error at this line likely means your copy of the
-// proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ api.Endpoint
@@ -44,6 +38,7 @@ func NewProductEndpoints() []*api.Endpoint {
 type ProductService interface {
 	AddProduct(ctx context.Context, in *ProductInfo, opts ...client.CallOption) (*ResponseProduct, error)
 	DeductInvetory(ctx context.Context, in *OrderDetailReq, opts ...client.CallOption) (*OrderProductResp, error)
+	DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, opts ...client.CallOption) (*OrderProductResp, error)
 }
 
 type productService struct {
@@ -78,17 +73,29 @@ func (c *productService) DeductInvetory(ctx context.Context, in *OrderDetailReq,
 	return out, nil
 }
 
+func (c *productService) DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, opts ...client.CallOption) (*OrderProductResp, error) {
+	req := c.c.NewRequest(c.name, "Product.DeductInvetoryRevert", in)
+	out := new(OrderProductResp)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Product service
 
 type ProductHandler interface {
 	AddProduct(context.Context, *ProductInfo, *ResponseProduct) error
 	DeductInvetory(context.Context, *OrderDetailReq, *OrderProductResp) error
+	DeductInvetoryRevert(context.Context, *OrderDetailReq, *OrderProductResp) error
 }
 
 func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server.HandlerOption) error {
 	type product interface {
 		AddProduct(ctx context.Context, in *ProductInfo, out *ResponseProduct) error
 		DeductInvetory(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error
+		DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error
 	}
 	type Product struct {
 		product
@@ -107,4 +114,8 @@ func (h *productHandler) AddProduct(ctx context.Context, in *ProductInfo, out *R
 
 func (h *productHandler) DeductInvetory(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error {
 	return h.ProductHandler.DeductInvetory(ctx, in, out)
+}
+
+func (h *productHandler) DeductInvetoryRevert(ctx context.Context, in *OrderDetailReq, out *OrderProductResp) error {
+	return h.ProductHandler.DeductInvetoryRevert(ctx, in, out)
 }

@@ -49,10 +49,10 @@ func (u *ProductRepository) FindProductListByIds(ctx context.Context, productIds
 	return list, err
 }
 
-// DeductProductInvetory 扣减产品库存
-func (u *ProductRepository) DeductProductInvetory(ctx context.Context, id int64, num int64) error {
+// DeductProductSizeInvetory 扣减指定规格产品的库存
+func (u *ProductRepository) DeductProductSizeInvetory(ctx context.Context, id int64, num int64) error {
 	db := GetDBFromContext(ctx, u.db)
-	tx := db.Model(model.Product{}).Where("id = ? AND stock > 0", id).Update("stock", gorm.Expr("stock - ?", num))
+	tx := db.Debug().Model(model.ProductSize{}).Where("id = ?", id).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
@@ -62,10 +62,36 @@ func (u *ProductRepository) DeductProductInvetory(ctx context.Context, id int64,
 	return nil
 }
 
-// DeductProductSizeInvetory 扣减指定规格产品的库存
-func (u *ProductRepository) DeductProductSizeInvetory(ctx context.Context, id int64, num int64) error {
+// DeductProductInvetory 扣减产品的库存
+func (u *ProductRepository) DeductProductInvetory(ctx context.Context, id int64, num int64) error {
 	db := GetDBFromContext(ctx, u.db)
-	tx := db.Model(model.ProductSize{}).Where("id = ? AND stock > 0", id).Update("stock", gorm.Expr("stock - ?", num))
+	tx := db.Debug().Model(model.Product{}).Where("id = ?", id).Update("stock", gorm.Expr("stock - ?", num))
+	if err := tx.Error; err != nil {
+		return err
+	}
+	if tx.RowsAffected == 0 {
+		return errors.New("failed to reduce stock")
+	}
+	return nil
+}
+
+// DeductProductSizeInvetoryRevert 扣减指定规格产品的库存
+func (u *ProductRepository) DeductProductSizeInvetoryRevert(ctx context.Context, id int64, num int64) error {
+	db := GetDBFromContext(ctx, u.db)
+	tx := db.Debug().Model(model.ProductSize{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
+	if err := tx.Error; err != nil {
+		return err
+	}
+	if tx.RowsAffected == 0 {
+		return errors.New("failed to reduce stock")
+	}
+	return nil
+}
+
+// DeductProductInvetoryRevert 扣减产品的库存
+func (u *ProductRepository) DeductProductInvetoryRevert(ctx context.Context, id int64, num int64) error {
+	db := GetDBFromContext(ctx, u.db)
+	tx := db.Debug().Model(model.Product{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
