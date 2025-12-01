@@ -18,9 +18,9 @@ type PprofServer struct {
 
 // NewPprofServer 创建pprof服务器
 func NewPprofServer(addr string) *PprofServer {
-	runtime.SetBlockProfileRate(1)
-	runtime.SetCPUProfileRate(1)
-	runtime.SetMutexProfileFraction(1)
+	runtime.SetBlockProfileRate(1000000000)
+	runtime.SetCPUProfileRate(100)
+	runtime.SetMutexProfileFraction(100)
 	return &PprofServer{
 		server:       &http.Server{Addr: addr},
 		wg:           sync.WaitGroup{},
