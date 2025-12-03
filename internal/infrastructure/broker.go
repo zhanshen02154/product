@@ -1,4 +1,4 @@
-package kafka
+package infrastructure
 
 import (
 	"github.com/Shopify/sarama"
