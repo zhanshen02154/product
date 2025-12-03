@@ -5,15 +5,13 @@ import (
 	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
 	"github.com/go-micro/plugins/v4/transport/grpc"
 	ratelimit "github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber"
+	"github.com/zhanshen02154/product/internal/application/event/subscriber"
 	appservice "github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/config"
 	"github.com/zhanshen02154/product/internal/infrastructure"
-	"github.com/zhanshen02154/product/internal/infrastructure/broker/kafka"
-	event2 "github.com/zhanshen02154/product/internal/infrastructure/event"
+	"github.com/zhanshen02154/product/internal/infrastructure/event"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/wrapper"
 	"github.com/zhanshen02154/product/internal/infrastructure/registry"
-	innerserver "github.com/zhanshen02154/product/internal/infrastructure/server"
-	event3 "github.com/zhanshen02154/product/internal/intefaces/event"
 	"github.com/zhanshen02154/product/internal/intefaces/handler"
 	"github.com/zhanshen02154/product/pkg/codec"
 	"github.com/zhanshen02154/product/proto/product"
@@ -23,7 +21,14 @@ import (
 	"time"
 )
 
-func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceContext) error {
+func RunService(conf *config.SysConfig) error {
+	serviceContext, err := infrastructure.NewServiceContext(conf)
+	defer serviceContext.Close()
+	if err != nil {
+		logger.Error("error to load service context: ", err)
+		return err
+	}
+
 	// 注册到Consul
 	consulRegistry := registry.ConsulRegister(conf.Consul)
 
@@ -36,18 +41,18 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	//opetracing2.SetGlobalTracer(tracer)
 
 	// 健康检查
-	probeServer := innerserver.NewProbeServer(conf.Service.HeathCheckAddr, serviceContext)
+	probeServer := infrastructure.NewProbeServer(conf.Service.HeathCheckAddr, serviceContext)
 	if err := probeServer.Start(); err != nil {
 		logger.Error("健康检查服务器启动失败")
 	}
 
-	var pprofSrv *innerserver.PprofServer
+	var pprofSrv *infrastructure.PprofServer
 	if conf.Service.Debug {
-		pprofSrv = innerserver.NewPprofServer(":6060")
+		pprofSrv = infrastructure.NewPprofServer(":6060")
 	}
 
 	// New Service
-	broker := kafka.NewKafkaBroker(conf.Broker.Kafka)
+	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka)
 	service := micro.NewService(
 		micro.Server(grpcserver.NewServer(
 			server.Name(conf.Service.Name),
@@ -87,23 +92,23 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	)
 
 	// 注册应用层服务及事件侦听器
-	eb := event2.NewListener(service.Client())
-	productService := appservice.NewProductApplicationService(serviceContext, eb)
-	registerPublisher(conf.Broker, eb)
+	eb := event.NewListener(service.Client())
 	defer eb.Close()
+	event.RegisterPublisher(conf.Broker, eb)
+	productService := appservice.NewProductApplicationService(serviceContext, eb)
 
-	productEventHandler := event3.NewHandler(productService)
+	paymentEventHandler := subscriber.NewPaymentEventHandler(productService)
 	// 注册订阅事件
 	if len(conf.Broker.Subscriber) > 0 {
 		for i := range conf.Broker.Subscriber {
-			if err := micro.RegisterSubscriber(conf.Broker.Subscriber[i], service.Server(), productEventHandler); err != nil {
+			if err := micro.RegisterSubscriber(conf.Broker.Subscriber[i], service.Server(), paymentEventHandler); err != nil {
 				logger.Error("failed to register subsriber: ", err)
 				continue
 			}
 		}
 	}
 
-	err := product.RegisterProductHandler(service.Server(), handler.NewProductHandler(productService))
+	err = product.RegisterProductHandler(service.Server(), handler.NewProductHandler(productService))
 	if err != nil {
 		return err
 	}
@@ -114,13 +119,4 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	}
 
 	return nil
-}
-
-// 注册发布事件
-func registerPublisher(conf *config.Broker, eb event2.Bus) {
-	if len(conf.Publisher) > 0 {
-		for i := range conf.Publisher {
-			eb.Register(conf.Publisher[i])
-		}
-	}
 }
