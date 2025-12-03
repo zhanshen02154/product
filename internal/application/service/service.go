@@ -2,13 +2,14 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/service"
 	"github.com/zhanshen02154/product/internal/infrastructure"
+	"github.com/zhanshen02154/product/internal/infrastructure/event"
 	"github.com/zhanshen02154/product/pkg/swap"
+	"go-micro.dev/v4/logger"
 )
 
 type IProductApplicationService interface {
@@ -17,15 +18,21 @@ type IProductApplicationService interface {
 	DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 }
 
+// ProductApplicationService 商品服务应用层
 type ProductApplicationService struct {
+	// 领域服务层
 	productDomainService service.IProductDataService
-	serviceContext       *infrastructure.ServiceContext
+	// 服务上下文
+	serviceContext *infrastructure.ServiceContext
+	// 事件总线
+	eb event.Bus
 }
 
-func NewProductApplicationService(serviceContext *infrastructure.ServiceContext) IProductApplicationService {
+func NewProductApplicationService(serviceContext *infrastructure.ServiceContext, eb event.Bus) IProductApplicationService {
 	return &ProductApplicationService{
 		productDomainService: service.NewProductDataService(serviceContext.OrderRepository),
 		serviceContext:       serviceContext,
+		eb:                   eb,
 	}
 }
 
@@ -44,18 +51,19 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 
 // DeductInvetory 扣减订单的库存
 func (appService *ProductApplicationService) DeductInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetory-%d", req.OrderId))
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetory-%d", req.OrderId), 15)
 	if err != nil {
 		return err
 	}
-	ok, err := lock.TryLock(ctx)
-	defer lock.UnLock(ctx)
-	if err != nil {
+	if err := lock.TryLock(ctx); err != nil {
 		return err
 	}
-	if !ok {
-		return errors.New(fmt.Sprintf("duplicate notify: %d", req.OrderId))
-	}
+
+	defer func() {
+		if err := lock.UnLock(ctx); err != nil {
+			logger.Error("failed to unlock: ", lock.GetKey(ctx), " reason: ", err)
+		}
+	}()
 	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
 		return appService.productDomainService.DeductOrderInvetory(txCtx, req)
 	})
@@ -63,18 +71,19 @@ func (appService *ProductApplicationService) DeductInvetory(ctx context.Context,
 
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert-%d", req.OrderId))
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert-%d", req.OrderId), 15)
 	if err != nil {
 		return err
 	}
-	ok, err := lock.TryLock(ctx)
-	defer lock.UnLock(ctx)
-	if err != nil {
+	if err := lock.TryLock(ctx); err != nil {
 		return err
 	}
-	if !ok {
-		return errors.New(fmt.Sprintf("duplicate notify: %d", req.OrderId))
-	}
+
+	defer func() {
+		if err := lock.UnLock(ctx); err != nil {
+			logger.Error("failed to unlock: ", lock.GetKey(ctx), " reason: ", err)
+		}
+	}()
 	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
 		return appService.productDomainService.DeductOrderInvetoryRevert(txCtx, req)
 	})
