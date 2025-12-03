@@ -1,4 +1,4 @@
-package server
+package infrastructure
 
 import (
 	"context"
@@ -33,6 +33,7 @@ func (srv *PprofServer) Start() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	logger.Info("启动pprof")
+	srv.shutdownFlag.Store(false)
 	go func() {
 		defer wg.Done()
 		err := srv.server.ListenAndServe()
