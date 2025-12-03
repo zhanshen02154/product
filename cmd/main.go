@@ -10,8 +10,17 @@ import (
 func main() {
 	// 从consul获取配置
 	conf, err := configstruct.GetConfig()
+	defer func() {
+		if conf != nil {
+			if err := conf.Close(); err != nil {
+				logger.Error("failed to close config: ", err)
+				return
+			}
+		}
+	}()
 	if err != nil {
 		logger.Error("service load config fail: ", err)
+		return
 	}
 
 	var confInfo configstruct.SysConfig
