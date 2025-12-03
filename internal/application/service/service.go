@@ -25,10 +25,10 @@ type ProductApplicationService struct {
 	// 服务上下文
 	serviceContext *infrastructure.ServiceContext
 	// 事件总线
-	eb event.Bus
+	eb event.Listener
 }
 
-func NewProductApplicationService(serviceContext *infrastructure.ServiceContext, eb event.Bus) IProductApplicationService {
+func NewProductApplicationService(serviceContext *infrastructure.ServiceContext, eb event.Listener) IProductApplicationService {
 	return &ProductApplicationService{
 		productDomainService: service.NewProductDataService(serviceContext.OrderRepository),
 		serviceContext:       serviceContext,
