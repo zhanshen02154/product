@@ -6,6 +6,7 @@ type SysConfig struct {
 	Consul      *ConsulInfo  `json:"consul" yaml:"consul"`
 	Etcd        *Etcd        `json:"etcd" yaml:"etcd"`
 	Transaction *Transaction `yaml:"transaction" json:"transaction"`
+	Broker      *Broker      `json:"broker" yaml:"broker"`
 }
 
 type ServiceInfo struct {
@@ -57,4 +58,36 @@ type MySqlConfig struct {
 type Transaction struct {
 	Driver string `json:"driver" yaml:"driver"`
 	Host   string `json:"host" yaml:"host"`
+}
+
+type Broker struct {
+	Driver     string   `json:"driver" yaml:"driver"`
+	Kafka      *Kafka   `json:"kafka" yaml:"kafka"`
+	Publisher  []string `json:"publisher" yaml:"publisher"`
+	Subscriber []string `json:"subscriber" yaml:"subscriber"`
+}
+
+type Kafka struct {
+	Hosts        []string       `json:"hosts" yaml:"hosts"`
+	DialTimeout  int            `json:"dial_timeout" yaml:"dial_timeout"`
+	ReadTimeout  int            `json:"read_timeout" yaml:"read_timeout"`
+	WriteTimeout int            `json:"write_timeout" yaml:"write_timeout"`
+	Producer     *KafkaProducer `json:"producer" yaml:"producer"`
+	Consumer     *KafkaConsumer `json:"consumer" yaml:"consumer"`
+}
+
+type KafkaProducer struct {
+	MaxRetry        int `json:"max_retry" yaml:"max_retry"`
+	MaxRetryBackOff int `json:"max_retry_back_off" yaml:"max_retry_back_off"`
+	FlushBytes      int `json:"flush_bytes" yaml:"flush_bytes"`
+	MaxOpenRequests int `json:"max_open_requests" yaml:"max_open_requests"`
+}
+
+type KafkaConsumer struct {
+	Group            *KafkaConsumerGroup `json:"group" yaml:"group"`
+	AutoCommitOffset bool                `json:"auto_commit_offset" yaml:"auto_commit_offset"`
+}
+
+type KafkaConsumerGroup struct {
+	SessionTimeout int `json:"session_timeout" yaml:"session_timeout"`
 }
