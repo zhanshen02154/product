@@ -13,12 +13,11 @@ import (
 )
 
 type ServiceContext struct {
-	TxManager       transaction.TransactionManager
-	LockManager     LockManager
-	Conf            *config.SysConfig
-	db              *gorm.DB
-	OrderRepository repository.IProductRepository
-	Dtm             *dtm.Server
+	TxManager   transaction.TransactionManager
+	LockManager LockManager
+	Conf        *config.SysConfig
+	db          *gorm.DB
+	Dtm         *dtm.Server
 }
 
 func NewServiceContext(conf *config.SysConfig) (*ServiceContext, error) {
@@ -34,12 +33,11 @@ func NewServiceContext(conf *config.SysConfig) (*ServiceContext, error) {
 		return nil, err
 	}
 	return &ServiceContext{
-		TxManager:       gorm2.NewGormTransactionManager(db),
-		LockManager:     lockMgr,
-		Conf:            conf,
-		db:              db,
-		OrderRepository: gorm2.NewProductRepository(db),
-		Dtm:             dtm.NewServer(conf.Transaction.Host),
+		TxManager:   gorm2.NewGormTransactionManager(db),
+		LockManager: lockMgr,
+		Conf:        conf,
+		db:          db,
+		Dtm:         dtm.NewServer(conf.Transaction.Host),
 	}, nil
 }
 
@@ -94,4 +92,13 @@ func (svc *ServiceContext) CheckHealth() error {
 		logger.Errorf("Failed to close database instance: %v", err)
 	}
 	return nil
+}
+
+// NewOrderInventoryEventRepo 创建订单库存事件操作仓储层
+func (svc *ServiceContext) NewOrderInventoryEventRepo() repository.OrderInventoryEventRepository {
+	return gorm2.NewOrderInventoryEventRepositoryImpl(svc.db)
+}
+
+func (svc *ServiceContext) NewProductRepository() repository.IProductRepository {
+	return gorm2.NewProductRepository(svc.db)
 }
