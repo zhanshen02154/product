@@ -30,7 +30,7 @@ func GetDBFromContext(ctx context.Context, defaultDB *gorm.DB) *gorm.DB {
 	if tx, ok := ctx.Value(txKey{}).(*gorm.DB); ok {
 		return tx // 返回事务实例
 	}
-	return defaultDB // 返回默认的非事务实例
+	return defaultDB.WithContext(ctx) // 返回默认的非事务实例
 }
 
 // ExecuteWithBarrier 开启子事务屏障的事务
