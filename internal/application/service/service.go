@@ -71,7 +71,7 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 		inventoryDeductSuccessEvent := &product.OnInventoryDeductSuccess{
 			OrderId: req.OrderId,
 		}
-		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", inventoryDeductSuccessEvent, req.OrderId)
+		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", inventoryDeductSuccessEvent, fmt.Sprintf("%d", req.OrderId))
 		if err != nil {
 			return status.Errorf(codes.Aborted, "failed to publish event on %d, error: %s", req.OrderId, err.Error())
 		}

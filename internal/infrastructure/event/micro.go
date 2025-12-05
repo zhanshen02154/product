@@ -20,7 +20,7 @@ type microListener struct {
 }
 
 // Publish 发布
-func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key interface{}, opts ...client.PublishOption) error {
+func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key string, opts ...client.PublishOption) error {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	if _, ok := l.eventPublisher[topic]; !ok {
@@ -28,9 +28,9 @@ func (l *microListener) Publish(ctx context.Context, topic string, msg interface
 	}
 
 	// 将key放到metadata
-	if key != nil {
+	if key != "" {
 		if _, ok := metadata.Get(ctx, partitionKey); !ok {
-			ctx = metadata.Set(ctx, partitionKey, fmt.Sprintf("%v", key))
+			ctx = metadata.Set(ctx, partitionKey, key)
 		}
 	}
 	return l.eventPublisher[topic].Publish(ctx, msg, opts...)
