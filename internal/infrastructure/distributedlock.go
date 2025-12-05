@@ -19,29 +19,29 @@ type DistributedLock interface {
 	GetKey(ctx context.Context) string
 }
 
-// EtcdLock ETCD锁
-type EtcdLock struct {
+// etcdLock ETCD锁
+type etcdLock struct {
 	mutex   *concurrency.Mutex
 	session *concurrency.Session
 }
 
 // GetKey 获取键名
-func (l *EtcdLock) GetKey(ctx context.Context) string {
+func (l *etcdLock) GetKey(ctx context.Context) string {
 	return l.mutex.Key()
 }
 
 // Lock 加锁
-func (l *EtcdLock) Lock(ctx context.Context) error {
+func (l *etcdLock) Lock(ctx context.Context) error {
 	return l.mutex.Lock(ctx)
 }
 
 // TryLock 加锁（尝试获取锁）
-func (l *EtcdLock) TryLock(ctx context.Context) error {
+func (l *etcdLock) TryLock(ctx context.Context) error {
 	return l.mutex.TryLock(ctx)
 }
 
 // UnLock 解锁
-func (l *EtcdLock) UnLock(ctx context.Context) error {
+func (l *etcdLock) UnLock(ctx context.Context) error {
 	timeoutCtx, ctxCancelFunc := context.WithTimeout(context.Background(), time.Second*3)
 	defer ctxCancelFunc()
 	err := l.mutex.Unlock(timeoutCtx)
@@ -61,8 +61,8 @@ type LockManager interface {
 	Close() error
 }
 
-// EtcdLockManager ETCD分布式锁
-type EtcdLockManager struct {
+// etcdLockManager ETCD分布式锁
+type etcdLockManager struct {
 	ecli     *clientv3.Client
 	prefix   string
 	isClosed bool
@@ -70,7 +70,7 @@ type EtcdLockManager struct {
 }
 
 // Close 关闭客户端
-func (elm *EtcdLockManager) Close() error {
+func (elm *etcdLockManager) Close() error {
 	elm.mu.Lock()
 	defer elm.mu.Unlock()
 
@@ -79,7 +79,7 @@ func (elm *EtcdLockManager) Close() error {
 }
 
 // NewLock 创建锁
-func (elm *EtcdLockManager) NewLock(ctx context.Context, key string, ttl int) (DistributedLock, error) {
+func (elm *etcdLockManager) NewLock(ctx context.Context, key string, ttl int) (DistributedLock, error) {
 	elm.mu.RLock()
 	defer elm.mu.RUnlock()
 
@@ -91,7 +91,7 @@ func (elm *EtcdLockManager) NewLock(ctx context.Context, key string, ttl int) (D
 		return nil, err
 	}
 	mutex := concurrency.NewMutex(session, fmt.Sprintf("%slock/%s", elm.prefix, key))
-	return &EtcdLock{
+	return &etcdLock{
 		mutex:   mutex,
 		session: session,
 	}, nil
@@ -113,5 +113,5 @@ func NewEtcdLockManager(conf *config.Etcd) (LockManager, error) {
 		return nil, err
 	}
 	logger.Info("ETCD was stared")
-	return &EtcdLockManager{ecli: client, prefix: conf.Prefix}, nil
+	return &etcdLockManager{ecli: client, prefix: conf.Prefix}, nil
 }
