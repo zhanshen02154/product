@@ -53,8 +53,8 @@ func (h *ProductHandler) DeductInvetory(ctx context.Context, in *product.OrderDe
 		orderProductInvetoryDto.Reset()
 		h.orderInvetoryPool.Put(orderProductInvetoryDto)
 	}()
-	orderProductInvetoryDto.ConvertToOrderProductInvetoryDto(in)
-	err := h.ProductApplicationService.DeductInvetory(ctx, orderProductInvetoryDto)
+	orderProductInvetoryDto.ConvertFromOrderDetailReq(in)
+	err := h.ProductApplicationService.DeductInventory(ctx, orderProductInvetoryDto)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%d", in.OrderId), fmt.Sprintf("deduct invetory error: %v", err), http.StatusPreconditionFailed)
 	}
@@ -72,7 +72,7 @@ func (h *ProductHandler) DeductInvetoryRevert(ctx context.Context, in *product.O
 		orderProductInvetoryDto.Reset()
 		h.orderInvetoryPool.Put(orderProductInvetoryDto)
 	}()
-	orderProductInvetoryDto.ConvertToOrderProductInvetoryDto(in)
+	orderProductInvetoryDto.ConvertFromOrderDetailReq(in)
 	err := h.ProductApplicationService.DeductInvetoryRevert(ctx, orderProductInvetoryDto)
 	if err != nil {
 		return errors.New(fmt.Sprintf("%d", in.OrderId), fmt.Sprintf("deduct invetory revert error: %v", err), http.StatusPreconditionFailed)

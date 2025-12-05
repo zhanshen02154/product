@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	grpcclient "github.com/go-micro/plugins/v4/client/grpc"
 	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
 	"github.com/go-micro/plugins/v4/transport/grpc"
 	ratelimit "github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber"
@@ -52,7 +53,11 @@ func RunService(conf *config.SysConfig) error {
 	}
 
 	// New Service
+	client := grpcclient.NewClient(
+		grpcclient.PoolMaxIdle(100),
+	)
 	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka)
+	deadLetterWrapper := wrapper.NewDeadLetterWrapper(broker)
 	service := micro.NewService(
 		micro.Server(grpcserver.NewServer(
 			server.Name(conf.Service.Name),
@@ -64,6 +69,7 @@ func RunService(conf *config.SysConfig) error {
 			server.RegisterInterval(time.Duration(conf.Consul.RegisterInterval)*time.Second),
 			grpcserver.Codec("application/grpc+dtm_raw", codec.NewDtmCodec()),
 		)),
+		micro.Client(client),
 		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		//添加限流
 		micro.WrapHandler(ratelimit.NewHandlerWrapper(conf.Service.Qps)),
@@ -89,6 +95,7 @@ func RunService(conf *config.SysConfig) error {
 		}),
 		micro.Broker(broker),
 		micro.WrapClient(wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version)),
+		micro.WrapSubscriber(deadLetterWrapper.Wrapper()),
 	)
 
 	// 注册应用层服务及事件侦听器
@@ -98,15 +105,7 @@ func RunService(conf *config.SysConfig) error {
 	productService := appservice.NewProductApplicationService(serviceContext, eb)
 
 	paymentEventHandler := subscriber.NewPaymentEventHandler(productService)
-	// 注册订阅事件
-	if len(conf.Broker.Subscriber) > 0 {
-		for i := range conf.Broker.Subscriber {
-			if err := micro.RegisterSubscriber(conf.Broker.Subscriber[i], service.Server(), paymentEventHandler); err != nil {
-				logger.Error("failed to register subsriber: ", err)
-				continue
-			}
-		}
-	}
+	paymentEventHandler.RegisterSubscriber(service.Server())
 
 	err = product.RegisterProductHandler(service.Server(), handler.NewProductHandler(productService))
 	if err != nil {
