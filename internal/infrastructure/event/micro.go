@@ -6,28 +6,38 @@ import (
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/client"
 	"go-micro.dev/v4/logger"
+	"go-micro.dev/v4/metadata"
 	"sync"
 )
 
-// MicroListener 侦听器
-type MicroListener struct {
+const partitionKey = "Pkey"
+
+// microListener 侦听器
+type microListener struct {
 	mu             sync.RWMutex
 	eventPublisher map[string]micro.Event
 	c              client.Client
 }
 
 // Publish 发布
-func (l *MicroListener) Publish(ctx context.Context, topic string, msg interface{}, opts ...client.PublishOption) error {
+func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key interface{}, opts ...client.PublishOption) error {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 	if _, ok := l.eventPublisher[topic]; !ok {
 		return fmt.Errorf("topic: %s event not registerd", topic)
 	}
+
+	// 将key放到metadata
+	if key != nil {
+		if _, ok := metadata.Get(ctx, partitionKey); !ok {
+			ctx = metadata.Set(ctx, partitionKey, fmt.Sprintf("%v", key))
+		}
+	}
 	return l.eventPublisher[topic].Publish(ctx, msg, opts...)
 }
 
 // Register 注册
-func (l *MicroListener) Register(topic string) bool {
+func (l *microListener) Register(topic string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if _, ok := l.eventPublisher[topic]; !ok {
@@ -38,7 +48,7 @@ func (l *MicroListener) Register(topic string) bool {
 }
 
 // UnRegister 取消注册
-func (l *MicroListener) UnRegister(topic string) bool {
+func (l *microListener) UnRegister(topic string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.eventPublisher == nil {
@@ -55,7 +65,7 @@ func (l *MicroListener) UnRegister(topic string) bool {
 }
 
 // Close 关闭
-func (l *MicroListener) Close() {
+func (l *microListener) Close() {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if l.eventPublisher == nil {
@@ -72,7 +82,7 @@ func (l *MicroListener) Close() {
 
 // NewListener 新建侦听器
 func NewListener(c client.Client) Listener {
-	return &MicroListener{
+	return &microListener{
 		mu:             sync.RWMutex{},
 		eventPublisher: make(map[string]micro.Event),
 		c:              c,

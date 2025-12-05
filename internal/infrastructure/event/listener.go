@@ -8,7 +8,7 @@ import (
 
 // Listener 侦听器
 type Listener interface {
-	Publish(ctx context.Context, topic string, event interface{}, opts ...client.PublishOption) error
+	Publish(ctx context.Context, topic string, msg interface{}, key interface{}, opts ...client.PublishOption) error
 	Register(topic string) bool
 	UnRegister(topic string) bool
 	Close()
