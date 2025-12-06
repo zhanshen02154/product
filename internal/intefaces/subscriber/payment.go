@@ -20,14 +20,14 @@ type PaymentEventHandler interface {
 }
 
 // PaymentEventHandlerImpl 支付事件处理器实现类
-type PaymentEventHandlerImpl struct {
+type paymentEventHandlerImpl struct {
 	productAppService service.IProductApplicationService
 	orderInvetoryPool sync.Pool
 }
 
 // NewPaymentEventHandler 新建Handler
 func NewPaymentEventHandler(appService service.IProductApplicationService) PaymentEventHandler {
-	return &PaymentEventHandlerImpl{productAppService: appService, orderInvetoryPool: sync.Pool{
+	return &paymentEventHandlerImpl{productAppService: appService, orderInvetoryPool: sync.Pool{
 		New: func() interface{} {
 			return &dto.OrderProductInvetoryDto{
 				OrderId:             0,
@@ -39,7 +39,7 @@ func NewPaymentEventHandler(appService service.IProductApplicationService) Payme
 }
 
 // OnPaymentSuccess OnPaySuccess 支付成功回调事件
-func (h *PaymentEventHandlerImpl) OnPaymentSuccess(ctx context.Context, req *order.OnPaymentSuccess) error {
+func (h *paymentEventHandlerImpl) OnPaymentSuccess(ctx context.Context, req *order.OnPaymentSuccess) error {
 	if req.Products == nil {
 		return status.Error(codes.InvalidArgument, "inventory cannot be nil")
 	}
@@ -56,7 +56,7 @@ func (h *PaymentEventHandlerImpl) OnPaymentSuccess(ctx context.Context, req *ord
 	return h.productAppService.DeductInventory(ctx, inventoryDto)
 }
 
-func (h *PaymentEventHandlerImpl) RegisterSubscriber(srv server.Server) {
+func (h *paymentEventHandlerImpl) RegisterSubscriber(srv server.Server) {
 	var err error
 	queue := server.SubscriberQueue("product-consumer")
 	err = micro.RegisterSubscriber("OnPaymentSuccess", srv, h.OnPaymentSuccess, queue)
