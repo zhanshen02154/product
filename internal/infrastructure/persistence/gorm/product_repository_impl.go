@@ -43,39 +43,48 @@ func (u *ProductRepository) FindProductSizeListByIds(ctx context.Context, ids []
 
 // FindProductListByIds 根据多个ID查找产品
 func (u *ProductRepository) FindProductListByIds(ctx context.Context, productIds []int64) ([]model.Product, error) {
-	db := GetDBFromContext(ctx, u.db)
+	db, ok := ctx.Value(txKey{}).(*gorm.DB)
+	if !ok {
+		db = u.db.WithContext(ctx)
+	}
 	var list []model.Product
-	err := db.Debug().Model(model.Product{}).Clauses(clause.Locking{Strength: "UPDATE"}).Select("id", "stock").Where("id in ?", productIds).Find(&list).Error
+	err := db.Debug().Model(model.Product{}).Select("id", "stock").Where("id in ?", productIds).Find(&list).Error
 	return list, err
 }
 
-// DeductProductSizeInvetory 扣减指定规格产品的库存
-func (u *ProductRepository) DeductProductSizeInvetory(ctx context.Context, id int64, num int64) error {
-	db := GetDBFromContext(ctx, u.db)
-	tx := db.Debug().Model(model.ProductSize{}).Where("id = ?", id).Update("stock", gorm.Expr("stock - ?", num))
+// DeductProductSizeInventory 扣减指定规格产品的库存
+func (u *ProductRepository) DeductProductSizeInventory(ctx context.Context, id int64, num int64) error {
+	db, ok := ctx.Value(txKey{}).(*gorm.DB)
+	if !ok {
+		db = u.db.WithContext(ctx)
+	}
+	tx := db.Debug().Model(model.ProductSize{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
 	if tx.RowsAffected == 0 {
-		return errors.New("failed to reduce stock")
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }
 
-// DeductProductInvetory 扣减产品的库存
-func (u *ProductRepository) DeductProductInvetory(ctx context.Context, id int64, num int64) error {
-	db := GetDBFromContext(ctx, u.db)
-	tx := db.Debug().Model(model.Product{}).Where("id = ?", id).Update("stock", gorm.Expr("stock - ?", num))
+// DeductProductInventory 扣减产品的库存
+func (u *ProductRepository) DeductProductInventory(ctx context.Context, id int64, num int64) error {
+	db, ok := ctx.Value(txKey{}).(*gorm.DB)
+	if !ok {
+		db = u.db.WithContext(ctx)
+	}
+	tx := db.Debug().Model(model.Product{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
 	if tx.RowsAffected == 0 {
-		return errors.New("failed to reduce stock")
+		return gorm.ErrRecordNotFound
 	}
 	return nil
 }
 
-// DeductProductSizeInvetoryRevert 扣减指定规格产品的库存
+// DeductProductSizeInvetoryRevert 扣减指定规格产品的库存补偿
 func (u *ProductRepository) DeductProductSizeInvetoryRevert(ctx context.Context, id int64, num int64) error {
 	db := GetDBFromContext(ctx, u.db)
 	tx := db.Debug().Model(model.ProductSize{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
@@ -88,8 +97,8 @@ func (u *ProductRepository) DeductProductSizeInvetoryRevert(ctx context.Context,
 	return nil
 }
 
-// DeductProductInvetoryRevert 扣减产品的库存
-func (u *ProductRepository) DeductProductInvetoryRevert(ctx context.Context, id int64, num int64) error {
+// DeductProductInventoryRevert 扣减产品的库存补偿
+func (u *ProductRepository) DeductProductInventoryRevert(ctx context.Context, id int64, num int64) error {
 	db := GetDBFromContext(ctx, u.db)
 	tx := db.Debug().Model(model.Product{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
 	if err := tx.Error; err != nil {

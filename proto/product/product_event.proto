@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+option go_package = "./internal/domain/event/product";
+
+package product.event;
+
+// 库存扣减成功
+message OnInventoryDeductSuccess {
+  int64 OrderId = 1;
+}

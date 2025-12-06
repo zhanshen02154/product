@@ -1,8 +1,7 @@
-package server
+package infrastructure
 
 import (
 	"context"
-	"github.com/zhanshen02154/product/internal/infrastructure"
 	"go-micro.dev/v4/logger"
 	"net/http"
 	"sync"
@@ -14,10 +13,10 @@ type ProbeServer struct {
 	server         *http.Server
 	wg             sync.WaitGroup
 	isShuttingDown atomic.Bool
-	serviceContext *infrastructure.ServiceContext
+	serviceContext *ServiceContext
 }
 
-func NewProbeServer(port string, serviceContext *infrastructure.ServiceContext) *ProbeServer {
+func NewProbeServer(port string, serviceContext *ServiceContext) *ProbeServer {
 	mx := http.NewServeMux()
 	mx.HandleFunc("/healthz", func(writer http.ResponseWriter, request *http.Request) {
 		writer.WriteHeader(http.StatusOK)

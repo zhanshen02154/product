@@ -2,30 +2,40 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/zhanshen02154/product/internal/application/dto"
+	"github.com/zhanshen02154/product/internal/domain/event/product"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/service"
 	"github.com/zhanshen02154/product/internal/infrastructure"
+	"github.com/zhanshen02154/product/internal/infrastructure/event"
 	"github.com/zhanshen02154/product/pkg/swap"
+	"go-micro.dev/v4/logger"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type IProductApplicationService interface {
 	AddProduct(ctx context.Context, productInfo *dto.ProductDto) (*dto.AddProductResponse, error)
-	DeductInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error
+	DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 	DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 }
 
+// ProductApplicationService 商品服务应用层
 type ProductApplicationService struct {
+	// 领域服务层
 	productDomainService service.IProductDataService
-	serviceContext       *infrastructure.ServiceContext
+	// 服务上下文
+	serviceContext *infrastructure.ServiceContext
+	// 事件总线
+	eb event.Listener
 }
 
-func NewProductApplicationService(serviceContext *infrastructure.ServiceContext) IProductApplicationService {
+func NewProductApplicationService(serviceContext *infrastructure.ServiceContext, eb event.Listener) IProductApplicationService {
 	return &ProductApplicationService{
-		productDomainService: service.NewProductDataService(serviceContext.OrderRepository),
+		productDomainService: service.NewProductDataService(serviceContext.NewProductRepository(), serviceContext.NewOrderInventoryEventRepo()),
 		serviceContext:       serviceContext,
+		eb:                   eb,
 	}
 }
 
@@ -42,39 +52,49 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 	return &dto.AddProductResponse{Id: productId}, nil
 }
 
-// DeductInvetory 扣减订单的库存
-func (appService *ProductApplicationService) DeductInvetory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetory-%d", req.OrderId))
+// DeductInventory 扣减订单的库存
+func (appService *ProductApplicationService) DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+	eventExists, err := appService.productDomainService.FindEventExistsByOrderId(ctx, req.OrderId)
 	if err != nil {
-		return err
+		return status.Errorf(codes.NotFound, "failed to check order inventory event on %d, error: %s", err.Error())
 	}
-	ok, err := lock.TryLock(ctx)
-	defer lock.UnLock(ctx)
-	if err != nil {
-		return err
+	if eventExists {
+		return nil
 	}
-	if !ok {
-		return errors.New(fmt.Sprintf("duplicate notify: %d", req.OrderId))
-	}
-	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
-		return appService.productDomainService.DeductOrderInvetory(txCtx, req)
+	err = appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
+		err = appService.productDomainService.DeductInventory(txCtx, req)
+		if err != nil {
+			return status.Errorf(codes.NotFound, "failed to deduct inventory on order %d, error: %s", req.OrderId, err.Error())
+		}
+
+		// 发布扣减库存成功事件
+		inventoryDeductSuccessEvent := &product.OnInventoryDeductSuccess{
+			OrderId: req.OrderId,
+		}
+		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", inventoryDeductSuccessEvent, fmt.Sprintf("%d", req.OrderId))
+		if err != nil {
+			return status.Errorf(codes.Aborted, "failed to publish event on %d, error: %s", req.OrderId, err.Error())
+		}
+		return nil
 	})
+	return err
 }
 
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert-%d", req.OrderId))
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert-%d", req.OrderId), 15)
 	if err != nil {
 		return err
 	}
-	ok, err := lock.TryLock(ctx)
-	defer lock.UnLock(ctx)
-	if err != nil {
+	if err := lock.TryLock(ctx); err != nil {
 		return err
 	}
-	if !ok {
-		return errors.New(fmt.Sprintf("duplicate notify: %d", req.OrderId))
-	}
+
+	defer func() {
+		if err := lock.UnLock(ctx); err != nil {
+			logger.Error("failed to unlock: ", lock.GetKey(ctx), " reason: ", err)
+		}
+	}()
 	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
 		return appService.productDomainService.DeductOrderInvetoryRevert(txCtx, req)
 	})

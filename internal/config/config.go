@@ -1,11 +1,20 @@
 package config
 
+import (
+	"fmt"
+	"github.com/go-micro/plugins/v4/config/source/consul"
+	"github.com/zhanshen02154/product/pkg/env"
+	"go-micro.dev/v4/config"
+	"go-micro.dev/v4/logger"
+)
+
 type SysConfig struct {
 	Service     *ServiceInfo `json:"service" yaml:"service"`
 	Database    *MySqlConfig `json:"database" yaml:"database"`
 	Consul      *ConsulInfo  `json:"consul" yaml:"consul"`
 	Etcd        *Etcd        `json:"etcd" yaml:"etcd"`
 	Transaction *Transaction `yaml:"transaction" json:"transaction"`
+	Broker      *Broker      `json:"broker" yaml:"broker"`
 }
 
 type ServiceInfo struct {
@@ -57,4 +66,71 @@ type MySqlConfig struct {
 type Transaction struct {
 	Driver string `json:"driver" yaml:"driver"`
 	Host   string `json:"host" yaml:"host"`
+}
+
+type Broker struct {
+	Driver     string   `json:"driver" yaml:"driver"`
+	Kafka      *Kafka   `json:"kafka" yaml:"kafka"`
+	Publisher  []string `json:"publisher" yaml:"publisher"`
+	Subscriber []string `json:"subscriber" yaml:"subscriber"`
+}
+
+type Kafka struct {
+	Hosts        []string       `json:"hosts" yaml:"hosts"`
+	DialTimeout  int            `json:"dial_timeout" yaml:"dial_timeout"`
+	ReadTimeout  int            `json:"read_timeout" yaml:"read_timeout"`
+	WriteTimeout int            `json:"write_timeout" yaml:"write_timeout"`
+	Producer     *KafkaProducer `json:"producer" yaml:"producer"`
+	Consumer     *KafkaConsumer `json:"consumer" yaml:"consumer"`
+}
+
+type KafkaProducer struct {
+	MaxRetry        int `json:"max_retry" yaml:"max_retry"`
+	MaxRetryBackOff int `json:"max_retry_back_off" yaml:"max_retry_back_off"`
+	FlushBytes      int `json:"flush_bytes" yaml:"flush_bytes"`
+	MaxOpenRequests int `json:"max_open_requests" yaml:"max_open_requests"`
+}
+
+type KafkaConsumer struct {
+	Group *KafkaConsumerGroup `json:"group" yaml:"group"`
+}
+
+type KafkaConsumerGroup struct {
+	SessionTimeout int `json:"session_timeout" yaml:"session_timeout"`
+}
+
+// 检查配置
+func (c *SysConfig) checkConfig() bool {
+	if c.Service == nil {
+		return false
+	}
+	return true
+}
+
+// GetConfig 从consul获取配置
+func GetConfig() (config.Config, error) {
+	// 从consul获取配置
+	consulHost := env.GetEnv("CONSUL_HOST", "192.168.83.131")
+	consulPort := env.GetEnv("CONSUL_PORT", "8500")
+	consulPrefix := env.GetEnv("CONSUL_PREFIX", "/micro/")
+	consulSource := consul.NewSource(
+		// Set configuration address
+		consul.WithAddress(fmt.Sprintf("%s:%s", consulHost, consulPort)),
+		consul.WithPrefix(consulPrefix),
+		consul.StripPrefix(true),
+	)
+	configInfo, err := config.NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// Load config
+	if err := configInfo.Load(consulSource); err != nil {
+		logger.Error("failed to load source on consul: ", err)
+		if err := configInfo.Close(); err != nil {
+			logger.Error("配置关闭失败: ", err)
+		}
+		return nil, err
+	}
+	return configInfo, nil
 }
