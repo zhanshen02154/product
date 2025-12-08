@@ -13,6 +13,7 @@ import (
 // 加载Kafka配置
 func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig := sarama.NewConfig()
+	kafkaConfig.ClientID = "product-client"
 	kafkaConfig.Version = sarama.V3_0_0_0
 	kafkaConfig.Net.DialTimeout = time.Duration(conf.DialTimeout) * time.Second
 	kafkaConfig.Net.ReadTimeout = time.Duration(conf.ReadTimeout) * time.Second
@@ -27,8 +28,12 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Producer.Idempotent = true
 	kafkaConfig.Metadata.AllowAutoTopicCreation = false
 	kafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
+	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.Group.FetchMax
+	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.Group.FetchMin
+	kafkaConfig.Consumer.Fetch.Default = 1024 * 1024
 	kafkaConfig.Net.MaxOpenRequests = 1
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
+	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
 	return kafkaConfig
 }
 
