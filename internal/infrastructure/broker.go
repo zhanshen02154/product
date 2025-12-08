@@ -35,6 +35,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Net.MaxOpenRequests = 8
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
+	kafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
 	return kafkaConfig
 }
 
