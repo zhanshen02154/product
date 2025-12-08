@@ -96,7 +96,10 @@ type KafkaConsumer struct {
 }
 
 type KafkaConsumerGroup struct {
-	SessionTimeout int `json:"session_timeout" yaml:"session_timeout"`
+	SessionTimeout    int   `json:"session_timeout" yaml:"session_timeout"`
+	FetchMin          int32 `json:"fetch_min" yaml:"fetch_min"`
+	FetchMax          int32 `json:"fetch_max" yaml:"fetch_max"`
+	HeartbeatInterval int   `json:"heartbeat_interval" yaml:"heartbeat_interval"`
 }
 
 // 检查配置
