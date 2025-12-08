@@ -58,7 +58,7 @@ func (u *ProductRepository) DeductProductSizeInventory(ctx context.Context, id i
 	if !ok {
 		db = u.db.WithContext(ctx)
 	}
-	tx := db.Debug().Model(model.ProductSize{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
+	tx := db.Model(model.ProductSize{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
@@ -74,7 +74,7 @@ func (u *ProductRepository) DeductProductInventory(ctx context.Context, id int64
 	if !ok {
 		db = u.db.WithContext(ctx)
 	}
-	tx := db.Debug().Model(model.Product{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
+	tx := db.Model(model.Product{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (u *ProductRepository) DeductProductInventory(ctx context.Context, id int64
 // DeductProductSizeInvetoryRevert 扣减指定规格产品的库存补偿
 func (u *ProductRepository) DeductProductSizeInvetoryRevert(ctx context.Context, id int64, num int64) error {
 	db := GetDBFromContext(ctx, u.db)
-	tx := db.Debug().Model(model.ProductSize{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
+	tx := db.Model(model.ProductSize{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (u *ProductRepository) DeductProductSizeInvetoryRevert(ctx context.Context,
 // DeductProductInventoryRevert 扣减产品的库存补偿
 func (u *ProductRepository) DeductProductInventoryRevert(ctx context.Context, id int64, num int64) error {
 	db := GetDBFromContext(ctx, u.db)
-	tx := db.Debug().Model(model.Product{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
+	tx := db.Model(model.Product{}).Where("id = ?", id).Update("stock", gorm.Expr("stock + ?", num))
 	if err := tx.Error; err != nil {
 		return err
 	}
