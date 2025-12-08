@@ -25,7 +25,7 @@ func InitDB(confInfo *config.MySqlConfig) (*gorm.DB, error) {
 		DSN:                       dsn,
 		SkipInitializeWithVersion: false,
 		DefaultStringSize:         255,
-	}), &gorm.Config{SkipDefaultTransaction: true})
+	}), &gorm.Config{SkipDefaultTransaction: true, PrepareStmt: true})
 	if err != nil {
 		return nil, err
 	}
