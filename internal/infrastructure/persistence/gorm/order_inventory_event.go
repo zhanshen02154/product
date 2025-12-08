@@ -15,7 +15,7 @@ type OrderInventoryEventRepositoryImpl struct {
 // FindEventExistsByOrderId 检查订单ID是否已经被处理过
 func (r *OrderInventoryEventRepositoryImpl) FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error) {
 	eventExists := &model.OrderInventoryEvent{}
-	err := r.db.WithContext(ctx).Model(eventExists).Where("order_id = ?", orderId).Select("order_id").First(eventExists).Error
+	err := r.db.Model(eventExists).Where("order_id = ?", orderId).Select("order_id").First(eventExists).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return false, nil
