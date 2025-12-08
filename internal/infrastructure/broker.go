@@ -31,6 +31,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.Group.FetchMax
 	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.Group.FetchMin
 	kafkaConfig.Consumer.Fetch.Default = 1024 * 1024
+	kafkaConfig.Consumer.MaxProcessingTime = 300000 * time.Millisecond
 	kafkaConfig.Net.MaxOpenRequests = 8
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
