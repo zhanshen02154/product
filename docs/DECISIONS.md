@@ -8,7 +8,7 @@
 ### 背景
 目前基础设施服务器运行着数据库、ETCD和Consul，虽然服务器由2核4G升级到4核8G但仍面临资源紧张问题，后续要集成更多组件将继续拖慢系统响应速度，移除Consul可减少对系统资源和网络资源的占用。
 
-该决策将于v4.0.0迭代实施，关于本决策，请参见：[ADR-008](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-008-服务注册/发现及配置从Consul迁移至ETCD) 。
+该决策将于v4.0.0迭代实施，关于本决策，请参见：[ADR-008-服务注册/发现及配置从Consul迁移至ETCD](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-008-服务注册/发现及配置从Consul迁移至ETCD) 。
 
 ---
 
@@ -20,7 +20,7 @@
 ### 背景
 DTM分布式事务直接调取数据库造成更严重的性能瓶颈，系统性能相比v1.0.1略有下降，耦合度上升。
 
-关于本决策，请参见：[ADR-007](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-007-升级到事件驱动架构) 。
+关于本决策，请参见：[ADR-007-升级到事件驱动架构](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-007-升级到事件驱动架构) 。
 
 ---
 
@@ -32,7 +32,7 @@ DTM分布式事务直接调取数据库造成更严重的性能瓶颈，系统�
 ### 背景
 系统需要使用分布式事务保证数据一致性，项目框架版本为2.9.1。
 
-关于本决策，请参见：[ADR-006](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-006-集成DTM分布式事务组件) 。
+关于本决策，请参见：[ADR-006-集成DTM分布式事务组件](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-006-集成DTM分布式事务组件) 。
 
 ---
 
@@ -44,7 +44,7 @@ DTM分布式事务直接调取数据库造成更严重的性能瓶颈，系统�
 ### 背景
 订单支付回调API接口压测存在并发请求问题需要阻止并发操作。
 
-关于本决策，请参见：[ADR-005](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-005-分布式锁) 。
+关于本决策，请参见：[ADR-005-分布式锁](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-005-分布式锁) 。
 
 ---
 
