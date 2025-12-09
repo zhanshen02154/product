@@ -1,6 +1,0 @@
-package cmd
-
-const (
-	CONSUL_PREFIX = "/micro/config"
-	TRACER_ADDR = "127.0.0.1:6831"
-)

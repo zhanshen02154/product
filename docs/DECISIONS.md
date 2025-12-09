@@ -1,6 +1,54 @@
 # 微服务架构演进实践——商品服务决策记录
 
-## 解决Consul.Watch超时问题
+## ADR-007: 服务注册/发现及配置从Consul迁移至ETCD
+### 日期
+2025年12月09日
+### 状态
+已采纳
+### 背景
+目前基础设施服务器运行着数据库、ETCD和Consul，虽然服务器由2核4G升级到4核8G但仍面临资源紧张问题，后续要集成更多组件将继续拖慢系统响应速度，移除Consul可减少对系统资源和网络资源的占用。
+
+该决策将于v4.0.0迭代实施，关于本决策，请参见：[ADR-008-服务注册/发现及配置从Consul迁移至ETCD](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-008-服务注册/发现及配置从Consul迁移至ETCD) 。
+
+---
+
+## ADR-006: 用broker和kafka升级到事件驱动架构
+### 日期
+2025年11月28日
+### 状态
+已采纳
+### 背景
+DTM分布式事务直接调取数据库造成更严重的性能瓶颈，系统性能相比v1.0.1略有下降，耦合度上升。
+
+关于本决策，请参见：[ADR-007-升级到事件驱动架构](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-007-升级到事件驱动架构) 。
+
+---
+
+## ADR-005: 集成DTM分布式事务组件
+### 日期
+2025年11月18日
+### 状态
+已采纳
+### 背景
+系统需要使用分布式事务保证数据一致性，项目框架版本为2.9.1。
+
+关于本决策，请参见：[ADR-006-集成DTM分布式事务组件](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-006-集成DTM分布式事务组件) 。
+
+---
+
+## ADR-004: 用ETCD实现分布式锁
+### 日期
+2025年11月13日
+### 状态
+已采纳
+### 背景
+订单支付回调API接口压测存在并发请求问题需要阻止并发操作。
+
+关于本决策，请参见：[ADR-005-分布式锁](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-005-分布式锁) 。
+
+---
+
+## ADR-003: 解决Consul.Watch超时问题
 ### 日期
 2025年11月6日
 ### 状态
@@ -14,7 +62,7 @@ WaitTime等待时间小于全局超时时间就不会报错，不设置则默认
 
 ---
 
-## 优化健康检查
+## ADR-002: 优化健康检查
 ### 日期
 2025年11月4日
 ### 状态
@@ -39,7 +87,7 @@ WaitTime等待时间小于全局超时时间就不会报错，不设置则默认
 
 ---
 
-## 调整目录结构
+## ADR-001: 调整目录结构
 ### 日期
 2025年10月31日
 ### 状态

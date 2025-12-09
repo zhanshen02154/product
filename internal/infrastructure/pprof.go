@@ -1,4 +1,4 @@
-package server
+package infrastructure
 
 import (
 	"context"
@@ -18,8 +18,8 @@ type PprofServer struct {
 
 // NewPprofServer 创建pprof服务器
 func NewPprofServer(addr string) *PprofServer {
-	runtime.SetBlockProfileRate(1)
-	runtime.SetCPUProfileRate(1)
+	runtime.SetBlockProfileRate(10000)
+	runtime.SetCPUProfileRate(100)
 	runtime.SetMutexProfileFraction(1)
 	return &PprofServer{
 		server:       &http.Server{Addr: addr},
@@ -33,6 +33,7 @@ func (srv *PprofServer) Start() {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	logger.Info("启动pprof")
+	srv.shutdownFlag.Store(false)
 	go func() {
 		defer wg.Done()
 		err := srv.server.ListenAndServe()

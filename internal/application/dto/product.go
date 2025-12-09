@@ -1,6 +1,9 @@
 package dto
 
-import "github.com/zhanshen02154/product/proto/product"
+import (
+	"github.com/zhanshen02154/product/internal/domain/event/order"
+	"github.com/zhanshen02154/product/proto/product"
+)
 
 type ProductDto struct {
 	Id                 int64              `json:"id"`
@@ -49,8 +52,8 @@ func (productInvetoryDto *OrderProductInvetoryDto) Reset() {
 	productInvetoryDto.ProductSizeInvetory = make([]*OrderProductSizeInvetoryItem, 0)
 }
 
-// ConvertToOrderProductInvetoryDto 将GRPC请求转换为DTO
-func (productInvetoryDto *OrderProductInvetoryDto) ConvertToOrderProductInvetoryDto(req *product.OrderDetailReq) {
+// ConvertTo 将GRPC请求转换为DTO
+func (productInvetoryDto *OrderProductInvetoryDto) ConvertTo(req *order.OnPaymentSuccess) {
 	productInvetoryDto.OrderId = req.OrderId
 	productCountMap := make(map[int64]int64)
 	for _, item := range req.Products {
@@ -66,6 +69,28 @@ func (productInvetoryDto *OrderProductInvetoryDto) ConvertToOrderProductInvetory
 	}
 	for key, val := range productCountMap {
 		productInvetoryDto.ProductInvetory = append(productInvetoryDto.ProductInvetory, &OrderProductInvetoryItem{
+			Id:    key,
+			Count: val,
+		})
+	}
+}
+
+func (o *OrderProductInvetoryDto) ConvertFromOrderDetailReq(req *product.OrderDetailReq) {
+	o.OrderId = req.OrderId
+	productCountMap := make(map[int64]int64)
+	for _, item := range req.Products {
+		if _, ok := productCountMap[item.ProductId]; ok {
+			productCountMap[item.ProductId] += item.ProductNum
+		} else {
+			productCountMap[item.ProductId] = item.ProductNum
+		}
+		o.ProductSizeInvetory = append(o.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
+			Id:    item.ProductSizeId,
+			Count: item.ProductNum,
+		})
+	}
+	for key, val := range productCountMap {
+		o.ProductInvetory = append(o.ProductInvetory, &OrderProductInvetoryItem{
 			Id:    key,
 			Count: val,
 		})
