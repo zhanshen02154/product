@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/zhanshen02154/product/internal/config"
 	"github.com/zhanshen02154/product/internal/domain/repository"
-	"github.com/zhanshen02154/product/internal/infrastructure/persistence"
 	gorm2 "github.com/zhanshen02154/product/internal/infrastructure/persistence/gorm"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction/dtm"
 	"go-micro.dev/v4/logger"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -20,8 +20,8 @@ type ServiceContext struct {
 	Dtm         *dtm.Server
 }
 
-func NewServiceContext(conf *config.SysConfig) (*ServiceContext, error) {
-	db, err := persistence.InitDB(conf.Database)
+func NewServiceContext(conf *config.SysConfig, zapLogger *zap.Logger) (*ServiceContext, error) {
+	db, err := InitDB(conf.Database, zapLogger)
 	if err != nil {
 		return nil, err
 	}

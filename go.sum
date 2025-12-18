@@ -210,6 +210,8 @@ github.com/go-micro/plugins/v4/client/grpc v1.2.1 h1:7xAwZRCO6mdUtBHsYIQs1/eCTdh
 github.com/go-micro/plugins/v4/client/grpc v1.2.1/go.mod h1:3fDuzyfYLwEImn8+lkhKl3W4Ay1jFevkTeC32PBlgQs=
 github.com/go-micro/plugins/v4/config/source/consul v1.2.0 h1:AZ2L6vP8Cy3Sh2VI/9E8RmdkjdZPGqK8J3aE2rxQf5g=
 github.com/go-micro/plugins/v4/config/source/consul v1.2.0/go.mod h1:/v+vqsTJX0mZSahKKxcnAVF+TxPYRKbZBaOt9bI1YzI=
+github.com/go-micro/plugins/v4/logger/zap v1.2.1 h1:O/pY+ytDg+rPgbu1CQmfDAjsHLNmDs0eN9qysk5EWgU=
+github.com/go-micro/plugins/v4/logger/zap v1.2.1/go.mod h1:f5ZxW266cKeNH62+z+HqxbDnXxTilbtWw6k+bt3YoYI=
 github.com/go-micro/plugins/v4/registry/consul v1.2.1 h1:3wctYMtstwQLCjoJ1HA6mKGGFF1hcdKDv5MzHakB1jE=
 github.com/go-micro/plugins/v4/registry/consul v1.2.1/go.mod h1:wTat7/K9XQ+i64VbbcMYFcEwipYfSgJM51HcA/sgsM4=
 github.com/go-micro/plugins/v4/server/grpc v1.2.0 h1:lXfM+/0oE/u1g0hVBYsvbP4lYOYXYOmwf5qH7ghi7Cc=

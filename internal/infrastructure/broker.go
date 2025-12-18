@@ -5,8 +5,6 @@ import (
 	"github.com/go-micro/plugins/v4/broker/kafka"
 	"github.com/zhanshen02154/product/internal/config"
 	"go-micro.dev/v4/broker"
-	"log"
-	"os"
 	"time"
 )
 
@@ -41,7 +39,6 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 
 // NewKafkaBroker 创建Broker
 func NewKafkaBroker(conf *config.Kafka) broker.Broker {
-	sarama.Logger = log.New(os.Stdout, "[Sarama]", log.LstdFlags)
 	return kafka.NewBroker(
 		broker.Addrs(conf.Hosts...),
 		kafka.BrokerConfig(loadKafkaConfig(conf)),

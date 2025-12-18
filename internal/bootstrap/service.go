@@ -19,11 +19,12 @@ import (
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/server"
+	"go.uber.org/zap"
 	"time"
 )
 
-func RunService(conf *config.SysConfig) error {
-	serviceContext, err := infrastructure.NewServiceContext(conf)
+func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
+	serviceContext, err := infrastructure.NewServiceContext(conf, zapLogger)
 	defer serviceContext.Close()
 	if err != nil {
 		logger.Error("error to load service context: ", err)
@@ -53,6 +54,7 @@ func RunService(conf *config.SysConfig) error {
 	}
 
 	// New Service
+	logWrapper := infrastructure.NewLogWrapper(zapLogger)
 	client := grpcclient.NewClient(
 		grpcclient.PoolMaxIdle(100),
 	)
@@ -72,7 +74,10 @@ func RunService(conf *config.SysConfig) error {
 		micro.Client(client),
 		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		//添加限流
-		micro.WrapHandler(ratelimit.NewHandlerWrapper(conf.Service.Qps)),
+		micro.WrapHandler(
+			logWrapper.RequestLogWrapper,
+			ratelimit.NewHandlerWrapper(conf.Service.Qps),
+		),
 		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		micro.AfterStart(func() error {
 			pprofSrv.Start()
@@ -94,8 +99,11 @@ func RunService(conf *config.SysConfig) error {
 			return nil
 		}),
 		micro.Broker(broker),
-		micro.WrapClient(wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version)),
-		micro.WrapSubscriber(deadLetterWrapper.Wrapper()),
+		micro.WrapClient(wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version, zapLogger)),
+		micro.WrapSubscriber(
+			deadLetterWrapper.Wrapper(),
+			logWrapper.SubscribeWrapper(),
+		),
 	)
 
 	// 注册应用层服务及事件侦听器
