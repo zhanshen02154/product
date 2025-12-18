@@ -51,6 +51,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2 // indirect
 	github.com/go-micro/plugins/v4/broker/kafka v1.2.0 // indirect
 	github.com/go-micro/plugins/v4/client/grpc v1.2.1 // indirect
+	github.com/go-micro/plugins/v4/logger/zap v1.2.1 // indirect
 	github.com/go-redis/redis/v8 v8.11.5 // indirect
 	github.com/go-resty/resty/v2 v2.7.0 // indirect
 	github.com/go-sql-driver/mysql v1.8.1 // indirect
