@@ -38,7 +38,7 @@ func main() {
 		logger.Error(err)
 		return
 	}
-	zapLogger.With(
+	componentLogger := zapLogger.With(
 		zap.String("service", confInfo.Service.Name),
 		zap.String("version", confInfo.Service.Version),
 	)
@@ -47,7 +47,7 @@ func main() {
 	loggerMetadataMap["type"] = "core"
 	logger.DefaultLogger = logger.DefaultLogger.Fields(loggerMetadataMap)
 
-	if err := bootstrap.RunService(&confInfo, zapLogger); err != nil {
+	if err := bootstrap.RunService(&confInfo, componentLogger); err != nil {
 		logger.Error("failed to start service: ", err)
 	}
 }
