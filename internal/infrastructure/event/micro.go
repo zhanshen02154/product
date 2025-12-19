@@ -61,6 +61,7 @@ func (l *microListener) UnRegister(topic string) bool {
 		delete(l.eventPublisher, topic)
 		logger.Info("event: ", topic, " unregistered")
 	}
+	l.eventPublisher = nil
 	return true
 }
 
