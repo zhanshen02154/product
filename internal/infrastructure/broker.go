@@ -23,14 +23,14 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Producer.Flush.Frequency = 100 * time.Millisecond
 	kafkaConfig.Producer.Compression = sarama.CompressionGZIP
 	kafkaConfig.Producer.Partitioner = sarama.NewHashPartitioner
-	kafkaConfig.Producer.Idempotent = true
+	kafkaConfig.Producer.Idempotent = false
 	kafkaConfig.Metadata.AllowAutoTopicCreation = false
 	kafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.Group.FetchMax
 	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.Group.FetchMin
 	kafkaConfig.Consumer.Fetch.Default = 1024 * 1024
 	kafkaConfig.Consumer.MaxProcessingTime = 300000 * time.Millisecond
-	kafkaConfig.Net.MaxOpenRequests = 1
+	kafkaConfig.Net.MaxOpenRequests = 10
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
 	kafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
