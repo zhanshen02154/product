@@ -15,7 +15,9 @@ type GormTransactionManager struct {
 type txKey struct{}
 
 func (gtm *GormTransactionManager) Execute(ctx context.Context, fn func(txCtx context.Context) error) error {
-	return gtm.db.Transaction(func(tx *gorm.DB) error {
+	// 使用 NewDB session 为每次事务创建独立会话，降低 statement 缓存/复用时的互斥争用
+	session := gtm.db.Session(&gorm.Session{NewDB: true, SkipDefaultTransaction: true, SkipHooks: false, DisableNestedTransaction: true})
+	return session.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
 		txCtx := context.WithValue(ctx, txKey{}, tx)
 		return fn(txCtx)
 	})
