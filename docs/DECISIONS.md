@@ -1,14 +1,45 @@
 # 微服务架构演进实践——商品服务决策记录
 
-## ADR-007: 服务注册/发现及配置从Consul迁移至ETCD
+## ADR-009: 日志收集方案
 ### 日期
-2025年12月09日
+2025年12月18日
 ### 状态
 已采纳
 ### 背景
-目前基础设施服务器运行着数据库、ETCD和Consul，虽然服务器由2核4G升级到4核8G但仍面临资源紧张问题，后续要集成更多组件将继续拖慢系统响应速度，移除Consul可减少对系统资源和网络资源的占用。
+1.0-3.0版几乎为黑盒难以排查只能通过htop结合阿里云ECS的监控来观测，需要完善日志以增强可观测性。日志来源如下：
+- 框架组件
+- GRPC请求
+- 发布事件
+- 订阅事件
+- SQL
+- Apisix
 
-该决策将于v4.0.0迭代实施，关于本决策，请参见：[ADR-008-服务注册/发现及配置从Consul迁移至ETCD](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-008-服务注册/发现及配置从Consul迁移至ETCD) 。
+采集来源众多格式不统一，还要避免影响整体性能。 
+
+关于本决策，请参见：[ADR-010-日志收集方案](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-010-日志收集方案) 。
+
+---
+
+### ADR-008: Logstash更换为Fluent-bit
+### 日期
+2025年12月17日
+### 状态
+已采纳
+### 背景
+- Logstash 8.18.8部署到K8S集群后空转状态下占用内存近800M，CPU使用1.52核，基础设施服务器仅4核8G，可能会出现Pod被K8S杀死的风险。
+
+关于本决策，请参见：[ADR-009-Logstash更换为Fluent-bit](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-009-Logstash更换为Fluent-bit) 。
+
+---
+
+## ADR-007: 服务注册/发现及配置从Consul迁移至ETCD
+### 状态
+已撤销
+### 背景
+目前基础设施服务器运行着数据库、ETCD和Consul，虽然服务器由2核4G升级到4核8G但仍面临资源紧张问题，后续要集成更多组件将继续拖慢系统响应速度，移除Consul可减少对系统资源和网络资源的占用。
+### 声明
+该决策已于2025年12月19日被撤销，参考依据：
+- [ADR-011-撤销ADR-008-服务注册/发现及配置从Consul迁移至ETCD](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-011-撤销ADR-008-服务注册/发现及配置从Consul迁移至ETCD)
 
 ---
 
