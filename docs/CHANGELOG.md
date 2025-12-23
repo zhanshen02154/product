@@ -1,4 +1,30 @@
 
+<a name="v4.0.0"></a>
+## [v4.0.0](https://github.com/zhanshen02154/product/compare/v3.0.0...v4.0.0) (2025-12-23)
+
+### Bug Fixes
+
+* 修复发布事件日志无法获取事件ID的问题
+* 修复日志元数据无法写入问题
+* **pprof:** 修复协程waitGroup问题
+* **事件侦听器:** 修复发布器的释放锁问题
+* **事务管理:** 用独立会话启动事务
+
+### Code Refactoring
+
+* **broker:** 增加打开的请求数量
+* **分布式锁:** 共享Session以减少网络资源开销
+
+### Features
+
+* 新增发布/订阅事件，GRPC日志和数据库的日志
+
+### Performance Improvements
+
+* 增加管道消息数量
+* **broker:** 增加缓存消息数
+
+
 <a name="v3.0.0"></a>
 ## [v3.0.0](https://github.com/zhanshen02154/product/compare/v2.0.0...v3.0.0) (2025-12-09)
 
@@ -111,4 +137,37 @@
 
 * **ETCD分布式锁:** 共享Session减小会话开销
 * **ETCD分布式锁客户端:** 优化客户端参数
+
+
+<a name="v1.0.1"></a>
+## [v1.0.1](https://github.com/zhanshen02154/product/compare/v1.0.0...v1.0.1) (2025-11-23)
+
+### Bug Fixes
+
+* **打印错误日志:** 修复为Error和Errorf
+
+
+<a name="v1.0.0"></a>
+## v1.0.0 (2025-11-17)
+
+### Bug Fixes
+
+* 健康检查服务器使用配置的地址
+* 修复配置问题
+* 修复健康检查探针和配置问题
+* **proto:** 补充proto文件
+* **service:** 取消service.Init防止配置被覆盖
+
+### Code Refactoring
+
+* **infrastructure:** 调整初始化数据库及健康检查探针
+* **infrastructure:** 修改基础设施层
+
+### Features
+
+* **BeforeStop:** withTimeout时间增加到30秒
+
+### Performance Improvements
+
+* **consul register:** 优化Consul服务注册机制
 
