@@ -60,6 +60,7 @@ type MySqlConfig struct {
 	MaxOpenConns    int    `json:"max_open_conns" yaml:"max_open_conns"`
 	MaxIdleConns    int    `json:"max_idle_conns" yaml:"max_idle_conns"`
 	ConnMaxLifeTime uint   `json:"conn_max_life_time" yaml:"conn_max_life_time"`
+	LogLevel        int    `json:"log_level" yaml:"log_level"`
 }
 
 // Transaction 事务管理
@@ -113,7 +114,7 @@ func (c *SysConfig) checkConfig() bool {
 // GetConfig 从consul获取配置
 func GetConfig() (config.Config, error) {
 	// 从consul获取配置
-	consulHost := env.GetEnv("CONSUL_HOST", "192.168.83.131")
+	consulHost := env.GetEnv("CONSUL_HOST", "192.168.81.128")
 	consulPort := env.GetEnv("CONSUL_PORT", "8500")
 	consulPrefix := env.GetEnv("CONSUL_PREFIX", "/micro/")
 	consulSource := consul.NewSource(

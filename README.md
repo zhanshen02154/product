@@ -12,28 +12,33 @@
 │  │  └─service        // 应用层的服务层
 │  ├─config            // 配置文件
 │  ├─domain            // 领域层
-│  │  ├─model          // 模型层
-│  │  ├─repository     // 仓储层
-│  │  └─service         // 领域层的服务层
+│  │  ├─event          // 事件
+│  │  ├─model          // 模型
+│  │  ├─repository     // 仓储
+│  │  └─service        // 服务
 │  ├─infrastructure     // 基础设施层
-│  │  ├─cache           // 缓存
-│  │  ├─config          // 配置
-│  │  ├─persistence     // 基础设施层
+│  │  ├─event           // 事件驱动组件
+│  │  ├─persistence     // 持久化
 │  │  │  └─gorm         // gorm具体仓储实现类
 │  │  ├─registry        // 注册中心
 │  │  └─rpc             // RPC服务
 │  └─intefaces          // 接口层
+│      ├─handler        // GRPC处理器
+│      └─subscriber     // 事件订阅处理器
 ├─pkg                   // 组件包
 ├─proto                 protobuf
 │  └─product
 ```
 
 ## 技术选型
-- 开发语言：Golang 1.20.10
-- 框架：Go micro 4.11.0
-- 数据库：MySQL 5.7.26
-- 服务注册/发现：Consul 1.7.3
-- 分布式锁：ETCD 3.5.7
+### 开发语言
+- Golang 1.20.10
+- LUA
+### 框架：Go micro 4.11.0
+### 数据库：MySQL 5.7.26
+### 服务注册/发现：Consul 1.7.3
+### 分布式锁：ETCD 3.5.7
+### 消息队列：Kafka 3.1.0
 
 ## 服务器配置
 | 厂商  | 配置               | 数量 | 操作系统       | Docker版本 | Kubernetes版本 |
@@ -62,5 +67,5 @@
 - 由于配置文件放在服务注册中心Consul的KV获取，编译Docker镜像必须指定3个环境变量：CONSUL_HOST（consul的IP地址）、CONSUL_PORT（Consul端口）、CONSUL_PREFIX（前缀），没有指定则一律按本地开发环境处理。
 
 ## 旧版遗留问题及对开发的影响
-- common、config目录将在后续版本中移除，请勿在这些目录添加文件。
+- common目录将在后续版本中移除，请勿在这些目录添加文件。
 - proto文件尚未统一管理。
