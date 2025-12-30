@@ -48,7 +48,11 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 	}
 
 	// New Service
-	logWrapper := infrastructure.NewLogWrapper(zapLogger)
+	logWrapper := infrastructure.NewLogWrapper(
+		infrastructure.WithZapLogger(zapLogger),
+		infrastructure.WithRequestSlowThreshold(conf.Service.RequestSlowThreshold),
+		infrastructure.WithSubscribeSlowThreshold(conf.Broker.SubscribeSlowThreshold),
+	)
 	client := grpcclient.NewClient(
 		grpcclient.PoolMaxIdle(100),
 	)
