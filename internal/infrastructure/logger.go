@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	metadatahelper "github.com/zhanshen02154/product/pkg/metadata"
 	micrologger "go-micro.dev/v4/logger"
-	"go-micro.dev/v4/metadata"
 	"go-micro.dev/v4/server"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -24,20 +22,15 @@ type LogWrapper struct {
 // RequestLogWrapper 请求日志
 func (w *LogWrapper) RequestLogWrapper(fn server.HandlerFunc) server.HandlerFunc {
 	return func(ctx context.Context, req server.Request, rsp interface{}) error {
-		traceId := metadatahelper.GetValueFromMetadata(ctx, "Trace_id")
-		if traceId == "" {
-			traceId = uuid.New().String()
-		}
-		traceCtx := metadata.Set(ctx, "Trace_id", traceId)
 		startTime := time.Now()
-		err := fn(traceCtx, req, rsp)
+		err := fn(ctx, req, rsp)
 		duration := time.Since(startTime).Milliseconds()
 		userAgent := metadatahelper.GetValueFromMetadata(ctx, "user-agent")
 		remote := metadatahelper.GetValueFromMetadata(ctx, "Remote")
 		acceptEncoding := metadatahelper.GetValueFromMetadata(ctx, "accept-encoding")
 		logFields := []zap.Field{
 			zap.String("type", "request"),
-			zap.String("trace_id", traceId),
+			zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
 			zap.String("service", req.Service()),
 			zap.String("method", req.Method()),
 			zap.String("endpoint", req.Endpoint()),
