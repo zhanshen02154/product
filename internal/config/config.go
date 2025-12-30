@@ -19,13 +19,14 @@ type SysConfig struct {
 }
 
 type ServiceInfo struct {
-	Name           string `json:"name" yaml:"name"`
-	Version        string `json:"version" yaml:"version"`
-	Listen         string `json:"listen" yaml:"listen"`
-	Port           uint   `json:"port" yaml:"port"`
-	Debug          bool   `json:"debug" yaml:"debug"`
-	HeathCheckAddr string `json:"heath_check_addr" yaml:"heath_check_addr"`
-	Qps            int    `json:"qps" yaml:"qps"`
+	Name                 string `json:"name" yaml:"name"`
+	Version              string `json:"version" yaml:"version"`
+	Listen               string `json:"listen" yaml:"listen"`
+	Port                 uint   `json:"port" yaml:"port"`
+	Debug                bool   `json:"debug" yaml:"debug"`
+	HeathCheckAddr       string `json:"heath_check_addr" yaml:"heath_check_addr"`
+	Qps                  int    `json:"qps" yaml:"qps"`
+	RequestSlowThreshold int64  `json:"request_slow_threshold" yaml:"request_slow_threshold"`
 }
 
 type Etcd struct {
@@ -71,10 +72,11 @@ type Transaction struct {
 }
 
 type Broker struct {
-	Driver     string   `json:"driver" yaml:"driver"`
-	Kafka      *Kafka   `json:"kafka" yaml:"kafka"`
-	Publisher  []string `json:"publisher" yaml:"publisher"`
-	Subscriber []string `json:"subscriber" yaml:"subscriber"`
+	Driver                 string   `json:"driver" yaml:"driver"`
+	Kafka                  *Kafka   `json:"kafka" yaml:"kafka"`
+	Publisher              []string `json:"publisher" yaml:"publisher"`
+	Subscriber             []string `json:"subscriber" yaml:"subscriber"`
+	SubscribeSlowThreshold int64    `json:"subscribe_slow_threshold" yaml:"subscribe_slow_threshold"`
 }
 
 type Kafka struct {
@@ -94,14 +96,14 @@ type KafkaProducer struct {
 }
 
 type KafkaConsumer struct {
-	Group *KafkaConsumerGroup `json:"group" yaml:"group"`
+	Group    *KafkaConsumerGroup `json:"group" yaml:"group"`
+	FetchMin int32               `json:"fetch_min" yaml:"fetch_min"`
+	FetchMax int32               `json:"fetch_max" yaml:"fetch_max"`
 }
 
 type KafkaConsumerGroup struct {
-	SessionTimeout    int   `json:"session_timeout" yaml:"session_timeout"`
-	FetchMin          int32 `json:"fetch_min" yaml:"fetch_min"`
-	FetchMax          int32 `json:"fetch_max" yaml:"fetch_max"`
-	HeartbeatInterval int   `json:"heartbeat_interval" yaml:"heartbeat_interval"`
+	SessionTimeout    int `json:"session_timeout" yaml:"session_timeout"`
+	HeartbeatInterval int `json:"heartbeat_interval" yaml:"heartbeat_interval"`
 }
 
 // Tracer 链路追踪

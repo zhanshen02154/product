@@ -27,8 +27,8 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Producer.Idempotent = false
 	kafkaConfig.Metadata.AllowAutoTopicCreation = false
 	kafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
-	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.Group.FetchMax
-	kafkaConfig.Consumer.Fetch.Min = 1
+	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.FetchMax
+	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.FetchMin
 	kafkaConfig.Consumer.Fetch.Default = 10240
 	kafkaConfig.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
 	kafkaConfig.Consumer.MaxProcessingTime = 500 * time.Millisecond

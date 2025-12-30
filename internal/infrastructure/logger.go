@@ -6,8 +6,10 @@ import (
 	"fmt"
 	metadatahelper "github.com/zhanshen02154/product/pkg/metadata"
 	micrologger "go-micro.dev/v4/logger"
+	"go-micro.dev/v4/metadata"
 	"go-micro.dev/v4/server"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 	"strconv"
@@ -16,22 +18,28 @@ import (
 )
 
 type LogWrapper struct {
-	logger *zap.Logger
+	logger            *zap.Logger
+	level             zapcore.Level
+	requestSlowTime   int64
+	subscribeSlowTime int64
 }
+
+type Option func(p *LogWrapper)
 
 // RequestLogWrapper 请求日志
 func (w *LogWrapper) RequestLogWrapper(fn server.HandlerFunc) server.HandlerFunc {
 	return func(ctx context.Context, req server.Request, rsp interface{}) error {
+		traceId := metadatahelper.GetTraceIdFromSpan(ctx)
+		traceCtx := metadata.Set(ctx, "Trace_id", traceId)
 		startTime := time.Now()
-		err := fn(ctx, req, rsp)
+		err := fn(traceCtx, req, rsp)
 		duration := time.Since(startTime).Milliseconds()
 		userAgent := metadatahelper.GetValueFromMetadata(ctx, "user-agent")
 		remote := metadatahelper.GetValueFromMetadata(ctx, "Remote")
 		acceptEncoding := metadatahelper.GetValueFromMetadata(ctx, "accept-encoding")
 		logFields := []zap.Field{
 			zap.String("type", "request"),
-			zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
-			zap.String("service", req.Service()),
+			zap.String("trace_id", traceId),
 			zap.String("method", req.Method()),
 			zap.String("endpoint", req.Endpoint()),
 			zap.String("content_type", req.ContentType()),
@@ -42,10 +50,14 @@ func (w *LogWrapper) RequestLogWrapper(fn server.HandlerFunc) server.HandlerFunc
 		}
 		if err != nil {
 			w.logger.Error(fmt.Sprintf("request failed: %s", err.Error()), logFields...)
+			return err
+		}
+		if duration > w.requestSlowTime {
+			w.logger.Warn("request too slow", logFields...)
 		} else {
 			w.logger.Info("request success", logFields...)
 		}
-		return err
+		return nil
 	}
 }
 
@@ -53,16 +65,10 @@ func (w *LogWrapper) RequestLogWrapper(fn server.HandlerFunc) server.HandlerFunc
 func (w *LogWrapper) SubscribeWrapper() server.SubscriberWrapper {
 	return func(next server.SubscriberFunc) server.SubscriberFunc {
 		return func(ctx context.Context, msg server.Message) error {
-			var err error
 			startTime := time.Now()
-			err = next(ctx, msg)
-			duration := time.Since(startTime).Milliseconds()
 			var strBuilder strings.Builder
-			if err != nil {
-				strBuilder.WriteString(fmt.Sprintf("failed to subscribe on %s, error: %s", msg.Topic(), err.Error()))
-			} else {
-				strBuilder.WriteString(fmt.Sprintf("topic: %s handle success", msg.Topic()))
-			}
+			err := next(ctx, msg)
+			duration := time.Since(startTime).Milliseconds()
 			publishedAt, err := strconv.ParseInt(metadatahelper.GetValueFromMetadata(ctx, "Timestamp"), 10, 64)
 			if err != nil {
 				micrologger.Error("failed to convert publushed at: ", err.Error())
@@ -82,11 +88,20 @@ func (w *LogWrapper) SubscribeWrapper() server.SubscriberWrapper {
 				zap.Int64("duration", duration),
 			}
 			if err != nil {
+				strBuilder.WriteString(fmt.Sprintf("failed to subscribe on %s: %s", msg.Topic(), err.Error()))
 				w.logger.Error(strBuilder.String(), logFields...)
+				return err
+			}
+
+			if duration > w.subscribeSlowTime {
+				strBuilder.WriteString(fmt.Sprintf("subscribe handler spend too much time greater than %dms on topic %s", w.subscribeSlowTime, msg.Topic()))
+				w.logger.Warn(strBuilder.String(), logFields...)
 			} else {
+				strBuilder.WriteString(fmt.Sprintf("topic %s subscribe handler success", msg.Topic()))
 				w.logger.Info(strBuilder.String(), logFields...)
 			}
-			return err
+
+			return nil
 		}
 	}
 }
@@ -99,6 +114,7 @@ type gormLogger struct {
 }
 
 func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
+	l.level = level
 	return l
 }
 
@@ -127,20 +143,23 @@ func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 	// 获取 SQL 请求和返回条数
 	sql, rows := fc()
 	// 通用字段
-	traceId := metadatahelper.GetTraceIdFromSpan(ctx)
 	logFields := []zap.Field{
 		zap.String("type", "sql"),
-		zap.String("trace_id", traceId),
+		zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
 		zap.String("sql", sql),
 		zap.Int64("time", elapsed),
 		zap.Int64("rows", rows),
 	}
 
 	// Gorm 错误
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		// 其他错误使用 error 等级
-		logFields = append(logFields, zap.Error(err))
-		l.logger.Error("Database Error", logFields...)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			l.logger.Warn(fmt.Sprintf("record not found: %s", err.Error()), logFields...)
+		} else {
+			// 其他错误使用 error 等级
+			logFields = append(logFields, zap.Error(err))
+			l.logger.Error("Database Error", logFields...)
+		}
 	}
 
 	// 慢查询日志
@@ -176,6 +195,31 @@ func NewGromLogger(zapLogger *zap.Logger, level int) logger.Interface {
 }
 
 // NewLogWrapper 创建日志包装器
-func NewLogWrapper(logger *zap.Logger) LogWrapper {
-	return LogWrapper{logger: logger}
+func NewLogWrapper(opts ...Option) *LogWrapper {
+	w := &LogWrapper{}
+	for _, opt := range opts {
+		opt(w)
+	}
+	return w
+}
+
+// WithRequestSlowThreshold 慢请求时间
+func WithRequestSlowThreshold(timeout int64) Option {
+	return func(p *LogWrapper) {
+		p.requestSlowTime = timeout
+	}
+}
+
+// WithSubscribeSlowThreshold 订阅事件处理延迟时间
+func WithSubscribeSlowThreshold(timeout int64) Option {
+	return func(p *LogWrapper) {
+		p.subscribeSlowTime = timeout
+	}
+}
+
+// WithZapLogger 设置Logger
+func WithZapLogger(zapLogger *zap.Logger) Option {
+	return func(p *LogWrapper) {
+		p.logger = zapLogger
+	}
 }
