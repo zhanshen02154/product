@@ -51,9 +51,8 @@ func (w *DeadLetterWrapper) Wrapper() server.SubscriberWrapper {
 			topic := msg.Topic() + "DLQ"
 			if err := w.b.Publish(topic, dlMsg); err != nil {
 				logger.Errorf("failed to publish to %s, error: %s", topic, err.Error())
-				return nil
 			}
-			return nil
+			return err
 		}
 	}
 }
