@@ -6,6 +6,7 @@ import (
 	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
 	"github.com/go-micro/plugins/v4/transport/grpc"
 	ratelimit "github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber"
+	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
 	appservice "github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/config"
 	"github.com/zhanshen02154/product/internal/infrastructure"
@@ -19,6 +20,7 @@ import (
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/server"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"time"
 )
@@ -33,14 +35,6 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 
 	// 注册到Consul
 	consulRegistry := registry.ConsulRegister(conf.Consul)
-
-	//链路追踪
-	//tracer, io, err := common.NewTracer(cmd.SERVICE_NAME, cmd.TRACER_ADDR)
-	//if err != nil {
-	//	logger.Error(err)
-	//}
-	//defer io.Close()
-	//opetracing2.SetGlobalTracer(tracer)
 
 	// 健康检查
 	probeServer := infrastructure.NewProbeServer(conf.Service.HeathCheckAddr, serviceContext)
@@ -72,13 +66,11 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 			grpcserver.Codec("application/grpc+dtm_raw", codec.NewDtmCodec()),
 		)),
 		micro.Client(client),
-		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		//添加限流
 		micro.WrapHandler(
 			logWrapper.RequestLogWrapper,
 			ratelimit.NewHandlerWrapper(conf.Service.Qps),
 		),
-		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		micro.AfterStart(func() error {
 			pprofSrv.Start()
 			return nil
@@ -99,8 +91,13 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 			return nil
 		}),
 		micro.Broker(broker),
-		micro.WrapClient(wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version, zapLogger)),
+		micro.WrapClient(
+			wrapper.NewClientLogWrapper(zapLogger),
+			wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version),
+			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
+		),
 		micro.WrapSubscriber(
+			opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 			deadLetterWrapper.Wrapper(),
 			logWrapper.SubscribeWrapper(),
 		),
