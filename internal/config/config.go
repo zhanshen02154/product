@@ -15,6 +15,7 @@ type SysConfig struct {
 	Etcd        *Etcd        `json:"etcd" yaml:"etcd"`
 	Transaction *Transaction `yaml:"transaction" json:"transaction"`
 	Broker      *Broker      `json:"broker" yaml:"broker"`
+	Tracer      *Tracer      `json:"tracer" yaml:"tracer"`
 }
 
 type ServiceInfo struct {
@@ -101,6 +102,22 @@ type KafkaConsumerGroup struct {
 	FetchMin          int32 `json:"fetch_min" yaml:"fetch_min"`
 	FetchMax          int32 `json:"fetch_max" yaml:"fetch_max"`
 	HeartbeatInterval int   `json:"heartbeat_interval" yaml:"heartbeat_interval"`
+}
+
+// Tracer 链路追踪
+type Tracer struct {
+	SampleRate float64 `json:"sample_rate" yaml:"sample_rate"`
+	Client     struct {
+		Insecure bool   `json:"insecure"`
+		Endpoint string `json:"endpoint" yaml:"endpoint"`
+		Timeout  int    `json:"timeout" yaml:"timeout"`
+		Retry    struct {
+			Enabled         bool `json:"enabled" yaml:"enabled"`
+			InitialInterval int  `json:"initial_interval" yaml:"initial_interval"`
+			MaxInterval     int  `json:"max_interval" yaml:"max_interval"`
+			MaxElapsedTime  int  `json:"max_elapsed_time" yaml:"max_elapsed_time"`
+		} `json:"retry" yaml:"retry"`
+	} `json:"client" yaml:"client"`
 }
 
 // 检查配置
