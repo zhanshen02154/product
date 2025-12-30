@@ -66,13 +66,11 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 			grpcserver.Codec("application/grpc+dtm_raw", codec.NewDtmCodec()),
 		)),
 		micro.Client(client),
-		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		//添加限流
 		micro.WrapHandler(
 			logWrapper.RequestLogWrapper,
 			ratelimit.NewHandlerWrapper(conf.Service.Qps),
 		),
-		//micro.WrapHandler(opentracing.NewHandlerWrapper(opetracing2.GlobalTracer())),
 		micro.AfterStart(func() error {
 			pprofSrv.Start()
 			return nil
