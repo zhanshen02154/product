@@ -68,8 +68,9 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 		micro.Client(client),
 		//添加限流
 		micro.WrapHandler(
-			logWrapper.RequestLogWrapper,
 			ratelimit.NewHandlerWrapper(conf.Service.Qps),
+			opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
+			logWrapper.RequestLogWrapper,
 		),
 		micro.AfterStart(func() error {
 			pprofSrv.Start()

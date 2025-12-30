@@ -76,7 +76,7 @@ func (w *LogWrapper) SubscribeWrapper() server.SubscriberWrapper {
 			}
 			logFields := []zap.Field{
 				zap.String("type", "subscribe"),
-				zap.String("trace_id", metadatahelper.GetValueFromMetadata(ctx, "Trace_id")),
+				zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
 				zap.String("event_id", metadatahelper.GetValueFromMetadata(ctx, "Event_id")),
 				zap.String("topic", msg.Topic()),
 				zap.String("source", metadatahelper.GetValueFromMetadata(ctx, "Source")),
@@ -134,7 +134,7 @@ func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 	// 获取 SQL 请求和返回条数
 	sql, rows := fc()
 	// 通用字段
-	traceId := metadatahelper.GetValueFromMetadata(ctx, "Trace_id")
+	traceId := metadatahelper.GetTraceIdFromSpan(ctx)
 	logFields := []zap.Field{
 		zap.String("type", "sql"),
 		zap.String("trace_id", traceId),

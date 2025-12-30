@@ -7,6 +7,7 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 	"net/url"
 	"time"
 )
@@ -30,6 +31,10 @@ func InitDB(confInfo *config.MySqlConfig, zapLogger *zap.Logger) (*gorm.DB, erro
 	if err != nil {
 		return nil, err
 	}
+	if err := db.Use(tracing.NewPlugin(tracing.WithoutMetrics())); err != nil {
+		return nil, err
+	}
+
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, err
