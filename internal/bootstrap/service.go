@@ -97,9 +97,9 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 		),
 		micro.WrapSubscriber(
-			logWrapper.SubscribeWrapper(),
-			deadLetterWrapper.Wrapper(),
 			opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
+			deadLetterWrapper.Wrapper(),
+			logWrapper.SubscribeWrapper(),
 		),
 	)
 
