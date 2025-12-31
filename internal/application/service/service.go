@@ -68,10 +68,25 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 		}
 
 		// 发布扣减库存成功事件
-		inventoryDeductSuccessEvent := &product.OnInventoryDeductSuccess{
-			OrderId: req.OrderId,
+		inventoryDeductSuccessEvent := product.OnInventoryDeductSuccess{
+			OrderId:      req.OrderId,
+			Products:     make([]*product.ProductInventoryItem, len(req.ProductInvetory)),
+			ProductSizes: make([]*product.ProductSizeInventoryItem, len(req.ProductSizeInvetory)),
 		}
-		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", inventoryDeductSuccessEvent, fmt.Sprintf("%d", req.OrderId))
+		for _, item := range req.ProductInvetory {
+			inventoryDeductSuccessEvent.Products = append(inventoryDeductSuccessEvent.Products, &product.ProductInventoryItem{
+				Id:    item.Id,
+				Count: item.Count,
+			})
+		}
+		for _, item := range req.ProductSizeInvetory {
+			inventoryDeductSuccessEvent.ProductSizes = append(inventoryDeductSuccessEvent.ProductSizes, &product.ProductSizeInventoryItem{
+				Id:    item.Id,
+				Count: item.Count,
+			})
+		}
+
+		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", &inventoryDeductSuccessEvent, fmt.Sprintf("%d", req.OrderId))
 		if err != nil {
 			return status.Errorf(codes.Aborted, "failed to publish event on %d, error: %s", req.OrderId, err.Error())
 		}
@@ -95,7 +110,7 @@ func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Co
 			logger.Error("failed to unlock: ", lock.GetKey(ctx), " reason: ", err)
 		}
 	}()
-	return appService.serviceContext.TxManager.ExecuteWithBarrier(ctx, func(txCtx context.Context) error {
+	return appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
 		return appService.productDomainService.DeductOrderInvetoryRevert(txCtx, req)
 	})
 }

@@ -78,6 +78,10 @@ func (u *ProductDataService) DeductOrderInvetoryRevert(ctx context.Context, req 
 			break
 		}
 	}
+
+	// 删除事件ID
+	err = u.orderInventoryRepo.RemoveEventByOrderId(ctx, req.OrderId)
+
 	return err
 }
 
