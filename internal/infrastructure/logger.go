@@ -135,9 +135,6 @@ func (l *gormLogger) Error(ctx context.Context, str string, args ...interface{})
 
 // Trace Trace日志
 func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	if l.level < logger.Info {
-		return
-	}
 	// 获取运行时间
 	elapsed := time.Since(begin).Milliseconds()
 	// 获取 SQL 请求和返回条数
@@ -189,7 +186,7 @@ func NewGromLogger(zapLogger *zap.Logger, level int) logger.Interface {
 	}
 	return &gormLogger{
 		logger:        zapLogger,
-		slowThreshold: 200,
+		slowThreshold: 10,
 		level:         gormLevel,
 	}
 }

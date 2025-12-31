@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+	"github.com/Shopify/sarama"
 	grpcclient "github.com/go-micro/plugins/v4/client/grpc"
 	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
 	"github.com/go-micro/plugins/v4/transport/grpc"
@@ -53,9 +54,14 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 		infrastructure.WithRequestSlowThreshold(conf.Service.RequestSlowThreshold),
 		infrastructure.WithSubscribeSlowThreshold(conf.Broker.SubscribeSlowThreshold),
 	)
+	var eb event.Listener
 	client := grpcclient.NewClient(
 		grpcclient.PoolMaxIdle(100),
 	)
+	// 为 AsyncProducer 准备 channels，并把它们传给 kafka 插件
+	// 使用与 Kafka 配置中相同的缓冲，减少短时写阻塞风险
+	successChan := make(chan *sarama.ProducerMessage, conf.Broker.Kafka.ChannelBufferSize)
+	errorChan := make(chan *sarama.ProducerError, conf.Broker.Kafka.ChannelBufferSize)
 	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka)
 	deadLetterWrapper := wrapper.NewDeadLetterWrapper(broker)
 	service := micro.NewService(
@@ -78,6 +84,9 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 		),
 		micro.AfterStart(func() error {
 			pprofSrv.Start()
+			if eb != nil {
+				eb.Start()
+			}
 			return nil
 		}),
 		micro.BeforeStop(func() error {
@@ -97,7 +106,6 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 		}),
 		micro.Broker(broker),
 		micro.WrapClient(
-			wrapper.NewClientLogWrapper(zapLogger),
 			wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version),
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 		),
@@ -106,11 +114,22 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 			deadLetterWrapper.Wrapper(),
 			logWrapper.SubscribeWrapper(),
 		),
+		micro.AfterStop(func() error {
+			if eb != nil {
+				eb.Close()
+			}
+			return nil
+		}),
 	)
 
 	// 注册应用层服务及事件侦听器
-	eb := event.NewListener(service.Client())
-	defer eb.Close()
+	eb = event.NewListener(
+		event.WithBroker(broker),
+		event.WithClient(service.Client()),
+		event.WithLogger(zapLogger),
+		event.WithPulishTimeThreshold(conf.Broker.Kafka.Producer.PublishTimeThreshold),
+		event.WithProducerChannels(successChan, errorChan),
+	)
 	event.RegisterPublisher(conf.Broker, eb)
 	productService := appservice.NewProductApplicationService(serviceContext, eb)
 
