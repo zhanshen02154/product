@@ -80,19 +80,21 @@ type Broker struct {
 }
 
 type Kafka struct {
-	Hosts        []string       `json:"hosts" yaml:"hosts"`
-	DialTimeout  int            `json:"dial_timeout" yaml:"dial_timeout"`
-	ReadTimeout  int            `json:"read_timeout" yaml:"read_timeout"`
-	WriteTimeout int            `json:"write_timeout" yaml:"write_timeout"`
-	Producer     *KafkaProducer `json:"producer" yaml:"producer"`
-	Consumer     *KafkaConsumer `json:"consumer" yaml:"consumer"`
+	Hosts             []string       `json:"hosts" yaml:"hosts"`
+	DialTimeout       int            `json:"dial_timeout" yaml:"dial_timeout"`
+	ReadTimeout       int            `json:"read_timeout" yaml:"read_timeout"`
+	WriteTimeout      int            `json:"write_timeout" yaml:"write_timeout"`
+	Producer          *KafkaProducer `json:"producer" yaml:"producer"`
+	Consumer          *KafkaConsumer `json:"consumer" yaml:"consumer"`
+	ChannelBufferSize int            `json:"channel_buffer_size" yaml:"channel_buffer_size"`
 }
 
 type KafkaProducer struct {
-	MaxRetry        int `json:"max_retry" yaml:"max_retry"`
-	MaxRetryBackOff int `json:"max_retry_back_off" yaml:"max_retry_back_off"`
-	FlushBytes      int `json:"flush_bytes" yaml:"flush_bytes"`
-	MaxOpenRequests int `json:"max_open_requests" yaml:"max_open_requests"`
+	MaxRetry             int   `json:"max_retry" yaml:"max_retry"`
+	MaxRetryBackOff      int   `json:"max_retry_back_off" yaml:"max_retry_back_off"`
+	FlushBytes           int   `json:"flush_bytes" yaml:"flush_bytes"`
+	MaxOpenRequests      int   `json:"max_open_requests" yaml:"max_open_requests"`
+	PublishTimeThreshold int64 `json:"publish_time_threshold" yaml:"publish_time_threshold"`
 }
 
 type KafkaConsumer struct {
