@@ -210,6 +210,7 @@ func (l *microListener) handleCallback(sg *sarama.ProducerMessage, err error, pr
 			if perr := l.b.Publish(dlMsg.Header["Micro-Topic"], dlMsg); perr != nil {
 				logger.Errorf("failed to publish dead letter topic %s on id %s, error: %s", dlMsg.Header["Micro-Topic"], dlMsg.Header["Event_id"], perr.Error())
 			}
+			dlMsg = nil
 		}
 		span.SetStatus(codes.Error, err.Error())
 		span.RecordError(err)
@@ -222,6 +223,7 @@ func (l *microListener) handleCallback(sg *sarama.ProducerMessage, err error, pr
 	}
 
 	l.logPublish(msg, err)
+	msg = nil
 }
 
 // 记录发布成功日志

@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"context"
 	"github.com/Shopify/sarama"
+	"github.com/go-micro/plugins/v4/broker/kafka"
 	grpcclient "github.com/go-micro/plugins/v4/client/grpc"
 	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
 	"github.com/go-micro/plugins/v4/transport/grpc"
@@ -62,7 +63,7 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 	// 使用与 Kafka 配置中相同的缓冲，减少短时写阻塞风险
 	successChan := make(chan *sarama.ProducerMessage, conf.Broker.Kafka.ChannelBufferSize)
 	errorChan := make(chan *sarama.ProducerError, conf.Broker.Kafka.ChannelBufferSize)
-	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka)
+	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka, kafka.AsyncProducer(errorChan, successChan))
 	deadLetterWrapper := wrapper.NewDeadLetterWrapper(broker)
 	service := micro.NewService(
 		micro.Server(grpcserver.NewServer(
