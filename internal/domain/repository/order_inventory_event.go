@@ -10,4 +10,5 @@ type OrderInventoryEventRepository interface {
 	// FindEventExistsByOrderId 检查订单ID是否已经被处理过
 	FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error)
 	Create(ctx context.Context, eventInfo *model.OrderInventoryEvent) (*model.OrderInventoryEvent, error)
+	RemoveEventByOrderId(ctx context.Context, orderId int64) error
 }

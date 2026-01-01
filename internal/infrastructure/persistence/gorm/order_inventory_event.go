@@ -36,6 +36,12 @@ func (r *OrderInventoryEventRepositoryImpl) Create(ctx context.Context, eventInf
 	return eventInfo, nil
 }
 
+// RemoveEventByOrderId 删除订单库存扣减事件
+func (r *OrderInventoryEventRepositoryImpl) RemoveEventByOrderId(ctx context.Context, orderId int64) error {
+	db := GetDBFromContext(ctx, r.db)
+	return db.Table("order_inventory_events").Where("order_id = ?", orderId).Delete(&model.OrderInventoryEvent{}).Error
+}
+
 // NewOrderInventoryEventRepositoryImpl 初始化
 func NewOrderInventoryEventRepositoryImpl(db *gorm.DB) repository.OrderInventoryEventRepository {
 	return &OrderInventoryEventRepositoryImpl{db: db}

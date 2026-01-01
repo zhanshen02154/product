@@ -5,6 +5,7 @@ import (
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/domain/event/order"
+	"github.com/zhanshen02154/product/internal/domain/event/product"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/server"
@@ -56,10 +57,39 @@ func (h *paymentEventHandlerImpl) OnPaymentSuccess(ctx context.Context, req *ord
 	return h.productAppService.DeductInventory(ctx, inventoryDto)
 }
 
+// OnInventoryDeductFailed 库存扣减死信队列
+func (h *paymentEventHandlerImpl) OnInventoryDeductFailed(ctx context.Context, req *product.OnInventoryDeductSuccess) error {
+	inventoryDto := h.orderInvetoryPool.Get().(*dto.OrderProductInvetoryDto)
+	defer func() {
+		inventoryDto.Reset()
+		h.orderInvetoryPool.Put(inventoryDto)
+	}()
+	inventoryDto.OrderId = req.OrderId
+	for _, item := range req.Products {
+		inventoryDto.ProductInvetory = append(inventoryDto.ProductInvetory, &dto.OrderProductInvetoryItem{
+			Id:    item.Id,
+			Count: item.Count,
+		})
+	}
+	for _, item := range req.ProductSizes {
+		inventoryDto.ProductSizeInvetory = append(inventoryDto.ProductSizeInvetory, &dto.OrderProductSizeInvetoryItem{
+			Id:    item.Id,
+			Count: item.Count,
+		})
+	}
+
+	return h.productAppService.DeductInvetoryRevert(ctx, inventoryDto)
+}
+
+// RegisterSubscriber 注册订阅器
 func (h *paymentEventHandlerImpl) RegisterSubscriber(srv server.Server) {
 	var err error
 	queue := server.SubscriberQueue("product-consumer")
 	err = micro.RegisterSubscriber("OnPaymentSuccess", srv, h.OnPaymentSuccess, queue)
+	if err != nil {
+		logger.Errorf("failed to register subscriber, error: %s", err.Error(), queue)
+	}
+	err = micro.RegisterSubscriber("OnInventoryDeductSuccessDLQ", srv, h.OnInventoryDeductFailed, queue)
 	if err != nil {
 		logger.Errorf("failed to register subscriber, error: %s", err.Error(), queue)
 	}
