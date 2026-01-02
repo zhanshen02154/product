@@ -8,8 +8,8 @@ import (
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction/dtm"
 	"go-micro.dev/v4/logger"
-	"go.uber.org/zap"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 )
 
 type ServiceContext struct {
@@ -20,7 +20,7 @@ type ServiceContext struct {
 	Dtm         *dtm.Server
 }
 
-func NewServiceContext(conf *config.SysConfig, zapLogger *zap.Logger) (*ServiceContext, error) {
+func NewServiceContext(conf *config.SysConfig, zapLogger gormlogger.Interface) (*ServiceContext, error) {
 	db, err := InitDB(conf.Database, zapLogger)
 	if err != nil {
 		return nil, err
