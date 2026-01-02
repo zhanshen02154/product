@@ -68,7 +68,14 @@ func main() {
 	traceShutdown := initTracer(confInfo.Service.Name, confInfo.Service.Version, confInfo.Tracer)
 	defer traceShutdown()
 
-	if err := bootstrap.RunService(&confInfo, componentLogger); err != nil {
+	gormLogger := infrastructure.NewGromLogger(componentLogger, serverLogLevel)
+	serviceContext, err := infrastructure.NewServiceContext(&confInfo, gormLogger)
+	if err != nil {
+		logger.Error("error to load service context: ", err)
+		return
+	}
+
+	if err := bootstrap.RunService(&confInfo, serviceContext, componentLogger); err != nil {
 		logger.Error("failed to start service: ", err)
 	}
 }

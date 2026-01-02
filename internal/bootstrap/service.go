@@ -27,14 +27,7 @@ import (
 	"time"
 )
 
-func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
-	serviceContext, err := infrastructure.NewServiceContext(conf, zapLogger)
-	defer serviceContext.Close()
-	if err != nil {
-		logger.Error("error to load service context: ", err)
-		return err
-	}
-
+func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceContext, zapLogger *zap.Logger) error {
 	// 注册到Consul
 	consulRegistry := registry.ConsulRegister(conf.Consul)
 
@@ -137,7 +130,7 @@ func RunService(conf *config.SysConfig, zapLogger *zap.Logger) error {
 	paymentEventHandler := subscriber.NewPaymentEventHandler(productService)
 	paymentEventHandler.RegisterSubscriber(service.Server())
 
-	err = product.RegisterProductHandler(service.Server(), handler.NewProductHandler(productService))
+	err := product.RegisterProductHandler(service.Server(), handler.NewProductHandler(productService))
 	if err != nil {
 		return err
 	}
