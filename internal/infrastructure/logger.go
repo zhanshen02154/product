@@ -171,22 +171,19 @@ func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 }
 
 // NewGromLogger 创建GORM Logger
-func NewGromLogger(zapLogger *zap.Logger, level int) logger.Interface {
+func NewGromLogger(zapLogger *zap.Logger, level zapcore.Level) logger.Interface {
 	gormLevel := logger.Info
 	switch level {
-	case 1:
-		gormLevel = logger.Info
-		break
-	case 2:
+	case zap.WarnLevel:
 		gormLevel = logger.Warn
 		break
-	case 3:
+	case zap.ErrorLevel:
 		gormLevel = logger.Error
 		break
 	}
 	return &gormLogger{
 		logger:        zapLogger,
-		slowThreshold: 10,
+		slowThreshold: 200,
 		level:         gormLevel,
 	}
 }
@@ -219,4 +216,26 @@ func WithZapLogger(zapLogger *zap.Logger) Option {
 	return func(p *LogWrapper) {
 		p.logger = zapLogger
 	}
+}
+
+// FindZapLogLevel zap日志级别
+func FindZapLogLevel(level string) zapcore.Level {
+	zapLevel := zap.DebugLevel
+	switch level {
+	case "info":
+		zapLevel = zap.InfoLevel
+		break
+	case "warn":
+		zapLevel = zap.WarnLevel
+		break
+	case "error":
+		zapLevel = zap.ErrorLevel
+		break
+	case "fatal":
+		zapLevel = zap.FatalLevel
+	case "panic":
+		zapLevel = zap.DPanicLevel
+		break
+	}
+	return zapLevel
 }
