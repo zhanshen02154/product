@@ -63,8 +63,8 @@ func main() {
 			StacktraceKey:  "stacktrace",
 			LineEnding:     zapcore.DefaultLineEnding,
 			EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写日志级别
-			EncodeTime:     zapcore.ISO8601TimeEncoder,    // 可读的时间格式[3](@ref)
-			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeTime:     zapcore.EpochTimeEncoder,      // 可读的时间格式[3](@ref)
+			EncodeDuration: zapcore.MillisDurationEncoder,
 			EncodeCaller:   zapcore.ShortCallerEncoder, // 记录调用者信息[3](@ref)
 		},
 	}

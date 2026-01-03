@@ -3,6 +3,7 @@ package wrapper
 import (
 	"context"
 	"github.com/google/uuid"
+	metadata2 "github.com/zhanshen02154/product/pkg/metadata"
 	"go-micro.dev/v4/client"
 	"go-micro.dev/v4/metadata"
 	"strconv"
@@ -23,11 +24,11 @@ func (w *MetaDataWrapper) Publish(ctx context.Context, msg client.Message, opts 
 	if !ok {
 		md = make(map[string]string)
 	}
+	md["Trace_id"] = metadata2.GetTraceIdFromSpan(ctx)
 	md["Event_id"] = uuid.New().String()
-	md["event_type"] = msg.Topic()
-	md["timestamp"] = strconv.FormatInt(startTime.Unix(), 10)
-	md["source"] = w.serviceName
-	md["schema_version"] = w.serviceVersion
+	md["Timestamp"] = strconv.FormatInt(startTime.Unix(), 10)
+	md["Source"] = w.serviceName
+	md["Schema_version"] = w.serviceVersion
 	ctx = metadata.NewContext(ctx, md)
 	return w.Client.Publish(ctx, msg, opts...)
 }
