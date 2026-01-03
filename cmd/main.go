@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	microzap "github.com/go-micro/plugins/v4/logger/zap"
 	"github.com/zhanshen02154/product/internal/bootstrap"
 	configstruct "github.com/zhanshen02154/product/internal/config"
@@ -16,6 +15,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.10.0"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"log"
 	_ "net/http/pprof"
 	"time"
@@ -32,50 +32,75 @@ func main() {
 
 	consulSource, err := configstruct.GetConfig()
 	if err != nil {
-		zapLogger.Error(fmt.Sprintf("failed to load config: %s", err.Error()))
+		zapLogger.Error("failed to load config: " + err.Error())
 		return
 	}
 
 	var confInfo configstruct.SysConfig
-	if err := consulSource.Get("product").Scan(&confInfo); err != nil {
-		zapLogger.Error(fmt.Sprintf("failed convert config to struct: %s", err.Error()))
+	if err := consulSource.Get("order").Scan(&confInfo); err != nil {
+		zapLogger.Error("failed convert config to struct: " + err.Error())
 		return
 	}
 	// 检查配置
 	if err := confInfo.CheckConfig(); err != nil {
-		zapLogger.Error(fmt.Sprintf("failed to check config: %s", err.Error()))
+		zapLogger.Error("failed to check config: " + err.Error())
 		return
 	}
+
+	// 创建一个全新的zap logger
+	loggerConfig := zap.Config{
+		Level:            infrastructure.FindZapAtomicLogLevel(confInfo.Service.LogLevel),
+		Development:      false,
+		Encoding:         "json",
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig: zapcore.EncoderConfig{
+			TimeKey:        "timestamp",
+			LevelKey:       "level",
+			NameKey:        "logger",
+			CallerKey:      "caller",
+			MessageKey:     "msg",
+			StacktraceKey:  "stacktrace",
+			LineEnding:     zapcore.DefaultLineEnding,
+			EncodeLevel:    zapcore.LowercaseLevelEncoder, // 小写日志级别
+			EncodeTime:     zapcore.ISO8601TimeEncoder,    // 可读的时间格式[3](@ref)
+			EncodeDuration: zapcore.SecondsDurationEncoder,
+			EncodeCaller:   zapcore.ShortCallerEncoder, // 记录调用者信息[3](@ref)
+		},
+	}
+	finalLogger, err := loggerConfig.Build(zap.Fields(
+		zap.String("service", confInfo.Service.Name),
+		zap.String("version", confInfo.Service.Version),
+	), zap.AddCallerSkip(1))
+	if err != nil {
+		zapLogger.Error("Failed to build final logger", zap.Error(err))
+		return
+	}
+	defer finalLogger.Sync()
 	serverLogLevel := infrastructure.FindZapLogLevel(confInfo.Service.LogLevel)
-	componentLogger := zapLogger.WithOptions(
-		zap.IncreaseLevel(serverLogLevel),
-		zap.Fields(zap.String("service", confInfo.Service.Name)),
-		zap.Fields(zap.String("version", confInfo.Service.Version)),
-	)
 	loggerMetadataMap := make(map[string]interface{})
 	loggerMetadataMap["type"] = "core"
 	microLogger, err := microzap.NewLogger(
-		microzap.WithLogger(componentLogger),
-		logger.WithFields(loggerMetadataMap),
+		microzap.WithLogger(finalLogger),
 	)
 	if err != nil {
-		zapLogger.Error(fmt.Sprintf("failed to load go micro logger: %s", err.Error()))
+		zapLogger.Error("failed to load go micro logger: " + err.Error())
 		return
 	}
-	logger.DefaultLogger = microLogger
+	logger.DefaultLogger = microLogger.Fields(loggerMetadataMap)
 
 	// 链路追踪
 	traceShutdown := initTracer(confInfo.Service.Name, confInfo.Service.Version, confInfo.Tracer)
 	defer traceShutdown()
 
-	gormLogger := infrastructure.NewGromLogger(componentLogger, serverLogLevel)
+	gormLogger := infrastructure.NewGromLogger(finalLogger, serverLogLevel)
 	serviceContext, err := infrastructure.NewServiceContext(&confInfo, gormLogger)
 	if err != nil {
 		logger.Error("error to load service context: ", err)
 		return
 	}
 
-	if err := bootstrap.RunService(&confInfo, serviceContext, componentLogger); err != nil {
+	if err := bootstrap.RunService(&confInfo, serviceContext, finalLogger); err != nil {
 		logger.Error("failed to start service: ", err)
 	}
 }
