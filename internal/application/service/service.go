@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/event/product"
 	"github.com/zhanshen02154/product/internal/domain/model"
@@ -13,6 +12,7 @@ import (
 	"go-micro.dev/v4/logger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"strconv"
 )
 
 type IProductApplicationService interface {
@@ -56,7 +56,7 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 func (appService *ProductApplicationService) DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
 	eventExists, err := appService.productDomainService.FindEventExistsByOrderId(ctx, req.OrderId)
 	if err != nil {
-		return status.Errorf(codes.NotFound, "failed to check order inventory event on %d, error: %s", err.Error())
+		return status.Error(codes.NotFound, "check order inventory event error: "+err.Error())
 	}
 	if eventExists {
 		return nil
@@ -64,7 +64,7 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 	err = appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
 		err = appService.productDomainService.DeductInventory(txCtx, req)
 		if err != nil {
-			return status.Errorf(codes.NotFound, "failed to deduct inventory on order %d, error: %s", req.OrderId, err.Error())
+			return status.Error(codes.NotFound, "failed to deduct inventory error:"+err.Error())
 		}
 
 		// 发布扣减库存成功事件
@@ -86,9 +86,9 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 			})
 		}
 
-		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", &inventoryDeductSuccessEvent, fmt.Sprintf("%d", req.OrderId))
+		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", &inventoryDeductSuccessEvent, strconv.FormatInt(req.OrderId, 10))
 		if err != nil {
-			return status.Errorf(codes.Aborted, "failed to publish event on %d, error: %s", req.OrderId, err.Error())
+			return status.Error(codes.Aborted, "failed to publish event error: "+err.Error())
 		}
 		return nil
 	})
@@ -97,7 +97,8 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, fmt.Sprintf("deductinvetoryrevert-%d", req.OrderId), 15)
+	lockKey := "deductinvetoryrevert-" + strconv.FormatInt(req.OrderId, 10)
+	lock, err := appService.serviceContext.LockManager.NewLock(ctx, lockKey, 15)
 	if err != nil {
 		return err
 	}

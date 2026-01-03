@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/zhanshen02154/product/internal/config"
 	"go-micro.dev/v4/logger"
@@ -90,13 +91,13 @@ func (elm *etcdLockManager) NewLock(ctx context.Context, key string, ttl int) (D
 	defer elm.mu.RUnlock()
 
 	if elm.isClosed {
-		return nil, fmt.Errorf("etcd client was closed")
+		return nil, errors.New("etcd client was closed")
 	}
 	session, err := elm.getOrCreateSession(ttl)
 	if err != nil {
 		return nil, err
 	}
-	mutex := concurrency.NewMutex(session, fmt.Sprintf("%slock/%s", elm.prefix, key))
+	mutex := concurrency.NewMutex(session, elm.prefix+key)
 	return &etcdLock{
 		mutex: mutex,
 	}, nil
@@ -137,5 +138,5 @@ func NewEtcdLockManager(conf *config.Etcd) (LockManager, error) {
 		return nil, err
 	}
 	logger.Info("ETCD was stared")
-	return &etcdLockManager{ecli: client, prefix: conf.Prefix, sessions: make(map[int]*concurrency.Session)}, nil
+	return &etcdLockManager{ecli: client, prefix: conf.Prefix + "lock/", sessions: make(map[int]*concurrency.Session)}, nil
 }

@@ -55,13 +55,7 @@ type ConsulInfo struct {
 
 // MySqlConfig mysql数据库配置
 type MySqlConfig struct {
-	Host            string `json:"host" yaml:"host"`
-	Port            int64  `json:"port" yaml:"port"`
-	User            string `json:"user" yaml:"user"`
-	Password        string `json:"password" yaml:"password"`
-	Database        string `json:"database" yaml:"database"`
-	Loc             string `json:"loc" yaml:"loc"`
-	Charset         string `json:"charset" yaml:"charset"`
+	Dsn             string `json:"dsn" yaml:"dsn"`
 	MaxOpenConns    int    `json:"max_open_conns" yaml:"max_open_conns"`
 	MaxIdleConns    int    `json:"max_idle_conns" yaml:"max_idle_conns"`
 	ConnMaxLifeTime uint   `json:"conn_max_life_time" yaml:"conn_max_life_time"`
@@ -128,7 +122,7 @@ type Tracer struct {
 
 // CheckConfig 检查配置
 func (c *SysConfig) CheckConfig() error {
-	logLevels := [4]string{"info", "warn", "error", "fatal"}
+	logLevels := [3]string{"info", "warn", "error"}
 	if c.Service == nil {
 		return errors.New("service info is nil")
 	}

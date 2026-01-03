@@ -32,7 +32,7 @@ func (w *DeadLetterWrapper) Wrapper() server.SubscriberWrapper {
 			}
 			errStatus, ok := status.FromError(err)
 			if !ok {
-				logger.Errorf("failed to handler topic %v, error: %s; id: %s", msg.Topic(), err.Error(), msg.Header()["Micro-ID"])
+				logger.Error("failed to handler topic error: ", err.Error())
 				return err
 			}
 			switch errStatus.Code() {
@@ -57,7 +57,7 @@ func (w *DeadLetterWrapper) Wrapper() server.SubscriberWrapper {
 			dlMsg.Header["error"] = err.Error()
 			topic := msg.Topic() + "DLQ"
 			if err := w.b.Publish(topic, &dlMsg); err != nil {
-				logger.Errorf("failed to publish to %s, error: %s", topic, err.Error())
+				logger.Error("failed to publish : " + err.Error())
 			}
 			return err
 		}

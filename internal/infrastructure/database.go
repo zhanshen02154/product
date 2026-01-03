@@ -8,23 +8,13 @@ import (
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
 	"gorm.io/plugin/opentelemetry/tracing"
-	"net/url"
 	"time"
 )
 
 // InitDB 加载数据库
 func InitDB(confInfo *config.MySqlConfig, gLogger gormlogger.Interface) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=%s",
-		confInfo.User,
-		confInfo.Password,
-		confInfo.Host,
-		confInfo.Port,
-		confInfo.Database,
-		confInfo.Charset,
-		url.QueryEscape(confInfo.Loc),
-	)
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN:                       dsn,
+		DSN:                       confInfo.Dsn,
 		SkipInitializeWithVersion: false,
 		DefaultStringSize:         255,
 	}), &gorm.Config{SkipDefaultTransaction: true, PrepareStmt: true, Logger: gLogger})
