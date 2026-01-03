@@ -82,13 +82,12 @@ func main() {
 	loggerMetadataMap["type"] = "core"
 	microLogger, err := microzap.NewLogger(
 		microzap.WithLogger(finalLogger),
-		logger.WithFields(loggerMetadataMap),
 	)
 	if err != nil {
 		zapLogger.Error("failed to load go micro logger: " + err.Error())
 		return
 	}
-	logger.DefaultLogger = microLogger
+	logger.DefaultLogger = microLogger.Fields(loggerMetadataMap)
 
 	// 链路追踪
 	traceShutdown := initTracer(confInfo.Service.Name, confInfo.Service.Version, confInfo.Tracer)
