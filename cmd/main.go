@@ -37,7 +37,7 @@ func main() {
 	}
 
 	var confInfo configstruct.SysConfig
-	if err := consulSource.Get("order").Scan(&confInfo); err != nil {
+	if err := consulSource.Get("product").Scan(&confInfo); err != nil {
 		zapLogger.Error("failed convert config to struct: " + err.Error())
 		return
 	}
