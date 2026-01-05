@@ -42,7 +42,6 @@ type microListener struct {
 	quitChan             chan struct{}
 	// started 用于防止重复 Start
 	started    bool
-	logFields  sync.Pool
 	strBuilder sync.Pool
 }
 
@@ -246,7 +245,7 @@ func (l *microListener) logPublish(msg *broker.Message, msgErr error) {
 		duration = -1
 	}
 
-	logFields := l.logFields.Get().([]zap.Field)
+	logFields := make([]zap.Field, 0, 15)
 	logFields = append(logFields,
 		zap.String("type", "publish"),
 		zap.String("trace_id", msg.Header["Trace_id"]),
@@ -272,15 +271,13 @@ func (l *microListener) logPublish(msg *broker.Message, msgErr error) {
 		l.logger.Error(strBuilder.String(), logFields...)
 	case msgErr == nil && duration > l.publishTimeThreshold && duration > 0:
 		strBuilder.WriteString("Publish event slow")
-		l.logger.Error(strBuilder.String(), logFields...)
+		l.logger.Warn(strBuilder.String(), logFields...)
 	default:
 		strBuilder.WriteString("Publish event success")
 		l.logger.Info(strBuilder.String(), logFields...)
 	}
 	strBuilder.Reset()
 	l.strBuilder.Put(strBuilder)
-	logFields = logFields[:0]
-	l.logFields.Put(logFields)
 }
 
 // NewListener 新建侦听器
@@ -290,9 +287,6 @@ func NewListener(opts ...Option) Listener {
 		eventPublisher: make(map[string]micro.Event),
 		wg:             sync.WaitGroup{},
 		quitChan:       make(chan struct{}),
-		logFields: sync.Pool{New: func() interface{} {
-			return make([]zap.Field, 0, 12)
-		}},
 		strBuilder: sync.Pool{New: func() interface{} {
 			return &strings.Builder{}
 		}},
