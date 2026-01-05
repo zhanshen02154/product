@@ -41,8 +41,7 @@ type microListener struct {
 	publishTimeThreshold int64
 	quitChan             chan struct{}
 	// started 用于防止重复 Start
-	started    bool
-	strBuilder sync.Pool
+	started bool
 }
 
 type Option func(listener *microListener)
@@ -263,21 +262,14 @@ func (l *microListener) logPublish(msg *broker.Message, msgErr error) {
 	} else {
 		logFields = append(logFields, zap.String("key", ""))
 	}
-	strBuilder := l.strBuilder.Get().(*strings.Builder)
 	switch {
 	case msgErr != nil:
-		strBuilder.WriteString("Publish event failed: ")
-		strBuilder.WriteString(msgErr.Error())
-		l.logger.Error(strBuilder.String(), logFields...)
+		l.logger.Error("Publish event failed: "+msgErr.Error(), logFields...)
 	case msgErr == nil && duration > l.publishTimeThreshold && duration > 0:
-		strBuilder.WriteString("Publish event slow")
-		l.logger.Warn(strBuilder.String(), logFields...)
+		l.logger.Warn("Publish event slow", logFields...)
 	default:
-		strBuilder.WriteString("Publish event success")
-		l.logger.Info(strBuilder.String(), logFields...)
+		l.logger.Info("Publish event success", logFields...)
 	}
-	strBuilder.Reset()
-	l.strBuilder.Put(strBuilder)
 }
 
 // NewListener 新建侦听器
@@ -287,9 +279,6 @@ func NewListener(opts ...Option) Listener {
 		eventPublisher: make(map[string]micro.Event),
 		wg:             sync.WaitGroup{},
 		quitChan:       make(chan struct{}),
-		strBuilder: sync.Pool{New: func() interface{} {
-			return &strings.Builder{}
-		}},
 	}
 	for _, opt := range opts {
 		opt(&listener)
