@@ -7,4 +7,16 @@ package product.event;
 // 库存扣减成功
 message OnInventoryDeductSuccess {
   int64 OrderId = 1;
+  repeated ProductInventoryItem Products = 2;
+  repeated ProductSizeInventoryItem ProductSizes = 3;
+}
+
+message ProductInventoryItem {
+  int64 Id = 1;
+  int64 Count = 2;
+}
+
+message ProductSizeInventoryItem {
+  int64 Id = 1;
+  int64 Count = 2;
 }

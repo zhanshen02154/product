@@ -5,6 +5,7 @@ import (
 	"github.com/go-micro/plugins/v4/broker/kafka"
 	"github.com/zhanshen02154/product/internal/config"
 	"go-micro.dev/v4/broker"
+	"go-micro.dev/v4/logger"
 	"time"
 )
 
@@ -13,7 +14,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig := sarama.NewConfig()
 	kafkaConfig.ClientID = "product-client"
 	kafkaConfig.Version = sarama.V3_0_0_0
-	kafkaConfig.ChannelBufferSize = 2000
+	kafkaConfig.ChannelBufferSize = conf.ChannelBufferSize
 	kafkaConfig.Net.DialTimeout = time.Duration(conf.DialTimeout) * time.Second
 	kafkaConfig.Net.ReadTimeout = time.Duration(conf.ReadTimeout) * time.Second
 	kafkaConfig.Net.WriteTimeout = time.Duration(conf.WriteTimeout) * time.Second
@@ -27,12 +28,12 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Producer.Idempotent = false
 	kafkaConfig.Metadata.AllowAutoTopicCreation = false
 	kafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
-	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.Group.FetchMax
-	kafkaConfig.Consumer.Fetch.Min = 1
+	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.FetchMax
+	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.FetchMin
 	kafkaConfig.Consumer.Fetch.Default = 10240
 	kafkaConfig.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
 	kafkaConfig.Consumer.MaxProcessingTime = 500 * time.Millisecond
-	kafkaConfig.Net.MaxOpenRequests = 10
+	kafkaConfig.Net.MaxOpenRequests = conf.Producer.MaxOpenRequests
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
 	kafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
@@ -40,9 +41,13 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 }
 
 // NewKafkaBroker 创建Broker
-func NewKafkaBroker(conf *config.Kafka) broker.Broker {
-	return kafka.NewBroker(
+func NewKafkaBroker(conf *config.Kafka, opts ...broker.Option) broker.Broker {
+	// 将额外传入的 broker.Option 直接透传给 kafka.NewBroker，便于注入 AsyncProducer channels
+	options := []broker.Option{
 		broker.Addrs(conf.Hosts...),
 		kafka.BrokerConfig(loadKafkaConfig(conf)),
-	)
+		broker.Logger(logger.DefaultLogger),
+	}
+	options = append(options, opts...)
+	return kafka.NewBroker(options...)
 }

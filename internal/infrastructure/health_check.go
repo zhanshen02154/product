@@ -45,7 +45,7 @@ func (probeServe *ProbeServer) Start() error {
 		defer probeServe.wg.Done()
 		err := probeServe.server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			logger.Errorf("Health check server error: %v", err)
+			logger.Error("Health check server error: ", err.Error())
 		}
 	}()
 	return nil

@@ -37,27 +37,21 @@ func (u *ProductRepository) CreateProduct(ctx context.Context, product *model.Pr
 func (u *ProductRepository) FindProductSizeListByIds(ctx context.Context, ids []int64) ([]model.ProductSize, error) {
 	db := GetDBFromContext(ctx, u.db)
 	var productSizeList []model.ProductSize
-	err := db.Debug().Model(model.ProductSize{}).Clauses(clause.Locking{Strength: "UPDATE"}).Select("id", "stock").Where("id IN ?", ids).Find(&productSizeList).Error
+	err := db.Model(model.ProductSize{}).Clauses(clause.Locking{Strength: "UPDATE"}).Select("id", "stock").Where("id IN ?", ids).Find(&productSizeList).Error
 	return productSizeList, err
 }
 
 // FindProductListByIds 根据多个ID查找产品
 func (u *ProductRepository) FindProductListByIds(ctx context.Context, productIds []int64) ([]model.Product, error) {
-	db, ok := ctx.Value(txKey{}).(*gorm.DB)
-	if !ok {
-		db = u.db.WithContext(ctx)
-	}
+	db := GetDBFromContext(ctx, u.db)
 	var list []model.Product
-	err := db.Debug().Model(model.Product{}).Select("id", "stock").Where("id in ?", productIds).Find(&list).Error
+	err := db.Model(model.Product{}).Select("id", "stock").Where("id in ?", productIds).Find(&list).Error
 	return list, err
 }
 
 // DeductProductSizeInventory 扣减指定规格产品的库存
 func (u *ProductRepository) DeductProductSizeInventory(ctx context.Context, id int64, num int64) error {
-	db, ok := ctx.Value(txKey{}).(*gorm.DB)
-	if !ok {
-		db = u.db.WithContext(ctx)
-	}
+	db := GetDBFromContext(ctx, u.db)
 	tx := db.Model(model.ProductSize{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err
@@ -70,10 +64,7 @@ func (u *ProductRepository) DeductProductSizeInventory(ctx context.Context, id i
 
 // DeductProductInventory 扣减产品的库存
 func (u *ProductRepository) DeductProductInventory(ctx context.Context, id int64, num int64) error {
-	db, ok := ctx.Value(txKey{}).(*gorm.DB)
-	if !ok {
-		db = u.db.WithContext(ctx)
-	}
+	db := GetDBFromContext(ctx, u.db)
 	tx := db.Model(model.Product{}).Where("id = ? AND stock >= ?", id, num).Update("stock", gorm.Expr("stock - ?", num))
 	if err := tx.Error; err != nil {
 		return err

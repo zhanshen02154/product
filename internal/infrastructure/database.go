@@ -4,32 +4,27 @@ import (
 	"fmt"
 	"github.com/zhanshen02154/product/internal/config"
 	"go-micro.dev/v4/logger"
-	"go.uber.org/zap"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"net/url"
+	gormlogger "gorm.io/gorm/logger"
+	"gorm.io/plugin/opentelemetry/tracing"
 	"time"
 )
 
 // InitDB 加载数据库
-func InitDB(confInfo *config.MySqlConfig, zapLogger *zap.Logger) (*gorm.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=True&loc=%s",
-		confInfo.User,
-		confInfo.Password,
-		confInfo.Host,
-		confInfo.Port,
-		confInfo.Database,
-		confInfo.Charset,
-		url.QueryEscape(confInfo.Loc),
-	)
+func InitDB(confInfo *config.MySqlConfig, gLogger gormlogger.Interface) (*gorm.DB, error) {
 	db, err := gorm.Open(mysql.New(mysql.Config{
-		DSN:                       dsn,
+		DSN:                       confInfo.Dsn,
 		SkipInitializeWithVersion: false,
 		DefaultStringSize:         255,
-	}), &gorm.Config{SkipDefaultTransaction: true, PrepareStmt: true, Logger: NewGromLogger(zapLogger, confInfo.LogLevel)})
+	}), &gorm.Config{SkipDefaultTransaction: true, PrepareStmt: true, Logger: gLogger})
 	if err != nil {
 		return nil, err
 	}
+	if err := db.Use(tracing.NewPlugin(tracing.WithoutMetrics())); err != nil {
+		return nil, err
+	}
+
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, err
