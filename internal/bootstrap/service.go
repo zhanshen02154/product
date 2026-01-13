@@ -7,12 +7,14 @@ import (
 	grpcclient "github.com/go-micro/plugins/v4/client/grpc"
 	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
 	"github.com/go-micro/plugins/v4/transport/grpc"
+	"github.com/go-micro/plugins/v4/wrapper/monitoring/prometheus"
 	ratelimit "github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber"
 	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
 	appservice "github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/config"
 	"github.com/zhanshen02154/product/internal/infrastructure"
 	"github.com/zhanshen02154/product/internal/infrastructure/event"
+	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/wrapper"
 	"github.com/zhanshen02154/product/internal/infrastructure/registry"
 	"github.com/zhanshen02154/product/internal/intefaces/handler"
@@ -37,10 +39,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		logger.Error("健康检查服务器启动失败")
 	}
 
-	var pprofSrv *infrastructure.PprofServer
-	if conf.Service.Debug {
-		pprofSrv = infrastructure.NewPprofServer(":6060")
-	}
+	monitorSvr := infrastructure.NewMonitorServer(":6060")
 
 	// New Service
 	logWrapper := infrastructure.NewLogWrapper(
@@ -74,10 +73,11 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		micro.WrapHandler(
 			ratelimit.NewHandlerWrapper(conf.Service.Qps),
 			opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
+			prometheus.NewHandlerWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
 			logWrapper.RequestLogWrapper,
 		),
 		micro.AfterStart(func() error {
-			pprofSrv.Start()
+			monitorSvr.Start()
 			if eb != nil {
 				eb.Start()
 			}
@@ -92,7 +92,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 				return err
 			}
 			if conf.Service.Debug {
-				if err := pprofSrv.Close(shutdownCtx); err != nil {
+				if err := monitorSvr.Close(shutdownCtx); err != nil {
 					logger.Error("pprof服务器关闭错误: ", err)
 				}
 			}
@@ -102,11 +102,13 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		micro.WrapClient(
 			wrapper.NewMetaDataWrapper(conf.Service.Name, conf.Service.Version),
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
+			monitor.NewClientWrapper(monitor.WithName(conf.Service.Name), monitor.WithVersion(conf.Service.Version)),
 		),
 		micro.WrapSubscriber(
 			opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
-			deadLetterWrapper.Wrapper(),
+			prometheus.NewSubscriberWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
 			logWrapper.SubscribeWrapper(),
+			deadLetterWrapper.Wrapper(),
 		),
 		micro.AfterStop(func() error {
 			if eb != nil {
@@ -118,13 +120,19 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 
 	// 注册应用层服务及事件侦听器
 	eb = event.NewListener(
-		event.WithBroker(broker),
-		event.WithClient(service.Client()),
-		event.WithLogger(zapLogger),
-		event.WithPulishTimeThreshold(conf.Broker.Kafka.Producer.PublishTimeThreshold),
 		event.WithProducerChannels(successChan, errorChan),
+		event.WithServiceName(conf.Service.Name),
+		event.WithServiceVersion(conf.Service.Version),
+		event.WrapPublishCallback(
+			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
+			event.NewPublicCallbackLogWrapper(
+				event.WithLogger(zapLogger),
+				event.WithTimeThreshold(conf.Broker.PublishTimeThreshold),
+			),
+			event.NewDeadletterWrapper(event.WithBroker(broker), event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
+		),
 	)
-	event.RegisterPublisher(conf.Broker, eb)
+	event.RegisterPublisher(conf.Broker, eb, service.Client())
 	productService := appservice.NewProductApplicationService(serviceContext, eb)
 
 	paymentEventHandler := subscriber.NewPaymentEventHandler(productService)
