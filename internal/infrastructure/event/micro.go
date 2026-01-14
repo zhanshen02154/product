@@ -194,7 +194,7 @@ func (l *microListener) handleCallback(sg *sarama.ProducerMessage, err error) {
 			} else {
 				monitor.MessageProducedCount.WithLabelValues(topic, "failure", l.opts.name, l.opts.version).Inc()
 			}
-			if _, ok := msg.Header["Timastamp"]; ok {
+			if _, ok := msg.Header["Timestamp"]; ok {
 				startTime, convErr := strconv.ParseInt(msg.Header["Timestamp"], 10, 64)
 				if convErr == nil {
 					duration := time.Now().Sub(time.UnixMilli(startTime)).Seconds() * 1e3
