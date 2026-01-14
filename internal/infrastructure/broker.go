@@ -22,7 +22,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Producer.Retry.Max = conf.Producer.MaxRetry
 	kafkaConfig.Producer.RequiredAcks = sarama.WaitForAll
 	kafkaConfig.Producer.Flush.Bytes = conf.Producer.FlushBytes
-	kafkaConfig.Producer.Flush.Frequency = 100 * time.Millisecond
+	kafkaConfig.Producer.Flush.Frequency = time.Duration(conf.Producer.FlushFrequency) * time.Millisecond
 	kafkaConfig.Producer.Compression = sarama.CompressionGZIP
 	kafkaConfig.Producer.Partitioner = sarama.NewHashPartitioner
 	kafkaConfig.Producer.Idempotent = false
@@ -32,11 +32,11 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.FetchMin
 	kafkaConfig.Consumer.Fetch.Default = 10240
 	kafkaConfig.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
-	kafkaConfig.Consumer.MaxProcessingTime = 500 * time.Millisecond
+	kafkaConfig.Consumer.MaxProcessingTime = time.Duration(conf.Consumer.MaxProcessingTime) * time.Millisecond
 	kafkaConfig.Net.MaxOpenRequests = conf.Producer.MaxOpenRequests
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
-	kafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
+	kafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategySticky
 	return kafkaConfig
 }
 
