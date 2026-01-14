@@ -23,8 +23,9 @@ func init() {
 
 	if ProduceDuration == nil {
 		ProduceDuration = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name: metricPrefix + "messages_produce_duration",
-			Help: "kafka message produce duration by topic",
+			Name:    metricPrefix + "messages_produce_duration",
+			Help:    "kafka message produce duration by topic",
+			Buckets: prometheus.DefBuckets,
 		}, []string{"topic", "service", "version"})
 	}
 

@@ -90,12 +90,14 @@ type KafkaProducer struct {
 	MaxRetryBackOff int `json:"max_retry_back_off" yaml:"max_retry_back_off"`
 	FlushBytes      int `json:"flush_bytes" yaml:"flush_bytes"`
 	MaxOpenRequests int `json:"max_open_requests" yaml:"max_open_requests"`
+	FlushFrequency  int `json:"flush_frequency" yaml:"flush_frequency"`
 }
 
 type KafkaConsumer struct {
-	Group    *KafkaConsumerGroup `json:"group" yaml:"group"`
-	FetchMin int32               `json:"fetch_min" yaml:"fetch_min"`
-	FetchMax int32               `json:"fetch_max" yaml:"fetch_max"`
+	Group             *KafkaConsumerGroup `json:"group" yaml:"group"`
+	FetchMin          int32               `json:"fetch_min" yaml:"fetch_min"`
+	FetchMax          int32               `json:"fetch_max" yaml:"fetch_max"`
+	MaxProcessingTime int64               `json:"max_processing_time" yaml:"max_processing_time"`
 }
 
 type KafkaConsumerGroup struct {
@@ -121,24 +123,35 @@ type Tracer struct {
 
 // CheckConfig 检查配置
 func (c *SysConfig) CheckConfig() error {
-	logLevels := [3]string{"info", "warn", "error"}
 	if c.Service == nil {
 		return errors.New("service info is nil")
-	}
-	c.Service.LogLevel = strings.ToLower(c.Service.LogLevel)
-	invalidLogLevel := false
-	for _, item := range logLevels {
-		if item == c.Service.LogLevel {
-			invalidLogLevel = true
-			break
-		}
-	}
-	if !invalidLogLevel {
-		c.Service.LogLevel = "info"
 	}
 	if c.Consul.RegistryAddrs == nil || len(c.Consul.RegistryAddrs) == 0 {
 		return errors.New("consul registry addresses cannot be empty")
 	}
+	if c.Broker.SubscribeSlowThreshold <= 0 || c.Broker.Kafka.Consumer.MaxProcessingTime <= 0 {
+		return errors.New("invalid subscribe_slow_threshold or max_processing_time")
+	}
+	if c.Broker.SubscribeSlowThreshold >= c.Broker.Kafka.Consumer.MaxProcessingTime {
+		return errors.New("subscribe_slow_threshold must less than kafka.consumer.max_processing_time")
+	}
+	logLevels := [3]string{"info", "warn", "error"}
+	if c.Service.LogLevel == "" {
+		c.Service.LogLevel = "info"
+	} else {
+		c.Service.LogLevel = strings.ToLower(c.Service.LogLevel)
+		invalidLogLevel := true
+		for _, item := range logLevels {
+			if item == c.Service.LogLevel {
+				invalidLogLevel = false
+				break
+			}
+		}
+		if invalidLogLevel {
+			return errors.New("invalid log level")
+		}
+	}
+
 	return nil
 }
 
