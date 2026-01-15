@@ -26,7 +26,7 @@ func (w *MetaDataWrapper) Publish(ctx context.Context, msg client.Message, opts 
 	}
 	md["Trace_id"] = metadata2.GetTraceIdFromSpan(ctx)
 	md["Event_id"] = uuid.New().String()
-	md["Timestamp"] = strconv.FormatInt(startTime.Unix(), 10)
+	md["Timestamp"] = strconv.FormatInt(startTime.UnixMilli(), 10)
 	md["Source"] = w.serviceName
 	md["Schema_version"] = w.serviceVersion
 	ctx = metadata.NewContext(ctx, md)

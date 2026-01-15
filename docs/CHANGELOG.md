@@ -1,16 +1,38 @@
 
-<a name="v5.0.0"></a>
-## [v5.0.0](https://github.com/zhanshen02154/product/compare/v4.0.0...v5.0.0) (2026-01-05)
+<a name="v6.0.0"></a>
+## [v6.0.0](https://github.com/zhanshen02154/product/compare/v5.0.0...v6.0.0) (2026-01-15)
 
 ### Bug Fixes
 
+* 修复事件时间戳元数据
+* 修复桶指标
+
+### Code Refactoring
+
+* 调整kafka单条信息处理时间
+
+### Features
+
+* 新增Prometheus监控
+
+
+<a name="v5.0.0"></a>
+## [v5.0.0](https://github.com/zhanshen02154/product/compare/v4.0.0...v5.0.0) (2026-01-06)
+
+### Bug Fixes
+
+* 修复broker初始化为同步生产者的问题
 * 删除切片对象池
+* 修复配置文件获取问题
+* 修复type为core的日志缺失问题
 * 修复GORM日志记录器参数
 * 统一获取DB实例方法
 * 修复go.mod
 * 修改日志trace_id获取方式
+* 修改订阅事件日志提取TraceID的方法
 * 修改subscriber包装器执行顺序
 * 移除无用的代码注释
+* **日志:** 删除日志对象池
 * **死信队列:** 死信队列返回原始错误信息
 
 ### Code Refactoring
@@ -25,6 +47,10 @@
 * 新增扣减订单库存死信队列补偿操作
 * 新增GRPC请求链路追踪
 * 新增发布事件和订阅事件的链路追踪
+
+### Performance Improvements
+
+* 日志信息构造器和zap字段用对象池
 
 ### BREAKING CHANGE
 
