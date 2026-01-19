@@ -39,7 +39,7 @@ func ErrorHandler(b broker.Broker) broker.Handler {
 		ctx = metadata.NewContext(ctx, event.Message().Header)
 		err := options.publishDeadLetter(ctx, topic, event.Message(), event.Error())
 		if err != nil {
-			logger.Error("failed to publish to %s, error: %s", topic, err.Error())
+			logger.Errorf("failed to publish to %s, error: %s", topic, err.Error())
 		} else {
 			monitor.MessagesInFlight.WithLabelValues(topic, event.Message().Header["Source"], event.Message().Header["Schema_version"]).Inc()
 		}
