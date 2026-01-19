@@ -1,12 +1,13 @@
 package infrastructure
 
 import (
+	"time"
+
 	"github.com/Shopify/sarama"
 	"github.com/go-micro/plugins/v4/broker/kafka"
 	"github.com/zhanshen02154/product/internal/config"
 	"go-micro.dev/v4/broker"
 	"go-micro.dev/v4/logger"
-	"time"
 )
 
 // 加载Kafka配置
@@ -25,7 +26,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Producer.Flush.Frequency = time.Duration(conf.Producer.FlushFrequency) * time.Millisecond
 	kafkaConfig.Producer.Compression = sarama.CompressionGZIP
 	kafkaConfig.Producer.Partitioner = sarama.NewHashPartitioner
-	kafkaConfig.Producer.Idempotent = false
+	kafkaConfig.Producer.Idempotent = true
 	kafkaConfig.Metadata.AllowAutoTopicCreation = false
 	kafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 	kafkaConfig.Consumer.Fetch.Max = conf.Consumer.FetchMax
@@ -33,7 +34,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Consumer.Fetch.Default = 10240
 	kafkaConfig.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
 	kafkaConfig.Consumer.MaxProcessingTime = time.Duration(conf.Consumer.MaxProcessingTime) * time.Millisecond
-	kafkaConfig.Net.MaxOpenRequests = conf.Producer.MaxOpenRequests
+	kafkaConfig.Net.MaxOpenRequests = 1
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
 	kafkaConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategySticky
