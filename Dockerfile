@@ -7,7 +7,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN addgroup -g 1002 app \
 	&& adduser -S -D -u 1002 -G app app
 
-COPY --chown=app:app --chmod=500 order /home/app/product
+COPY --chown=app:app --chmod=500 product /home/app/product
 
 WORKDIR /home/app
 
