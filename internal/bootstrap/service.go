@@ -22,6 +22,7 @@ import (
 	"github.com/zhanshen02154/product/pkg/codec"
 	"github.com/zhanshen02154/product/proto/product"
 	"go-micro.dev/v4"
+	broker2 "go-micro.dev/v4/broker"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/server"
 	"go.opentelemetry.io/otel"
@@ -35,9 +36,6 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 
 	// 健康检查
 	probeServer := infrastructure.NewProbeServer(conf.Service.HeathCheckAddr, serviceContext)
-	if err := probeServer.Start(); err != nil {
-		logger.Error("failed to start probe server: " + err.Error())
-	}
 
 	monitorSvr := infrastructure.NewMonitorServer(":6060")
 
@@ -56,7 +54,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	successChan := make(chan *sarama.ProducerMessage, conf.Broker.Kafka.ChannelBufferSize)
 	errorChan := make(chan *sarama.ProducerError, conf.Broker.Kafka.ChannelBufferSize)
 	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka, kafka.AsyncProducer(errorChan, successChan))
-	deadLetterWrapper := wrapper.NewDeadLetterWrapper(broker)
+	broker.Init(broker2.ErrorHandler(wrapper.ErrorHandler(broker)))
 	service := micro.NewService(
 		micro.Server(grpcserver.NewServer(
 			server.Name(conf.Service.Name),
@@ -77,6 +75,9 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 			logWrapper.RequestLogWrapper,
 		),
 		micro.AfterStart(func() error {
+			if err := probeServer.Start(); err != nil {
+				logger.Error("failed to start probe server: " + err.Error())
+			}
 			monitorSvr.Start()
 			if eb != nil {
 				eb.Start()
@@ -107,10 +108,9 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 			monitor.NewClientWrapper(monitor.WithName(conf.Service.Name), monitor.WithVersion(conf.Service.Version)),
 		),
 		micro.WrapSubscriber(
-			opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
-			prometheus.NewSubscriberWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
 			logWrapper.SubscribeWrapper(),
-			deadLetterWrapper.Wrapper(),
+			prometheus.NewSubscriberWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
+			opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 		),
 		micro.AfterStop(func() error {
 			if eb != nil {
@@ -126,12 +126,12 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		event.WithServiceName(conf.Service.Name),
 		event.WithServiceVersion(conf.Service.Version),
 		event.WrapPublishCallback(
-			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
+			event.NewDeadletterWrapper(event.WithBroker(broker), event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
 			event.NewPublicCallbackLogWrapper(
 				event.WithLogger(zapLogger),
 				event.WithTimeThreshold(conf.Broker.PublishTimeThreshold),
 			),
-			event.NewDeadletterWrapper(event.WithBroker(broker), event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
+			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
 		),
 	)
 	event.RegisterPublisher(conf.Broker, eb, service.Client())

@@ -79,8 +79,14 @@ func (u *ProductDataService) DeductOrderInvetoryRevert(ctx context.Context, req 
 		}
 	}
 
-	// 删除事件ID
-	err = u.orderInventoryRepo.RemoveEventByOrderId(ctx, req.OrderId)
+	eventId, ok := metadata.GetEventId(ctx)
+	if ok {
+		orderInventoryEvent := model.OrderInventoryEvent{
+			EventId: eventId,
+			OrderId: req.OrderId,
+		}
+		_, err = u.orderInventoryRepo.Create(ctx, &orderInventoryEvent)
+	}
 
 	return err
 }

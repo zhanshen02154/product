@@ -97,6 +97,13 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+	eventExists, err := appService.productDomainService.FindEventExistsByOrderId(ctx, req.OrderId)
+	if err != nil {
+		return status.Error(codes.NotFound, "check order inventory event error: "+err.Error())
+	}
+	if eventExists {
+		return nil
+	}
 	lockKey := "deductinvetoryrevert-" + strconv.FormatInt(req.OrderId, 10)
 	lock := appService.serviceContext.LockManager.NewLock(lockKey, 15)
 	if err := lock.TryLock(ctx); err != nil {

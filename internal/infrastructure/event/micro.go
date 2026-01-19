@@ -173,6 +173,7 @@ func (l *microListener) handleCallback(sg *sarama.ProducerMessage, err error) {
 		if topic, ok := msg.Header["Micro-Topic"]; ok {
 			if err == nil {
 				monitor.MessageProducedCount.WithLabelValues(topic, "success", l.opts.name, l.opts.version).Inc()
+				monitor.MessagesInFlight.WithLabelValues(topic, l.opts.name, l.opts.version).Dec()
 			} else {
 				monitor.MessageProducedCount.WithLabelValues(topic, "failure", l.opts.name, l.opts.version).Inc()
 			}
@@ -183,7 +184,6 @@ func (l *microListener) handleCallback(sg *sarama.ProducerMessage, err error) {
 					monitor.ProduceDuration.WithLabelValues(topic, l.opts.name, l.opts.version).Observe(duration)
 				}
 			}
-			monitor.MessagesInFlight.WithLabelValues(topic, l.opts.name, l.opts.version).Dec()
 		}
 	}
 	for i := len(l.opts.wrappers); i > 0; i-- {

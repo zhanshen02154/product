@@ -2,74 +2,75 @@ package wrapper
 
 import (
 	"context"
+	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
+	"go-micro.dev/v4/logger"
+	"go-micro.dev/v4/metadata"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/codes"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
-	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
 	"go-micro.dev/v4/broker"
-	"go-micro.dev/v4/logger"
-	"go-micro.dev/v4/server"
-	"go.opentelemetry.io/otel"
-	tracecode "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 )
 
 const deadLetterTopicKey = "DLQ"
 
-// DeadLetterWrapper 死信队列
-type DeadLetterWrapper struct {
+// deadLetterHandler 死信队列
+type deadLetterHandler struct {
 	b             broker.Broker
 	traceProvicer trace.TracerProvider
 }
 
-// Wrapper 包装器操作
-func (w *DeadLetterWrapper) Wrapper() server.SubscriberWrapper {
-	return func(next server.SubscriberFunc) server.SubscriberFunc {
-		return func(ctx context.Context, msg server.Message) error {
-			err := next(ctx, msg)
-			if err == nil {
-				return nil
-			}
-
-			// 如果是死信队列则直接返回不再进入死信队列过程
-			if strings.HasSuffix(msg.Topic(), deadLetterTopicKey) {
-				return nil
-			}
-			spanOpts := []trace.SpanStartOption{
-				trace.WithSpanKind(trace.SpanKindProducer),
-			}
-			topic := msg.Topic() + deadLetterTopicKey
-			newCtx, span := opentelemetry.StartSpanFromContext(ctx, w.traceProvicer, "Pub to dead letter topic "+topic, spanOpts...)
-			defer span.End()
-			header := make(map[string]string)
-			header["x-error"] = err.Error()
-			for k, v := range msg.Header() {
-				header[k] = v
-			}
-			header["Timestamp"] = strconv.FormatInt(time.Now().UnixMilli(), 10)
-			dlMsg := broker.Message{
-				Header: header,
-				Body:   msg.Body(),
-			}
-			if err := w.b.Publish(topic, &dlMsg, broker.PublishContext(newCtx)); err != nil {
-				logger.Errorf("failed to publish to %s, error: %s", topic, err.Error())
-				span.SetStatus(tracecode.Error, err.Error())
-				span.RecordError(err)
-			} else {
-				monitor.MessagesInFlight.WithLabelValues(topic, header["Source"], header["Schema_version"]).Inc()
-			}
-
-			// 一律返回nil让broker标记为成功
-			return nil
-		}
-	}
-}
-
-func NewDeadLetterWrapper(b broker.Broker) *DeadLetterWrapper {
-	return &DeadLetterWrapper{
+// ErrorHandler 错误处理
+func ErrorHandler(b broker.Broker) broker.Handler {
+	options := &deadLetterHandler{
 		b:             b,
 		traceProvicer: otel.GetTracerProvider(),
 	}
+
+	return func(event broker.Event) error {
+		topic := event.Topic() + deadLetterTopicKey
+		if v, ok := event.Message().Header["Traceparent"]; ok {
+			event.Message().Header["traceparent"] = v
+		}
+		ctx := context.TODO()
+		ctx = metadata.NewContext(ctx, event.Message().Header)
+		err := options.publishDeadLetter(ctx, topic, event.Message(), event.Error())
+		if err != nil {
+			logger.Error("failed to publish to %s, error: %s", topic, err.Error())
+		} else {
+			monitor.MessagesInFlight.WithLabelValues(topic, event.Message().Header["Source"], event.Message().Header["Schema_version"]).Inc()
+		}
+		if err := event.Ack(); err != nil {
+			logger.Errorf("failed to ack to %s, error: %s", topic, err.Error())
+		}
+		return err
+	}
+}
+
+func (w *deadLetterHandler) publishDeadLetter(ctx context.Context, topic string, msg *broker.Message, err error) error {
+	header := make(map[string]string)
+	header["x-error"] = err.Error()
+	for k, v := range msg.Header {
+		header[k] = v
+	}
+	header["Timestamp"] = strconv.FormatInt(time.Now().UnixMilli(), 10)
+	dlMsg := broker.Message{
+		Header: header,
+		Body:   msg.Body,
+	}
+	spanOpts := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindProducer),
+	}
+	newCtx, span := opentelemetry.StartSpanFromContext(ctx, w.traceProvicer, "Pub to deadletter topic "+topic, spanOpts...)
+	defer span.End()
+	pErr := w.b.Publish(topic, &dlMsg, broker.PublishContext(newCtx))
+	if pErr != nil {
+		span.SetStatus(codes.Error, pErr.Error())
+		span.RecordError(pErr)
+		return pErr
+	}
+	return nil
 }
