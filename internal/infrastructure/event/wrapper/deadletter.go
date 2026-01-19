@@ -8,6 +8,7 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/codes"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
@@ -31,6 +32,13 @@ func ErrorHandler(b broker.Broker) broker.Handler {
 	}
 
 	return func(event broker.Event) error {
+		if strings.HasSuffix(event.Topic(), deadLetterTopicKey) {
+			logger.Error("failed to handle dead letter "+event.Topic()+": ", event.Error().Error())
+			if err := event.Ack(); err != nil {
+				logger.Error(err)
+			}
+			return nil
+		}
 		topic := event.Topic() + deadLetterTopicKey
 		if v, ok := event.Message().Header["Traceparent"]; ok {
 			event.Message().Header["traceparent"] = v
