@@ -1,5 +1,15 @@
 # 微服务架构演进实践——商品服务决策记录
 
+## ADR-012: 部署Prometheus
+### 日期
+2026年1月12日
+### 状态
+已采纳
+### 背景
+5.0版完善了Jaeger，虽然负载测试表现良好但仍存在长尾请求，需要引入监控进一步检查。
+
+关于本决策，请参见：[ADR-014: 部署Prometheus](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-014-部署Prometheus) 。
+
 ## ADR-011: 新增全局日志级别
 ### 日期
 2026年1月2日

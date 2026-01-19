@@ -2,7 +2,7 @@ package event
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"github.com/Shopify/sarama"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
 	"go-micro.dev/v4"
@@ -25,7 +25,7 @@ const (
 // 异步发送事件
 type microListener struct {
 	mu             sync.RWMutex
-	eventPublisher map[string]micro.Event
+	eventPublisher sync.Map
 	successChan    chan *sarama.ProducerMessage
 	errorChan      chan *sarama.ProducerError
 	wg             sync.WaitGroup
@@ -37,78 +37,60 @@ type microListener struct {
 
 // Publish 发布
 func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key string, opts ...client.PublishOption) error {
-	l.mu.RLock()
-	defer l.mu.RUnlock()
-	if _, ok := l.eventPublisher[topic]; !ok {
-		return fmt.Errorf("topic: %s event not registerd", topic)
-	}
-	// 将key放到metadata
-	if key != "" {
-		if _, ok := metadata.Get(ctx, partitionKey); !ok {
-			ctx = metadata.Set(ctx, partitionKey, key)
+	if pub, ok := l.eventPublisher.Load(topic); ok {
+		if e, assertOk := pub.(micro.Event); assertOk {
+			// 将key放到metadata
+			if key != "" {
+				if _, ok := metadata.Get(ctx, partitionKey); !ok {
+					ctx = metadata.Set(ctx, partitionKey, key)
+				}
+			}
+			return e.Publish(ctx, msg, opts...)
+		} else {
+			return errors.New("invalid event")
 		}
 	}
-	err := l.eventPublisher[topic].Publish(ctx, msg, opts...)
-	return err
+	return errors.New("event not found")
 }
 
 // Register 注册
 func (l *microListener) Register(topic string, c client.Client) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	if _, ok := l.eventPublisher[topic]; !ok {
-		l.eventPublisher[topic] = micro.NewEvent(topic, c)
-	}
-	logger.Info("event ", topic, " was registered")
+	l.eventPublisher.Store(topic, micro.NewEvent(topic, c))
+	logger.Info("event ", topic, " registered")
 	return true
 }
 
 // UnRegister 取消注册
 func (l *microListener) UnRegister(topic string) bool {
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	if l.eventPublisher == nil {
-		return true
-	}
-	if len(l.eventPublisher) == 0 {
-		return true
-	}
-	if _, ok := l.eventPublisher[topic]; ok {
-		delete(l.eventPublisher, topic)
-		logger.Info("event: ", topic, " unregistered")
-	}
+	l.eventPublisher.Delete(topic)
+	logger.Info("event: ", topic, " unregistered")
 	return true
 }
 
 // Close 关闭
 func (l *microListener) Close() {
 	l.mu.Lock()
+	defer l.mu.Unlock()
 	// 如果已经关闭或未初始化，直接返回
-	if l.eventPublisher == nil && l.quitChan == nil {
-		l.mu.Unlock()
+	if l.quitChan == nil {
 		return
 	}
-	if l.eventPublisher != nil {
-		for k := range l.eventPublisher {
-			delete(l.eventPublisher, k)
-			logger.Info("event: ", k, " unregistered")
-		}
-		l.eventPublisher = nil
-	}
+	l.started = false
+	l.eventPublisher.Range(func(key, value any) bool {
+		l.eventPublisher.Delete(key)
+		return true
+	})
+
 	if l.quitChan != nil {
 		close(l.quitChan)
 	}
-	l.mu.Unlock()
-
-	l.wg.Wait()
 
 	// 在所有 handler goroutine 退出后，再把引用置为 nil，避免竞争条件
-	l.mu.Lock()
 	if l.quitChan != nil {
 		l.quitChan = nil
 	}
-	l.started = false
-	l.mu.Unlock()
 }
 
 // Start 启动
@@ -214,7 +196,7 @@ func (l *microListener) handleCallback(sg *sarama.ProducerMessage, err error) {
 func NewListener(opts ...Option) Listener {
 	listener := microListener{
 		mu:             sync.RWMutex{},
-		eventPublisher: make(map[string]micro.Event),
+		eventPublisher: sync.Map{},
 		wg:             sync.WaitGroup{},
 		quitChan:       make(chan struct{}),
 		opts: &options{

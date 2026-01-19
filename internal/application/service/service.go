@@ -98,17 +98,14 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
 	lockKey := "deductinvetoryrevert-" + strconv.FormatInt(req.OrderId, 10)
-	lock, err := appService.serviceContext.LockManager.NewLock(ctx, lockKey, 15)
-	if err != nil {
-		return err
-	}
+	lock := appService.serviceContext.LockManager.NewLock(lockKey, 15)
 	if err := lock.TryLock(ctx); err != nil {
 		return err
 	}
 
 	defer func() {
 		if err := lock.UnLock(ctx); err != nil {
-			logger.Error("failed to unlock: ", lock.GetKey(ctx), " reason: ", err)
+			logger.Error("failed to unlock: ", lock.GetKey(), " reason: ", err)
 		}
 	}()
 	return appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {

@@ -2,6 +2,10 @@ package wrapper
 
 import (
 	"context"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
 	"go-micro.dev/v4/broker"
@@ -10,11 +14,6 @@ import (
 	"go.opentelemetry.io/otel"
 	tracecode "go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-	"strconv"
-	"strings"
-	"time"
 )
 
 const deadLetterTopicKey = "DLQ"
@@ -36,27 +35,6 @@ func (w *DeadLetterWrapper) Wrapper() server.SubscriberWrapper {
 
 			// 如果是死信队列则直接返回不再进入死信队列过程
 			if strings.HasSuffix(msg.Topic(), deadLetterTopicKey) {
-				return nil
-			}
-			errStatus, ok := status.FromError(err)
-			if !ok {
-				logger.Errorf("failed to handler topic %v, error: %s; id: %s", msg.Topic(), err.Error(), msg.Header()["Micro-ID"])
-				return nil
-			}
-
-			// 根据errorCode判断 因日志已经记录所以直接返回nil
-			switch errStatus.Code() {
-			case codes.InvalidArgument:
-				return nil
-			case codes.DataLoss:
-				return nil
-			case codes.PermissionDenied:
-				return nil
-			case codes.Unauthenticated:
-				return nil
-			case codes.Aborted:
-				return nil
-			case codes.NotFound:
 				return nil
 			}
 			spanOpts := []trace.SpanStartOption{
