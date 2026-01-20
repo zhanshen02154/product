@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/zhanshen02154/product/internal/application/dto"
+	"github.com/zhanshen02154/product/internal/domain/event/product"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
 	"github.com/zhanshen02154/product/pkg/metadata"
@@ -11,7 +12,7 @@ import (
 
 type IProductDataService interface {
 	AddProduct(ctx context.Context, productInfo *model.Product) (int64, error)
-	DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) error
+	DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) (*product.OnInventoryDeductSuccess, error)
 	DeductOrderInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 	FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error)
 }
@@ -32,7 +33,7 @@ func (u *ProductDataService) AddProduct(ctx context.Context, product *model.Prod
 }
 
 // DeductInventory 扣减库存
-func (u *ProductDataService) DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+func (u *ProductDataService) DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) (*product.OnInventoryDeductSuccess, error) {
 	var err error
 	for _, item := range req.ProductInvetory {
 		err = u.productRepository.DeductProductInventory(ctx, item.Id, item.Count)
@@ -46,15 +47,39 @@ func (u *ProductDataService) DeductInventory(ctx context.Context, req *dto.Order
 			break
 		}
 	}
+
+	if err != nil {
+		return nil, err
+	}
+
 	eventId, ok := metadata.GetEventId(ctx)
 	if ok {
-		orderInventoryEvent := &model.OrderInventoryEvent{
+		orderInventoryEvent := model.OrderInventoryEvent{
 			EventId: eventId,
 			OrderId: req.OrderId,
 		}
-		_, err = u.orderInventoryRepo.Create(ctx, orderInventoryEvent)
+		_, err = u.orderInventoryRepo.Create(ctx, &orderInventoryEvent)
 	}
-	return err
+
+	// 发布扣减库存成功事件
+	inventoryDeductSuccessEvent := product.OnInventoryDeductSuccess{
+		OrderId:      req.OrderId,
+		Products:     make([]*product.ProductInventoryItem, len(req.ProductInvetory)),
+		ProductSizes: make([]*product.ProductSizeInventoryItem, len(req.ProductSizeInvetory)),
+	}
+	for _, item := range req.ProductInvetory {
+		inventoryDeductSuccessEvent.Products = append(inventoryDeductSuccessEvent.Products, &product.ProductInventoryItem{
+			Id:    item.Id,
+			Count: item.Count,
+		})
+	}
+	for _, item := range req.ProductSizeInvetory {
+		inventoryDeductSuccessEvent.ProductSizes = append(inventoryDeductSuccessEvent.ProductSizes, &product.ProductSizeInventoryItem{
+			Id:    item.Id,
+			Count: item.Count,
+		})
+	}
+	return &inventoryDeductSuccessEvent, err
 }
 
 // DeductOrderInvetoryRevert 扣减订单库存补偿操作
@@ -79,8 +104,14 @@ func (u *ProductDataService) DeductOrderInvetoryRevert(ctx context.Context, req 
 		}
 	}
 
-	// 删除事件ID
-	err = u.orderInventoryRepo.RemoveEventByOrderId(ctx, req.OrderId)
+	eventId, ok := metadata.GetEventId(ctx)
+	if ok {
+		orderInventoryEvent := model.OrderInventoryEvent{
+			EventId: eventId,
+			OrderId: req.OrderId,
+		}
+		_, err = u.orderInventoryRepo.Create(ctx, &orderInventoryEvent)
+	}
 
 	return err
 }

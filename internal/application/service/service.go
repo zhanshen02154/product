@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"github.com/zhanshen02154/product/internal/application/dto"
-	"github.com/zhanshen02154/product/internal/domain/event/product"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/service"
 	"github.com/zhanshen02154/product/internal/infrastructure"
@@ -61,42 +60,34 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 	if eventExists {
 		return nil
 	}
-	err = appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
-		err = appService.productDomainService.DeductInventory(txCtx, req)
-		if err != nil {
-			return status.Error(codes.NotFound, "failed to deduct inventory error:"+err.Error())
-		}
+	err = appService.serviceContext.RetryPolicy.Execute(ctx, func() error {
+		err := appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
+			inventoryEvent, err := appService.productDomainService.DeductInventory(txCtx, req)
+			if err != nil {
+				return status.Error(codes.NotFound, "failed to deduct inventory error:"+err.Error())
+			}
 
-		// 发布扣减库存成功事件
-		inventoryDeductSuccessEvent := product.OnInventoryDeductSuccess{
-			OrderId:      req.OrderId,
-			Products:     make([]*product.ProductInventoryItem, len(req.ProductInvetory)),
-			ProductSizes: make([]*product.ProductSizeInventoryItem, len(req.ProductSizeInvetory)),
-		}
-		for _, item := range req.ProductInvetory {
-			inventoryDeductSuccessEvent.Products = append(inventoryDeductSuccessEvent.Products, &product.ProductInventoryItem{
-				Id:    item.Id,
-				Count: item.Count,
-			})
-		}
-		for _, item := range req.ProductSizeInvetory {
-			inventoryDeductSuccessEvent.ProductSizes = append(inventoryDeductSuccessEvent.ProductSizes, &product.ProductSizeInventoryItem{
-				Id:    item.Id,
-				Count: item.Count,
-			})
-		}
+			err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", inventoryEvent, strconv.FormatInt(req.OrderId, 10))
+			if err != nil {
+				return status.Error(codes.Aborted, "failed to publish event error: "+err.Error())
+			}
+			return nil
+		})
 
-		err = appService.eb.Publish(txCtx, "OnInventoryDeductSuccess", &inventoryDeductSuccessEvent, strconv.FormatInt(req.OrderId, 10))
-		if err != nil {
-			return status.Error(codes.Aborted, "failed to publish event error: "+err.Error())
-		}
-		return nil
+		return err
 	})
 	return err
 }
 
 // DeductInvetoryRevert 扣减订单的库存补偿
 func (appService *ProductApplicationService) DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
+	eventExists, err := appService.productDomainService.FindEventExistsByOrderId(ctx, req.OrderId)
+	if err != nil {
+		return status.Error(codes.NotFound, "check order inventory event error: "+err.Error())
+	}
+	if eventExists {
+		return nil
+	}
 	lockKey := "deductinvetoryrevert-" + strconv.FormatInt(req.OrderId, 10)
 	lock := appService.serviceContext.LockManager.NewLock(lockKey, 15)
 	if err := lock.TryLock(ctx); err != nil {

@@ -6,9 +6,11 @@ import (
 	gorm2 "github.com/zhanshen02154/product/internal/infrastructure/persistence/gorm"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction"
 	"github.com/zhanshen02154/product/internal/infrastructure/persistence/transaction/dtm"
+	"github.com/zhanshen02154/product/internal/infrastructure/retry"
 	"go-micro.dev/v4/logger"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
-	gormlogger "gorm.io/gorm/logger"
 )
 
 type ServiceContext struct {
@@ -17,11 +19,11 @@ type ServiceContext struct {
 	Conf        *config.SysConfig
 	db          *gorm.DB
 	Dtm         *dtm.Server
+	RetryPolicy retry.Policy
 }
 
-func NewServiceContext(conf *config.SysConfig, zapLogger gormlogger.Interface) (*ServiceContext, error) {
-	var err error
-	db, err := InitDB(conf.Database, zapLogger)
+func NewServiceContext(conf *config.SysConfig, zapLogger *zap.Logger, logLevel zapcore.Level) (*ServiceContext, error) {
+	db, err := InitDB(conf.Database, NewGromLogger(zapLogger, logLevel))
 	if err != nil {
 		return nil, err
 	}
@@ -44,6 +46,10 @@ func NewServiceContext(conf *config.SysConfig, zapLogger gormlogger.Interface) (
 		Conf:        conf,
 		db:          db,
 		Dtm:         dtm.NewServer(conf.Transaction.Host),
+		RetryPolicy: retry.NewRetryPolicy(
+			retry.WithKafkaConsumerConfig(conf.Broker.Kafka.Consumer),
+			retry.WithLogger(zapLogger),
+		),
 	}, nil
 }
 

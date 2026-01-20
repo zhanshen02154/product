@@ -76,7 +76,7 @@ func (w *LogWrapper) SubscribeWrapper() server.SubscriberWrapper {
 			switch {
 			case err != nil:
 				w.logger.Error("Event subscribe handler failed: "+err.Error(), baseFields...)
-			case duration > w.requestSlowTime && err == nil && duration > 0:
+			case duration > w.requestSlowTime && duration > 0:
 				w.logger.Warn("Event subscribe slow", baseFields...)
 			default:
 				w.logger.Info("Event subscribe handler processed", baseFields...)

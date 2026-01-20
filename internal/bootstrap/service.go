@@ -5,10 +5,6 @@ import (
 	"github.com/Shopify/sarama"
 	"github.com/go-micro/plugins/v4/broker/kafka"
 	grpcclient "github.com/go-micro/plugins/v4/client/grpc"
-	grpcserver "github.com/go-micro/plugins/v4/server/grpc"
-	"github.com/go-micro/plugins/v4/transport/grpc"
-	"github.com/go-micro/plugins/v4/wrapper/monitoring/prometheus"
-	ratelimit "github.com/go-micro/plugins/v4/wrapper/ratelimiter/uber"
 	"github.com/go-micro/plugins/v4/wrapper/trace/opentelemetry"
 	appservice "github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/config"
@@ -16,37 +12,24 @@ import (
 	"github.com/zhanshen02154/product/internal/infrastructure/event"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/wrapper"
-	"github.com/zhanshen02154/product/internal/infrastructure/registry"
 	"github.com/zhanshen02154/product/internal/intefaces/handler"
 	"github.com/zhanshen02154/product/internal/intefaces/subscriber"
-	"github.com/zhanshen02154/product/pkg/codec"
 	"github.com/zhanshen02154/product/proto/product"
 	"go-micro.dev/v4"
+	broker2 "go-micro.dev/v4/broker"
 	"go-micro.dev/v4/logger"
-	"go-micro.dev/v4/server"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 	"time"
 )
 
 func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceContext, zapLogger *zap.Logger) error {
-	// 注册到Consul
-	consulRegistry := registry.ConsulRegister(conf.Consul)
-
 	// 健康检查
 	probeServer := infrastructure.NewProbeServer(conf.Service.HeathCheckAddr, serviceContext)
-	if err := probeServer.Start(); err != nil {
-		logger.Error("failed to start probe server: " + err.Error())
-	}
 
 	monitorSvr := infrastructure.NewMonitorServer(":6060")
 
 	// New Service
-	logWrapper := infrastructure.NewLogWrapper(
-		infrastructure.WithZapLogger(zapLogger),
-		infrastructure.WithRequestSlowThreshold(conf.Service.RequestSlowThreshold),
-		infrastructure.WithSubscribeSlowThreshold(conf.Broker.SubscribeSlowThreshold),
-	)
 	var eb event.Listener
 	client := grpcclient.NewClient(
 		grpcclient.PoolMaxIdle(100),
@@ -56,27 +39,15 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	successChan := make(chan *sarama.ProducerMessage, conf.Broker.Kafka.ChannelBufferSize)
 	errorChan := make(chan *sarama.ProducerError, conf.Broker.Kafka.ChannelBufferSize)
 	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka, kafka.AsyncProducer(errorChan, successChan))
-	deadLetterWrapper := wrapper.NewDeadLetterWrapper(broker)
+	broker.Init(broker2.ErrorHandler(wrapper.ErrorHandler(broker)))
 	service := micro.NewService(
-		micro.Server(grpcserver.NewServer(
-			server.Name(conf.Service.Name),
-			server.Version(conf.Service.Version),
-			server.Address(conf.Service.Listen),
-			server.Transport(grpc.NewTransport()),
-			server.Registry(consulRegistry),
-			server.RegisterTTL(time.Duration(conf.Consul.RegisterTtl)*time.Second),
-			server.RegisterInterval(time.Duration(conf.Consul.RegisterInterval)*time.Second),
-			grpcserver.Codec("application/grpc+dtm_raw", codec.NewDtmCodec()),
-		)),
+		newServer(conf),
 		micro.Client(client),
-		//添加限流
-		micro.WrapHandler(
-			ratelimit.NewHandlerWrapper(conf.Service.Qps),
-			opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
-			prometheus.NewHandlerWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
-			logWrapper.RequestLogWrapper,
-		),
+		handlerWrapper(conf, zapLogger),
 		micro.AfterStart(func() error {
+			if err := probeServer.Start(); err != nil {
+				logger.Error("failed to start probe server: " + err.Error())
+			}
 			monitorSvr.Start()
 			if eb != nil {
 				eb.Start()
@@ -106,12 +77,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 			monitor.NewClientWrapper(monitor.WithName(conf.Service.Name), monitor.WithVersion(conf.Service.Version)),
 		),
-		micro.WrapSubscriber(
-			opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
-			prometheus.NewSubscriberWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
-			logWrapper.SubscribeWrapper(),
-			deadLetterWrapper.Wrapper(),
-		),
+		wrapSubscriber(zapLogger, conf),
 		micro.AfterStop(func() error {
 			if eb != nil {
 				eb.Close()
@@ -126,12 +92,12 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		event.WithServiceName(conf.Service.Name),
 		event.WithServiceVersion(conf.Service.Version),
 		event.WrapPublishCallback(
-			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
+			event.NewDeadletterWrapper(event.WithBroker(broker), event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
 			event.NewPublicCallbackLogWrapper(
 				event.WithLogger(zapLogger),
 				event.WithTimeThreshold(conf.Broker.PublishTimeThreshold),
 			),
-			event.NewDeadletterWrapper(event.WithBroker(broker), event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
+			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
 		),
 	)
 	event.RegisterPublisher(conf.Broker, eb, service.Client())

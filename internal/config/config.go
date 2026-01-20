@@ -104,6 +104,12 @@ type KafkaConsumer struct {
 	FetchMin          int32               `json:"fetch_min" yaml:"fetch_min"`
 	FetchMax          int32               `json:"fetch_max" yaml:"fetch_max"`
 	MaxProcessingTime int64               `json:"max_processing_time" yaml:"max_processing_time"`
+	Retry             struct {
+		InitialInterval int    `json:"initial_interval" yaml:"initial_interval"`
+		MaxInterval     int    `json:"max_interval" yaml:"max_interval"`
+		MaxElapsedTime  int64  `json:"max_elapsed_time" yaml:"max_elapsed_time"`
+		MaxRetries      uint64 `json:"max_retries" yaml:"max_retries"`
+	} `json:"retry" yaml:"retry"`
 }
 
 type KafkaConsumerGroup struct {
