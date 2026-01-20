@@ -109,7 +109,7 @@ type KafkaConsumer struct {
 		MaxInterval     int    `json:"max_interval" yaml:"max_interval"`
 		MaxElapsedTime  int64  `json:"max_elapsed_time" yaml:"max_elapsed_time"`
 		MaxRetries      uint64 `json:"max_retries" yaml:"max_retries"`
-	}
+	} `json:"retry" yaml:"retry"`
 }
 
 type KafkaConsumerGroup struct {
