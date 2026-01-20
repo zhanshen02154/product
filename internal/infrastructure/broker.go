@@ -33,7 +33,7 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 	kafkaConfig.Consumer.Fetch.Min = conf.Consumer.FetchMin
 	kafkaConfig.Consumer.Fetch.Default = 10240
 	kafkaConfig.Consumer.Offsets.AutoCommit.Interval = 5 * time.Second
-	kafkaConfig.Consumer.MaxProcessingTime = time.Duration(conf.Consumer.MaxProcessingTime) * time.Second
+	kafkaConfig.Consumer.MaxProcessingTime = time.Duration(conf.Consumer.MaxProcessingTime) * time.Millisecond
 	kafkaConfig.Net.MaxOpenRequests = 1
 	kafkaConfig.Consumer.Group.Session.Timeout = time.Second * time.Duration(conf.Consumer.Group.SessionTimeout)
 	kafkaConfig.Consumer.Group.Heartbeat.Interval = time.Duration(conf.Consumer.Group.HeartbeatInterval) * time.Second
