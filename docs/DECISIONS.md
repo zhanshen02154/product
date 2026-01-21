@@ -80,7 +80,7 @@ ETCD在高并发时给基础设施服务器1的CPU带来巨大压力，当前k8s
 
 ---
 
-### ADR-008: Logstash更换为Fluent-bit
+## ADR-008: Logstash更换为Fluent-bit
 ### 日期
 2025年12月17日
 ### 状态
