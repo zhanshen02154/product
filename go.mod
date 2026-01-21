@@ -4,6 +4,7 @@ go 1.20
 
 require (
 	github.com/Shopify/sarama v1.30.1
+	github.com/cenkalti/backoff/v4 v4.1.3
 	github.com/dtm-labs/client v1.17.3
 	github.com/go-micro/plugins/v4/broker/kafka v1.2.0
 	github.com/go-micro/plugins/v4/client/grpc v1.2.1
@@ -44,7 +45,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bitly/go-simplejson v0.5.0 // indirect
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
-	github.com/cenkalti/backoff/v4 v4.1.3 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
