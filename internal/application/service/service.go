@@ -53,15 +53,15 @@ func (appService *ProductApplicationService) AddProduct(ctx context.Context, pro
 
 // DeductInventory 扣减订单的库存
 func (appService *ProductApplicationService) DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) error {
-	eventExists, err := appService.productDomainService.FindEventExistsByOrderId(ctx, req.OrderId)
-	if err != nil {
-		return status.Error(codes.NotFound, "check order inventory event error: "+err.Error())
-	}
-	if eventExists {
-		return nil
-	}
-	err = appService.serviceContext.RetryPolicy.Execute(ctx, func() error {
-		err := appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
+	err := appService.serviceContext.RetryPolicy.Execute(ctx, func() error {
+		eventExists, err := appService.productDomainService.FindEventExistsByOrderId(ctx, req.OrderId)
+		if err != nil {
+			return status.Error(codes.NotFound, "check order inventory event error: "+err.Error())
+		}
+		if eventExists {
+			return nil
+		}
+		err = appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
 			inventoryEvent, err := appService.productDomainService.DeductInventory(txCtx, req)
 			if err != nil {
 				return status.Error(codes.NotFound, "failed to deduct inventory error:"+err.Error())
