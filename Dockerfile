@@ -5,10 +5,12 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 	&& ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 RUN addgroup -g 1002 app \
-	&& adduser -S -D -u 1002 -G app app
+	&& adduser -S -D -u 1002 -G app app \
+    && mkdir -p /opt/product/bin \
+    && chown -R app:app /opt/product
 
-COPY --chown=app:app --chmod=500 product /home/app/product
+COPY --chown=app:app --chmod=750 product /opt/product/bin/product
 
-WORKDIR /home/app
+WORKDIR /opt/product/bin
 
 CMD [ "./product" ]
