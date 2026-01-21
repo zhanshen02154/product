@@ -2,7 +2,6 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"github.com/go-micro/plugins/v4/config/source/consul"
 	"github.com/zhanshen02154/product/pkg/env"
 	"go-micro.dev/v4/config"
@@ -14,10 +13,10 @@ type SysConfig struct {
 	Service     *ServiceInfo `json:"service" yaml:"service"`
 	Database    *MySqlConfig `json:"database" yaml:"database"`
 	Consul      *ConsulInfo  `json:"consul" yaml:"consul"`
-	Etcd        *Etcd        `json:"etcd" yaml:"etcd"`
 	Transaction *Transaction `yaml:"transaction" json:"transaction"`
 	Broker      *Broker      `json:"broker" yaml:"broker"`
 	Tracer      *Tracer      `json:"tracer" yaml:"tracer"`
+	Redis       *Redis       `json:"redis" yaml:"redis"`
 }
 
 type ServiceInfo struct {
@@ -32,13 +31,20 @@ type ServiceInfo struct {
 	LogLevel             string `json:"log_level" yaml:"log_level"`
 }
 
-type Etcd struct {
-	Hosts            []string `json:"hosts" yaml:"hosts"`
-	DialTimeout      int64    `json:"dial_timeout" yaml:"dial_timeout"`
-	Username         string   `yaml:"username" json:"username"`
-	Password         string   `yaml:"password" json:"password"`
-	AutoSyncInterval int64    `yaml:"auto_sync_interval" json:"auto_sync_interval"`
-	Prefix           string   `yaml:"prefix" json:"prefix"`
+// Redis Redis配置
+type Redis struct {
+	Addr           string `json:"addr" yaml:"addr"`
+	Password       string `json:"password" yaml:"password"`
+	Database       int    `json:"database" yaml:"database"`
+	PoolSize       int    `json:"pool_size" yaml:"pool_size"`
+	DialTimeout    int    `json:"dial_timeout" yaml:"dial_timeout"`
+	ReadTimeout    int    `json:"read_timeout" yaml:"read_timeout"`
+	WriteTimeout   int    `json:"write_timeout" yaml:"write_timeout"`
+	MinIdleConns   int    `json:"min_idle_conns" yaml:"min_idle_conns"`
+	Prefix         string `json:"prefix" yaml:"prefix"`
+	LockTries      int    `json:"lock_tries" yaml:"lock_tries"`
+	LockRetryDelay int    `json:"lock_retry_delay" yaml:"lock_retry_delay"`
+	LockDB         int    `json:"lock_db" yaml:"lock_db"`
 }
 
 // ConsulInfo consul配置信息
@@ -98,6 +104,12 @@ type KafkaConsumer struct {
 	FetchMin          int32               `json:"fetch_min" yaml:"fetch_min"`
 	FetchMax          int32               `json:"fetch_max" yaml:"fetch_max"`
 	MaxProcessingTime int64               `json:"max_processing_time" yaml:"max_processing_time"`
+	Retry             struct {
+		InitialInterval int    `json:"initial_interval" yaml:"initial_interval"`
+		MaxInterval     int    `json:"max_interval" yaml:"max_interval"`
+		MaxElapsedTime  int64  `json:"max_elapsed_time" yaml:"max_elapsed_time"`
+		MaxRetries      uint64 `json:"max_retries" yaml:"max_retries"`
+	} `json:"retry" yaml:"retry"`
 }
 
 type KafkaConsumerGroup struct {
@@ -135,6 +147,27 @@ func (c *SysConfig) CheckConfig() error {
 	if c.Broker.SubscribeSlowThreshold >= c.Broker.Kafka.Consumer.MaxProcessingTime {
 		return errors.New("subscribe_slow_threshold must less than kafka.consumer.max_processing_time")
 	}
+
+	// 检查Redis配置
+	if c.Redis == nil {
+		return errors.New("redis config is nil")
+	} else {
+		if c.Redis.Addr == "" {
+			return errors.New("redis addr is empty")
+		}
+		if c.Redis.LockRetryDelay == 0 {
+			c.Redis.LockRetryDelay = 500
+		}
+		if c.Redis.LockTries == 0 {
+			c.Redis.LockTries = 3
+		}
+		if c.Redis.PoolSize == 0 {
+			c.Redis.PoolSize = 10
+		}
+		if c.Redis.MinIdleConns == 0 {
+			c.Redis.MinIdleConns = 1
+		}
+	}
 	logLevels := [3]string{"info", "warn", "error"}
 	if c.Service.LogLevel == "" {
 		c.Service.LogLevel = "info"
@@ -158,12 +191,11 @@ func (c *SysConfig) CheckConfig() error {
 // GetConfig 从consul获取配置
 func GetConfig() (config.Config, error) {
 	// 从consul获取配置
-	consulHost := env.GetEnv("CONSUL_HOST", "127.0.0.1")
-	consulPort := env.GetEnv("CONSUL_PORT", "8500")
+	consulHost := env.GetEnv("CONSUL_HOST", "127.0.0.1:8500")
 	consulPrefix := env.GetEnv("CONSUL_PREFIX", "/micro/")
 	consulSource := consul.NewSource(
 		// Set configuration address
-		consul.WithAddress(fmt.Sprintf("%s:%s", consulHost, consulPort)),
+		consul.WithAddress(consulHost),
 		consul.WithPrefix(consulPrefix),
 		consul.StripPrefix(true),
 	)
@@ -176,7 +208,7 @@ func GetConfig() (config.Config, error) {
 	if err := configInfo.Load(consulSource); err != nil {
 		logger.Error("failed to load source on consul: ", err)
 		if err := configInfo.Close(); err != nil {
-			logger.Error("配置关闭失败: ", err)
+			logger.Error("failed to close config", err)
 		}
 		return nil, err
 	}

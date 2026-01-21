@@ -19,12 +19,7 @@ pipeline {
 			steps {
 				sh '''
 				echo 'Building project...'
-				export CGO_ENABLED=0
-				export GOOS=linux
-				export GOARCH=amd64
-				go env -w GO111MODULE=on
-				go mod download
-				go build -o product cmd/main.go
+				make build
 				echo 'Build success'
 				'''
 			}
@@ -41,16 +36,12 @@ pipeline {
 					if (env.TAG_NAME) {
 						DOCKER_TAG = "${env.TAG_NAME}"
 					}
-					withCredentials([string(credentialsId: 'CONSUL_HOST', variable: 'consul_host'), 
-						string(credentialsId: 'CONSUL_PORT', variable: 'consul_port')
-						]) {
-						sh 'set +x'
-						docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "--build-arg CONSUL_HOST=$consul_host --build-arg CONSUL_PORT=$consul_port --build-arg CONSUL_PREFIX=/micro/ .")
-						docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
-							docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
-						}
-						sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}"
-					}
+					sh 'set +x'
+					docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}")
+					docker.withRegistry('https://192.168.0.62', 'harbor-jenkins') {
+                        docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
+                    }
+					sh "docker rmi ${DOCKER_IMAGE}:${DOCKER_TAG}"
 				}
 			}
 		}
@@ -69,7 +60,7 @@ pipeline {
 								sh """
 								set +x
 								/usr/bin/kubectl set image deployment/product-service product-container=${DOCKER_IMAGE}:${DOCKER_TAG} -n dev --record
-								/usr/bin/kubectl rollout status deployment/product-service -n dev --timeout 120s
+								/usr/bin/kubectl rollout status deployment/product-service -n dev --timeout 360s
 								"""
 							}
 						}

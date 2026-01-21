@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"errors"
 	"go-micro.dev/v4/logger"
 	"net/http"
 	"sync"
@@ -19,17 +20,27 @@ type ProbeServer struct {
 func NewProbeServer(port string, serviceContext *ServiceContext) *ProbeServer {
 	mx := http.NewServeMux()
 	mx.HandleFunc("/healthz", func(writer http.ResponseWriter, request *http.Request) {
-		writer.WriteHeader(http.StatusOK)
-		writer.Write([]byte("OK"))
+		err := serviceContext.CheckHealth()
+		if err != nil {
+			writer.WriteHeader(http.StatusServiceUnavailable)
+			writer.Write([]byte("Not Ready"))
+			logger.Error("health check failed: " + err.Error())
+		} else {
+			writer.WriteHeader(http.StatusOK)
+			writer.Write([]byte("OK"))
+			logger.Info("health check success")
+		}
 	})
 	mx.HandleFunc("/ready", func(writer http.ResponseWriter, request *http.Request) {
 		err := serviceContext.CheckHealth()
 		if err != nil {
 			writer.WriteHeader(http.StatusServiceUnavailable)
 			writer.Write([]byte("Not Ready"))
+			logger.Error("service was not ready: " + err.Error())
 		} else {
 			writer.WriteHeader(http.StatusOK)
 			writer.Write([]byte("OK"))
+			logger.Info("service was ready")
 		}
 	})
 	return &ProbeServer{
@@ -44,8 +55,8 @@ func (probeServe *ProbeServer) Start() error {
 	go func() {
 		defer probeServe.wg.Done()
 		err := probeServe.server.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			logger.Error("Health check server error: ", err.Error())
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("Health check server error: " + err.Error())
 		}
 	}()
 	return nil
@@ -58,6 +69,6 @@ func (probeServe *ProbeServer) Shutdown(ctx context.Context) error {
 		return err
 	}
 	probeServe.wg.Wait()
-	logger.Info("健康检查服务器已关闭")
+	logger.Info("Health check server shutdown success")
 	return nil
 }

@@ -1,4 +1,4 @@
-package registry
+package infrastructure
 
 import (
 	"github.com/go-micro/plugins/v4/registry/consul"

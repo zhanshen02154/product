@@ -87,10 +87,10 @@ func (h *paymentEventHandlerImpl) RegisterSubscriber(srv server.Server) {
 	queue := server.SubscriberQueue("product-consumer")
 	err = micro.RegisterSubscriber("OnPaymentSuccess", srv, h.OnPaymentSuccess, queue)
 	if err != nil {
-		logger.Errorf("failed to register subscriber, error: %s", err.Error(), queue)
+		logger.Errorf("failed to register subscriber, error: %s", err.Error())
 	}
 	err = micro.RegisterSubscriber("OnInventoryDeductSuccessDLQ", srv, h.OnInventoryDeductFailed, queue)
 	if err != nil {
-		logger.Errorf("failed to register subscriber, error: %s", err.Error(), queue)
+		logger.Errorf("failed to register subscriber, error: %s", err.Error())
 	}
 }

@@ -1,20 +1,16 @@
-FROM alpine:3.22.2
-
-ARG CONSUL_HOST=127.0.0.1
-ARG CONSUL_PORT=8500
-ARG CONSUL_PREFIX=product
-
-ENV CONSUL_HOST=$CONSUL_HOST \
-	CONSUL_PORT=$CONSUL_PORT \
-	CONSUL_PREFIX=$CONSUL_PREFIX
-
-COPY product /var/product
+FROM alpine:3.23.2
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories \
-    && apk add --no-cache tzdata \
-    && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-    && chmod +x /var/product
+	&& apk add --no-cache tzdata \
+	&& ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
-WORKDIR /var
+RUN addgroup -g 1002 app \
+	&& adduser -S -D -u 1002 -G app app \
+    && mkdir -p /opt/product/bin \
+    && chown -R app:app /opt/product
+
+COPY --chown=app:app --chmod=750 product /opt/product/bin/product
+
+WORKDIR /opt/product/bin
 
 CMD [ "./product" ]
