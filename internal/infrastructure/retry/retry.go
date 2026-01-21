@@ -21,19 +21,26 @@ type exponentialBackOff struct {
 }
 
 func (r *exponentialBackOff) Execute(ctx context.Context, fn func() error) error {
-	err := fn()
-	if err == nil {
-		return nil
-	}
-	if !r.checkRetry(err) {
-		return err
-	}
 	expBackoff := backoff.NewExponentialBackOff()
 	expBackoff.InitialInterval = r.opts.initialInterval
 	expBackoff.MaxInterval = r.opts.maxInterval
 	expBackoff.MaxElapsedTime = r.opts.maxElapsedTime
-	backoffRetry := backoff.WithMaxRetries(expBackoff, r.opts.maxRetries)
-	if err := backoff.RetryNotify(fn, backoffRetry, r.notify(ctx)); err != nil {
+	backoffPolicy := backoff.WithContext(
+		backoff.WithMaxRetries(expBackoff, r.opts.maxRetries),
+		ctx,
+	)
+
+	operation := func() error {
+		err := fn()
+		if err != nil {
+			if r.isPermanentError(err) {
+				return backoff.Permanent(err)
+			}
+		}
+
+		return nil
+	}
+	if err := backoff.RetryNotify(operation, backoffPolicy, r.notify(ctx)); err != nil {
 		return err
 	}
 	return nil
@@ -80,8 +87,8 @@ func (r *exponentialBackOff) notify(ctx context.Context) backoff.Notify {
 	}
 }
 
-// 检查是否需要重试
-func (r *exponentialBackOff) checkRetry(err error) bool {
+// 检查是否为永久性错误
+func (r *exponentialBackOff) isPermanentError(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -91,29 +98,25 @@ func (r *exponentialBackOff) checkRetry(err error) bool {
 	}
 
 	switch errStatus.Code() {
-	case codes.InvalidArgument:
+	case codes.InvalidArgument: // 参数错误
+		return true
+	case codes.NotFound: // 资源不存在
 		return false
-	case codes.DataLoss:
-		return false
-	case codes.PermissionDenied:
-		return false
-	case codes.Unauthenticated:
-		return false
-	case codes.FailedPrecondition:
-		return false
-	case codes.NotFound:
-		return false
-	case codes.Unimplemented:
-		return false
-	case codes.Internal:
-		return false
-	case codes.AlreadyExists:
-		return false
-	case codes.ResourceExhausted:
+	case codes.AlreadyExists: // 资源已存在
+		return true
+	case codes.PermissionDenied: // 权限不足
+		return true
+	case codes.FailedPrecondition: // 前置条件不满足
+		return true
+	case codes.OutOfRange: // 超出范围
+		return true
+	case codes.Unauthenticated: // 未认证
+		return true
+	case codes.Unimplemented: // 未实现
+		return true
+	default:
 		return false
 	}
-
-	return true
 }
 
 func NewRetryPolicy(opts ...Option) Policy {
