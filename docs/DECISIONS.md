@@ -1,4 +1,34 @@
-# 微服务架构演进实践——商品服务决策记录
+# 决策记录
+
+## ADR-015: 引入服务重试
+### 日期
+2026年1月20日
+### 状态
+已采纳
+### 背景
+6.0后项目基本稳定，唯一没有实现的是服务重试，当前为事件驱动架构，生产端重试由kafka相关golang组件完成，订阅端需要做重试。
+
+关于本决策，请参见：[ADR-017: 引入服务重试](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-017-引入服务重试) 。
+
+## ADR-014: 容器安全加固
+### 日期
+2026年1月16日
+### 状态
+已采纳
+### 背景
+当前系统架构已基本稳定，之前为了验证架构忽略安全性问题，容器以root用户运行；Consul相关的环境变量在编译镜像时注入，存在暴露的隐患。
+
+关于本决策，请参见：[ADR-016: 容器安全加固](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-016-容器安全加固) 。
+
+## ADR-013: 分布式锁由ETCD改为Redis
+### 日期
+2026年1月16日
+### 状态
+已采纳
+### 背景
+ETCD在高并发时给基础设施服务器1的CPU带来巨大压力，当前k8s-node4空间充足，完全可以使用。
+
+关于本决策，请参见：[ADR-015: 分布式锁由ETCD改为Redis](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-015-分布式锁由ETCD改为Redis) 。
 
 ## ADR-012: 部署Prometheus
 ### 日期
@@ -50,7 +80,7 @@
 
 ---
 
-### ADR-008: Logstash更换为Fluent-bit
+## ADR-008: Logstash更换为Fluent-bit
 ### 日期
 2025年12月17日
 ### 状态

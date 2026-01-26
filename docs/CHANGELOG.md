@@ -1,4 +1,38 @@
 
+<a name="v6.1.0"></a>
+## [v6.1.0](https://github.com/zhanshen02154/product/compare/v6.0.0...v6.1.0) (2026-01-21)
+
+### Bug Fixes
+
+* 死信队列不再投递直接记录错误
+* 修复订阅事件死信队列影响日志输出问题
+* **broker:** 恢复生产端幂等性限制
+* **订阅者:** 统一订阅者最长处理时间度量单位
+
+### Code Refactoring
+
+* 事件侦听器的发布器改为sync.Map
+* **broker:** 修改最大执行时间
+* **分布式锁:** 由ETCD改为Redis
+
+### Features
+
+* 引入重试机制
+* **健康检查:** 调整健康检查逻辑
+* **分布式锁:** 增加redis组件依赖
+
+### BREAKING CHANGE
+
+
+- 引入订阅端重试
+- 改写bootstrap下的service
+- 删除死信队列包装器，改用ErrorHandler
+- 投递到死信队列逻辑不判断错误类型
+- 事件侦听器的发布器改为sync.Map
+- 将分布式锁组件从ETCD更改为Redis
+- 重构分布式锁接口
+
+
 <a name="v6.0.0"></a>
 ## [v6.0.0](https://github.com/zhanshen02154/product/compare/v5.0.0...v6.0.0) (2026-01-15)
 

@@ -9,7 +9,7 @@ import (
 	"go-micro.dev/v4/logger"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -107,17 +107,18 @@ func main() {
 // 加载OpenTelemetry链路追踪
 func initTracer(serviceName string, version string, conf *configstruct.Tracer) func() {
 	ctx := context.Background()
-	traceClient := otlptracegrpc.NewClient(
-		otlptracegrpc.WithTimeout(time.Duration(conf.Client.Timeout)*time.Second),
-		otlptracegrpc.WithEndpoint(conf.Client.Endpoint),
-		otlptracegrpc.WithRetry(otlptracegrpc.RetryConfig{
+	traceClient := otlptracehttp.NewClient(
+		otlptracehttp.WithEndpoint(conf.Client.Endpoint),
+		otlptracehttp.WithURLPath(conf.Client.Path),
+		otlptracehttp.WithTimeout(time.Duration(conf.Client.Timeout)*time.Second),
+		otlptracehttp.WithInsecure(),
+		otlptracehttp.WithRetry(otlptracehttp.RetryConfig{
 			Enabled:         conf.Client.Retry.Enabled,
 			InitialInterval: time.Duration(conf.Client.Retry.InitialInterval) * time.Second,
 			MaxInterval:     time.Duration(conf.Client.Retry.MaxInterval) * time.Second,
 			MaxElapsedTime:  time.Duration(conf.Client.Retry.MaxElapsedTime) * time.Second,
 		}),
-		otlptracegrpc.WithInsecure(),
-		otlptracegrpc.WithCompressor("gzip"),
+		otlptracehttp.WithCompression(otlptracehttp.GzipCompression),
 	)
 
 	res, err := resource.New(ctx,
@@ -125,6 +126,7 @@ func initTracer(serviceName string, version string, conf *configstruct.Tracer) f
 			semconv.ServiceNameKey.String(serviceName),
 			semconv.ServiceVersionKey.String(version),
 		),
+		resource.WithHost(),
 		resource.WithFromEnv(),
 		resource.WithProcess(),
 	)
