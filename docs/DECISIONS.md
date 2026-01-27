@@ -1,5 +1,17 @@
 # 决策记录
 
+## ADR-016: 迁移可观测性基础设施到阿里云
+### 日期
+2026年1月26日
+### 状态
+已采纳
+### 背景
+当前服务器每个月使用成本激增到近850元，需要在降低成本的同时维持可观测性。
+
+关于本决策，请参见：[ADR-018: 迁移可观测性基础设施到阿里云](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-018-迁移可观测性基础设施到阿里云) 。
+
+---
+
 ## ADR-015: 引入服务重试
 ### 日期
 2026年1月20日
@@ -9,6 +21,8 @@
 6.0后项目基本稳定，唯一没有实现的是服务重试，当前为事件驱动架构，生产端重试由kafka相关golang组件完成，订阅端需要做重试。
 
 关于本决策，请参见：[ADR-017: 引入服务重试](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-017-引入服务重试) 。
+
+---
 
 ## ADR-014: 容器安全加固
 ### 日期
@@ -20,6 +34,8 @@
 
 关于本决策，请参见：[ADR-016: 容器安全加固](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-016-容器安全加固) 。
 
+---
+
 ## ADR-013: 分布式锁由ETCD改为Redis
 ### 日期
 2026年1月16日
@@ -29,6 +45,8 @@
 ETCD在高并发时给基础设施服务器1的CPU带来巨大压力，当前k8s-node4空间充足，完全可以使用。
 
 关于本决策，请参见：[ADR-015: 分布式锁由ETCD改为Redis](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-015-分布式锁由ETCD改为Redis) 。
+
+---
 
 ## ADR-012: 部署Prometheus
 ### 日期
@@ -40,6 +58,8 @@ ETCD在高并发时给基础设施服务器1的CPU带来巨大压力，当前k8s
 
 关于本决策，请参见：[ADR-014: 部署Prometheus](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-014-部署Prometheus) 。
 
+---
+
 ## ADR-011: 新增全局日志级别
 ### 日期
 2026年1月2日
@@ -50,6 +70,8 @@ ETCD在高并发时给基础设施服务器1的CPU带来巨大压力，当前k8s
 
 关于本决策，请参见：[ADR-013: 新增全局日志级别](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-013-新增全局日志级别) 。
 
+---
+
 ## ADR-010: 同步生产者改为异步生产者
 ### 日期
 2025年12月30日
@@ -59,6 +81,8 @@ ETCD在高并发时给基础设施服务器1的CPU带来巨大压力，当前k8s
 通过jaeger和发布日志分析得知处理的延迟集中在发送到kafka（107--200ms），加上WaitforAll导致整体延迟增加，最明显的是扣减库过程消费速度不到200个/s，业务逻辑处理很快，所以要改成异步生产者。
 
 关于本决策，请参见：[ADR-012: 同步生产者改为异步生产者](https://github.com/zhanshen02154/go-micro-service/blob/master/docs/DECISIONS.md#adr-012-同步生产者改为异步生产者) 。
+
+---
 
 ## ADR-009: 日志收集方案
 ### 日期
