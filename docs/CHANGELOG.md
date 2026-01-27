@@ -1,9 +1,25 @@
 
+<a name="v6.2.0"></a>
+## [v6.2.0](https://github.com/zhanshen02154/product/compare/v6.1.0...v6.2.0) (2026-01-27)
+
+### Bug Fixes
+
+* 调整GRPC请求的包装器顺序
+
+### Code Refactoring
+
+* 链路追踪迁移到阿里云
+
+
 <a name="v6.1.0"></a>
 ## [v6.1.0](https://github.com/zhanshen02154/product/compare/v6.0.0...v6.1.0) (2026-01-21)
 
 ### Bug Fixes
 
+* 死信队列用全新的切片
+* 重试包含幂等性判断
+* 服务重试带入上下文
+* 补充重试机制配置JSON标签
 * 死信队列不再投递直接记录错误
 * 修复订阅事件死信队列影响日志输出问题
 * **broker:** 恢复生产端幂等性限制
@@ -26,9 +42,12 @@
 
 - 引入订阅端重试
 - 改写bootstrap下的service
+
 - 删除死信队列包装器，改用ErrorHandler
+
 - 投递到死信队列逻辑不判断错误类型
 - 事件侦听器的发布器改为sync.Map
+
 - 将分布式锁组件从ETCD更改为Redis
 - 重构分布式锁接口
 
