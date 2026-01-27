@@ -45,15 +45,14 @@
 ```
 
 ## 技术选型
-### 开发语言
-- Golang 1.20.10
-- LUA
-### 框架: Go micro 4.11.0
-### 数据库: MySQL 5.7.26
-### 服务注册/发现: Consul 1.7.3
-### 分布式锁: Redis 6.20.2 
-### 消息队列: kafka 3.0.1
-### 链路追踪: jaeger 1.74.0（ingester、collector分别部署，Query在本地开发环境）
+- 开发语言：Golang 1.20.10、LUA
+- 框架: Go micro 4.11.0
+- 数据库: MySQL 5.7.26
+- 服务注册/发现: Consul 1.7.3
+- 分布式锁: Redis 6.20.2 
+- 消息队列: kafka 3.0.1
+- 链路追踪: Opentelemetry
+
 
 ## 服务器配置
 | 厂商  | 配置               | 数量 | 操作系统       | Docker版本 | Kubernetes版本 |

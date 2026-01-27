@@ -123,6 +123,7 @@ type Tracer struct {
 	Client     struct {
 		Insecure bool   `json:"insecure"`
 		Endpoint string `json:"endpoint" yaml:"endpoint"`
+		Path     string `json:"path" yaml:"path"`
 		Timeout  int    `json:"timeout" yaml:"timeout"`
 		Retry    struct {
 			Enabled         bool `json:"enabled" yaml:"enabled"`

@@ -19,9 +19,9 @@ func handlerWrapper(conf *config.SysConfig, l *zap.Logger) micro.Option {
 	)
 
 	return micro.WrapHandler(
-		logWrapper.RequestLogWrapper,
-		prometheus.NewHandlerWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
-		opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 		ratelimit.NewHandlerWrapper(conf.Service.Qps),
+		opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
+		prometheus.NewHandlerWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
+		logWrapper.RequestLogWrapper,
 	)
 }
