@@ -19,8 +19,7 @@ const (
 )
 
 type deadletterOptions struct {
-	asyncBroker broker.Broker
-	opts        struct {
+	opts struct {
 		traceProvider trace.TracerProvider
 		service       string
 		version       string
@@ -41,14 +40,13 @@ func NewDeadletterWrapper(opts ...DeadLetterOption) PublishCallbackWrapper {
 			if err == nil {
 				return
 			}
-			topic := msg.Header["Micro-Topic"]
-			if strings.HasSuffix(topic, deadletterSuffix) {
+			if strings.HasSuffix(msg.Header["Micro-Topic"], deadletterSuffix) {
 				return
 			}
 			spanOpts := []trace.SpanStartOption{
 				trace.WithSpanKind(trace.SpanKindProducer),
 			}
-			topic = topic + deadletterSuffix
+			topic := msg.Header["Micro-Topic"] + deadletterSuffix
 			newCtx, span := opentelemetry.StartSpanFromContext(ctx, dlqOptions.opts.traceProvider, "Pub to dead letter topic "+topic, spanOpts...)
 			defer span.End()
 			header := make(map[string]string)
@@ -69,7 +67,7 @@ func NewDeadletterWrapper(opts ...DeadLetterOption) PublishCallbackWrapper {
 				Header: header,
 				Body:   msg.Body,
 			}
-			if pErr := dlqOptions.asyncBroker.Publish(topic, &dlMsg, broker.PublishContext(newCtx)); pErr != nil {
+			if pErr := broker.Publish(topic, &dlMsg, broker.PublishContext(newCtx)); pErr != nil {
 				logger.Error("Failed to publish dead letter topic " + topic + " error: " + pErr.Error())
 				span.SetStatus(codes.Error, pErr.Error())
 				span.RecordError(pErr)
@@ -78,12 +76,6 @@ func NewDeadletterWrapper(opts ...DeadLetterOption) PublishCallbackWrapper {
 			}
 			return
 		}
-	}
-}
-
-func WithBroker(b broker.Broker) DeadLetterOption {
-	return func(d *deadletterOptions) {
-		d.asyncBroker = b
 	}
 }
 

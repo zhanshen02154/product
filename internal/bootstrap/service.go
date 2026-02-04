@@ -39,7 +39,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	successChan := make(chan *sarama.ProducerMessage, conf.Broker.Kafka.ChannelBufferSize)
 	errorChan := make(chan *sarama.ProducerError, conf.Broker.Kafka.ChannelBufferSize)
 	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka, kafka.AsyncProducer(errorChan, successChan))
-	broker.Init(broker2.ErrorHandler(wrapper.ErrorHandler(broker)))
+	broker2.DefaultBroker = broker
 	service := micro.NewService(
 		newServer(conf),
 		micro.Client(client),
@@ -92,7 +92,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		event.WithServiceName(conf.Service.Name),
 		event.WithServiceVersion(conf.Service.Version),
 		event.WrapPublishCallback(
-			event.NewDeadletterWrapper(event.WithBroker(broker), event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
+			event.NewDeadletterWrapper(event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
 			event.NewPublicCallbackLogWrapper(
 				event.WithLogger(zapLogger),
 				event.WithTimeThreshold(conf.Broker.PublishTimeThreshold),

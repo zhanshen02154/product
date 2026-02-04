@@ -20,14 +20,12 @@ const deadLetterTopicKey = "DLQ"
 
 // deadLetterHandler 死信队列
 type deadLetterHandler struct {
-	b             broker.Broker
 	traceProvicer trace.TracerProvider
 }
 
 // ErrorHandler 错误处理
-func ErrorHandler(b broker.Broker) broker.Handler {
+func ErrorHandler() broker.Handler {
 	options := &deadLetterHandler{
-		b:             b,
 		traceProvicer: otel.GetTracerProvider(),
 	}
 
@@ -76,7 +74,7 @@ func (w *deadLetterHandler) publishDeadLetter(ctx context.Context, topic string,
 	}
 	newCtx, span := opentelemetry.StartSpanFromContext(ctx, w.traceProvicer, "Pub to deadletter topic "+topic, spanOpts...)
 	defer span.End()
-	pErr := w.b.Publish(topic, &dlMsg, broker.PublishContext(newCtx))
+	pErr := broker.Publish(topic, &dlMsg, broker.PublishContext(newCtx))
 	if pErr != nil {
 		span.SetStatus(codes.Error, pErr.Error())
 		span.RecordError(pErr)
