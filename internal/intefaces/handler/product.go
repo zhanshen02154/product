@@ -9,13 +9,10 @@ import (
 	"github.com/zhanshen02154/product/proto/product"
 	"go-micro.dev/v4/errors"
 	"net/http"
-	"sync"
 )
 
 type ProductHandler struct {
 	ProductApplicationService service.IProductApplicationService
-	objPool                   sync.Pool
-	orderInvetoryPool         sync.Pool
 }
 
 // AddProduct
@@ -27,11 +24,7 @@ type ProductHandler struct {
 //	@param resp
 //	@return error
 func (h *ProductHandler) AddProduct(ctx context.Context, req *product.ProductInfo, resp *product.ResponseProduct) error {
-	productAdd := h.objPool.Get().(*dto.ProductDto)
-	defer func() {
-		productAdd.Reset()
-		h.objPool.Put(productAdd)
-	}()
+	productAdd := &dto.ProductDto{}
 	if err := swap.SwapTo(req, productAdd); err != nil {
 		return err
 	}
@@ -43,16 +36,12 @@ func (h *ProductHandler) AddProduct(ctx context.Context, req *product.ProductInf
 	return nil
 }
 
-// DeductInvetory 扣减订单库存事务补偿操作
+// DeductInvetory 扣减订单库存
 func (h *ProductHandler) DeductInvetory(ctx context.Context, in *product.OrderDetailReq, out *product.OrderProductResp) error {
 	if in.OrderId == 0 || len(in.Products) == 0 {
 		return errors.New(fmt.Sprintf("%d", in.OrderId), "data not found", http.StatusPreconditionFailed)
 	}
-	orderProductInvetoryDto := h.orderInvetoryPool.Get().(*dto.OrderProductInvetoryDto)
-	defer func() {
-		orderProductInvetoryDto.Reset()
-		h.orderInvetoryPool.Put(orderProductInvetoryDto)
-	}()
+	orderProductInvetoryDto := &dto.OrderProductInvetoryDto{}
 	orderProductInvetoryDto.ConvertFromOrderDetailReq(in)
 	err := h.ProductApplicationService.DeductInventory(ctx, orderProductInvetoryDto)
 	if err != nil {
@@ -67,11 +56,7 @@ func (h *ProductHandler) DeductInvetoryRevert(ctx context.Context, in *product.O
 	if in.OrderId == 0 || len(in.Products) == 0 {
 		return errors.New(fmt.Sprintf("%d", in.OrderId), "data not found", http.StatusPreconditionFailed)
 	}
-	orderProductInvetoryDto := h.orderInvetoryPool.Get().(*dto.OrderProductInvetoryDto)
-	defer func() {
-		orderProductInvetoryDto.Reset()
-		h.orderInvetoryPool.Put(orderProductInvetoryDto)
-	}()
+	orderProductInvetoryDto := &dto.OrderProductInvetoryDto{}
 	orderProductInvetoryDto.ConvertFromOrderDetailReq(in)
 	err := h.ProductApplicationService.DeductInvetoryRevert(ctx, orderProductInvetoryDto)
 	if err != nil {
@@ -85,18 +70,5 @@ func (h *ProductHandler) DeductInvetoryRevert(ctx context.Context, in *product.O
 func NewProductHandler(appService service.IProductApplicationService) product.ProductHandler {
 	return &ProductHandler{
 		ProductApplicationService: appService,
-		objPool: sync.Pool{
-			New: func() interface{} {
-				return &dto.ProductDto{}
-			},
-		},
-		orderInvetoryPool: sync.Pool{
-			New: func() interface{} {
-				return &dto.OrderProductInvetoryDto{
-					ProductInvetory:     []*dto.OrderProductInvetoryItem{},
-					ProductSizeInvetory: []*dto.OrderProductSizeInvetoryItem{},
-				}
-			},
-		},
 	}
 }
