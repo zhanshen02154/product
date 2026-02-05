@@ -35,26 +35,11 @@ type AddProductResponse struct {
 	Id int64 `json:"id"`
 }
 
-func (pdto *ProductDto) Reset() {
-	pdto.Id = 0
-	pdto.ProductName = ""
-	pdto.ProductSku = ""
-	pdto.ProductPrice = 0
-	pdto.ProductDescription = "0"
-	pdto.ProductNum = 0
-	pdto.ProductImage = make([]*ProductImageDto, 0)
-}
-
-// Reset 重置DTO
-func (productInvetoryDto *OrderProductInvetoryDto) Reset() {
-	productInvetoryDto.OrderId = 0
-	productInvetoryDto.ProductInvetory = make([]*OrderProductInvetoryItem, 0)
-	productInvetoryDto.ProductSizeInvetory = make([]*OrderProductSizeInvetoryItem, 0)
-}
-
 // ConvertTo 将GRPC请求转换为DTO
-func (productInvetoryDto *OrderProductInvetoryDto) ConvertTo(req *order.OnPaymentSuccess) {
-	productInvetoryDto.OrderId = req.OrderId
+func (d *OrderProductInvetoryDto) ConvertTo(req *order.OnPaymentSuccess) {
+	d.OrderId = req.OrderId
+	d.ProductInvetory = make([]*OrderProductInvetoryItem, 0, 5)
+	d.ProductSizeInvetory = make([]*OrderProductSizeInvetoryItem, 0, 15)
 	productCountMap := make(map[int64]int64)
 	for _, item := range req.Products {
 		if _, ok := productCountMap[item.ProductId]; ok {
@@ -62,21 +47,23 @@ func (productInvetoryDto *OrderProductInvetoryDto) ConvertTo(req *order.OnPaymen
 		} else {
 			productCountMap[item.ProductId] = item.ProductNum
 		}
-		productInvetoryDto.ProductSizeInvetory = append(productInvetoryDto.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
+		d.ProductSizeInvetory = append(d.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
 			Id:    item.ProductSizeId,
 			Count: item.ProductNum,
 		})
 	}
 	for key, val := range productCountMap {
-		productInvetoryDto.ProductInvetory = append(productInvetoryDto.ProductInvetory, &OrderProductInvetoryItem{
+		d.ProductInvetory = append(d.ProductInvetory, &OrderProductInvetoryItem{
 			Id:    key,
 			Count: val,
 		})
 	}
 }
 
-func (o *OrderProductInvetoryDto) ConvertFromOrderDetailReq(req *product.OrderDetailReq) {
-	o.OrderId = req.OrderId
+func (d *OrderProductInvetoryDto) ConvertFromOrderDetailReq(req *product.OrderDetailReq) {
+	d.OrderId = req.OrderId
+	d.ProductInvetory = make([]*OrderProductInvetoryItem, 0, 5)
+	d.ProductSizeInvetory = make([]*OrderProductSizeInvetoryItem, 0, 15)
 	productCountMap := make(map[int64]int64)
 	for _, item := range req.Products {
 		if _, ok := productCountMap[item.ProductId]; ok {
@@ -84,13 +71,13 @@ func (o *OrderProductInvetoryDto) ConvertFromOrderDetailReq(req *product.OrderDe
 		} else {
 			productCountMap[item.ProductId] = item.ProductNum
 		}
-		o.ProductSizeInvetory = append(o.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
+		d.ProductSizeInvetory = append(d.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
 			Id:    item.ProductSizeId,
 			Count: item.ProductNum,
 		})
 	}
 	for key, val := range productCountMap {
-		o.ProductInvetory = append(o.ProductInvetory, &OrderProductInvetoryItem{
+		d.ProductInvetory = append(d.ProductInvetory, &OrderProductInvetoryItem{
 			Id:    key,
 			Count: val,
 		})

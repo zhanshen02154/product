@@ -1,6 +1,7 @@
 package infrastructure
 
 import (
+	"github.com/zhanshen02154/product/internal/infrastructure/event/wrapper"
 	"time"
 
 	"github.com/Shopify/sarama"
@@ -48,6 +49,7 @@ func NewKafkaBroker(conf *config.Kafka, opts ...broker.Option) broker.Broker {
 		broker.Addrs(conf.Hosts...),
 		kafka.BrokerConfig(loadKafkaConfig(conf)),
 		broker.Logger(logger.DefaultLogger),
+		broker.ErrorHandler(wrapper.ErrorHandler()),
 	}
 	options = append(options, opts...)
 	return kafka.NewBroker(options...)

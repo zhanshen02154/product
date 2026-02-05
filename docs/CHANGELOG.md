@@ -1,4 +1,18 @@
 
+<a name="v6.2.1"></a>
+## [v6.2.1](https://github.com/zhanshen02154/product/compare/v6.2.0...v6.2.1) (2026-02-04)
+
+### Performance Improvements
+
+* 删除低性能的对象池
+* **broker:** 用默认broker代替broker属性
+
+### BREAKING CHANGE
+
+
+- 移除基础设施层的所有broker属性
+
+
 <a name="v6.2.0"></a>
 ## [v6.2.0](https://github.com/zhanshen02154/product/compare/v6.1.0...v6.2.0) (2026-01-27)
 
