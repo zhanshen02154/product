@@ -19,23 +19,30 @@ type gormLogger struct {
 }
 
 func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
-	l.LogLevel = level
-	return l
+	newlogger := *l
+	newlogger.LogLevel = level
+	return &newlogger
 }
 
 // Info Info日志
 func (l *gormLogger) Info(ctx context.Context, str string, args ...interface{}) {
-	l.logger.Sugar().Infof(str, args...)
+	if l.LogLevel >= logger.Info {
+		l.logger.Sugar().Infof(str, args...)
+	}
 }
 
 // Warn Warn日志
 func (l *gormLogger) Warn(ctx context.Context, str string, args ...interface{}) {
-	l.logger.Sugar().Warnf(str, args...)
+	if l.LogLevel >= logger.Warn {
+		l.logger.Sugar().Warnf(str, args...)
+	}
 }
 
 // Error日志
 func (l *gormLogger) Error(ctx context.Context, str string, args ...interface{}) {
-	l.logger.Sugar().Errorf(str, args...)
+	if l.LogLevel >= logger.Error {
+		l.logger.Sugar().Errorf(str, args...)
+	}
 }
 
 // Trace Trace日志
@@ -47,27 +54,17 @@ func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql 
 	// 获取运行时间
 	elapsed := time.Since(begin)
 
-	// Gorm 错误
+	// Gorm 日志
 	switch {
-	case err != nil && l.LogLevel >= logger.Error:
+	case err != nil && l.LogLevel >= logger.Error && (!errors.Is(err, gorm.ErrRecordNotFound) || !l.IgnoreRecordNotFoundError):
 		sql, rows := fc()
-		if errors.Is(err, gorm.ErrRecordNotFound) && !l.IgnoreRecordNotFoundError {
-			l.logger.Warn("database query data not found: "+err.Error(),
-				zap.String("type", "sql"),
-				zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
-				zap.String("sql", sql),
-				zap.Int64("time", elapsed.Milliseconds()),
-				zap.Int64("rows", rows),
-			)
-		} else {
-			l.logger.Error("database query error: "+err.Error(),
-				zap.String("type", "sql"),
-				zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
-				zap.String("sql", sql),
-				zap.Int64("time", elapsed.Milliseconds()),
-				zap.Int64("rows", rows),
-			)
-		}
+		l.logger.Error("database query error: "+err.Error(),
+			zap.String("type", "sql"),
+			zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
+			zap.String("sql", sql),
+			zap.Int64("time", elapsed.Milliseconds()),
+			zap.Int64("rows", rows),
+		)
 	case elapsed > l.SlowThreshold && l.SlowThreshold != 0 && l.LogLevel >= logger.Warn:
 		sql, rows := fc()
 		l.logger.Warn(fmt.Sprintf("SLOW SQL >= %d ms", l.SlowThreshold.Milliseconds()),

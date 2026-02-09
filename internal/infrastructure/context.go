@@ -28,7 +28,7 @@ func NewServiceContext(conf *config.SysConfig, zapLogger *zap.Logger, logLevel z
 	db, err := InitDB(conf.Database, gorm2.NewGromLogger(zapLogger, gormlogger.Config{
 		SlowThreshold:             time.Duration(conf.Database.SlowThreshold) * time.Millisecond,
 		Colorful:                  false,
-		IgnoreRecordNotFoundError: false,
+		IgnoreRecordNotFoundError: true,
 		ParameterizedQueries:      false,
 		LogLevel:                  gorm2.GetLogLevel(logLevel),
 	}))
