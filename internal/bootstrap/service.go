@@ -40,10 +40,15 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	errorChan := make(chan *sarama.ProducerError, conf.Broker.Kafka.ChannelBufferSize)
 	broker := infrastructure.NewKafkaBroker(conf.Broker.Kafka, kafka.AsyncProducer(errorChan, successChan))
 	broker2.DefaultBroker = broker
+	logWrapper := infrastructure.NewLogWrapper(
+		infrastructure.WithZapLogger(zapLogger),
+		infrastructure.WithRequestSlowThreshold(conf.Service.RequestSlowThreshold),
+		infrastructure.WithSubscribeSlowThreshold(conf.Broker.SubscribeSlowThreshold),
+	)
 	service := micro.NewService(
 		newServer(conf),
 		micro.Client(client),
-		handlerWrapper(conf, zapLogger),
+		handlerWrapper(conf.Service, logWrapper),
 		micro.AfterStart(func() error {
 			if err := probeServer.Start(); err != nil {
 				logger.Error("failed to start probe server: " + err.Error())
@@ -77,7 +82,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 			monitor.NewClientWrapper(monitor.WithName(conf.Service.Name), monitor.WithVersion(conf.Service.Version)),
 		),
-		wrapSubscriber(zapLogger, conf),
+		wrapSubscriber(conf.Service, logWrapper),
 		micro.AfterStop(func() error {
 			if eb != nil {
 				eb.Close()
