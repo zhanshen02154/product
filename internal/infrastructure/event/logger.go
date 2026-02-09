@@ -59,7 +59,7 @@ func NewPublicCallbackLogWrapper(opts ...LogOption) PublishCallbackWrapper {
 			switch {
 			case err != nil:
 				logOpts.logger.Error("Publish event failed: "+err.Error(), logFields...)
-			case err == nil && duration > logOpts.publishTimeThreshold && duration > 0:
+			case duration > logOpts.publishTimeThreshold && duration > 0:
 				logFields = append(logFields, zap.String("stacktrace", ""))
 				logOpts.logger.Warn("Publish event slow", logFields...)
 			default:

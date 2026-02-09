@@ -8,20 +8,13 @@ import (
 	"github.com/zhanshen02154/product/internal/infrastructure"
 	"go-micro.dev/v4"
 	"go.opentelemetry.io/otel"
-	"go.uber.org/zap"
 )
 
-func handlerWrapper(conf *config.SysConfig, l *zap.Logger) micro.Option {
-	logWrapper := infrastructure.NewLogWrapper(
-		infrastructure.WithZapLogger(l),
-		infrastructure.WithRequestSlowThreshold(conf.Service.RequestSlowThreshold),
-		infrastructure.WithSubscribeSlowThreshold(conf.Broker.SubscribeSlowThreshold),
-	)
-
+func handlerWrapper(conf *config.ServiceInfo, logWrapper *infrastructure.LogWrapper) micro.Option {
 	return micro.WrapHandler(
-		ratelimit.NewHandlerWrapper(conf.Service.Qps),
+		ratelimit.NewHandlerWrapper(conf.Qps),
 		opentelemetry.NewHandlerWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
-		prometheus.NewHandlerWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
+		prometheus.NewHandlerWrapper(prometheus.ServiceName(conf.Name), prometheus.ServiceVersion(conf.Version)),
 		logWrapper.RequestLogWrapper,
 	)
 }
