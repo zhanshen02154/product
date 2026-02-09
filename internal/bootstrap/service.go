@@ -82,7 +82,7 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 			opentelemetry.NewClientWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
 			monitor.NewClientWrapper(monitor.WithName(conf.Service.Name), monitor.WithVersion(conf.Service.Version)),
 		),
-		wrapSubscriber(conf, logWrapper),
+		wrapSubscriber(conf.Service, logWrapper),
 		micro.AfterStop(func() error {
 			if eb != nil {
 				eb.Close()

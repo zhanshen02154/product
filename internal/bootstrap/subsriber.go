@@ -9,10 +9,10 @@ import (
 	"go.opentelemetry.io/otel"
 )
 
-func wrapSubscriber(conf *config.SysConfig, logWrapper *infrastructure.LogWrapper) micro.Option {
+func wrapSubscriber(conf *config.ServiceInfo, logWrapper *infrastructure.LogWrapper) micro.Option {
 	return micro.WrapSubscriber(
 		opentelemetry.NewSubscriberWrapper(opentelemetry.WithTraceProvider(otel.GetTracerProvider())),
-		prometheus.NewSubscriberWrapper(prometheus.ServiceName(conf.Service.Name), prometheus.ServiceVersion(conf.Service.Version)),
+		prometheus.NewSubscriberWrapper(prometheus.ServiceName(conf.Name), prometheus.ServiceVersion(conf.Version)),
 		logWrapper.SubscribeWrapper(),
 	)
 }
