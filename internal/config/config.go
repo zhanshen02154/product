@@ -65,6 +65,7 @@ type MySqlConfig struct {
 	MaxOpenConns    int    `json:"max_open_conns" yaml:"max_open_conns"`
 	MaxIdleConns    int    `json:"max_idle_conns" yaml:"max_idle_conns"`
 	ConnMaxLifeTime uint   `json:"conn_max_life_time" yaml:"conn_max_life_time"`
+	SlowThreshold   int64  `json:"slow_threshold" yaml:"slow_threshold"`
 }
 
 // Transaction 事务管理
@@ -141,6 +142,13 @@ func (c *SysConfig) CheckConfig() error {
 	}
 	if c.Consul.RegistryAddrs == nil || len(c.Consul.RegistryAddrs) == 0 {
 		return errors.New("consul registry addresses cannot be empty")
+	}
+	if c.Database == nil {
+		return errors.New("database config is nil")
+	} else {
+		if c.Database.SlowThreshold == 0 {
+			c.Database.SlowThreshold = 300
+		}
 	}
 	if c.Broker.SubscribeSlowThreshold <= 0 || c.Broker.Kafka.Consumer.MaxProcessingTime <= 0 {
 		return errors.New("invalid subscribe_slow_threshold or max_processing_time")
