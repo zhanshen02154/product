@@ -2,15 +2,10 @@ package infrastructure
 
 import (
 	"context"
-	"errors"
 	metadatahelper "github.com/zhanshen02154/product/pkg/metadata"
 	"go-micro.dev/v4/server"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-	"strings"
-	"sync"
 	"time"
 )
 
@@ -19,7 +14,6 @@ type LogWrapper struct {
 	level             zapcore.Level
 	requestSlowTime   int64
 	subscribeSlowTime time.Duration
-	striBuilderPool   sync.Pool
 }
 
 type Option func(p *LogWrapper)
@@ -86,108 +80,13 @@ func (w *LogWrapper) SubscribeWrapper() server.SubscriberWrapper {
 	}
 }
 
-// GORM Logger
-type gormLogger struct {
-	logger        *zap.Logger
-	slowThreshold int64
-	level         logger.LogLevel
-}
-
-func (l *gormLogger) LogMode(level logger.LogLevel) logger.Interface {
-	l.level = level
-	return l
-}
-
-// Info Info日志
-func (l *gormLogger) Info(ctx context.Context, str string, args ...interface{}) {
-	if l.level < logger.Info {
-		return
-	}
-	l.logger.Sugar().Infof(str, args...)
-}
-
-// Warn Warn日志
-func (l *gormLogger) Warn(ctx context.Context, str string, args ...interface{}) {
-	if l.level < logger.Warn {
-		return
-	}
-	l.logger.Sugar().Warnf(str, args...)
-}
-
-// Error日志
-func (l *gormLogger) Error(ctx context.Context, str string, args ...interface{}) {
-	if l.level < logger.Error {
-		return
-	}
-	l.logger.Sugar().Errorf(str, args...)
-}
-
-// Trace Trace日志
-func (l *gormLogger) Trace(ctx context.Context, begin time.Time, fc func() (sql string, rowsAffected int64), err error) {
-	// 获取运行时间
-	elapsed := time.Since(begin).Milliseconds()
-
-	// Gorm 错误
-	switch {
-	case err != nil && l.level >= logger.Error && !errors.Is(err, gorm.ErrRecordNotFound):
-		sql, rows := fc()
-		l.logger.Error("database query error: "+err.Error(),
-			zap.String("type", "sql"),
-			zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
-			zap.String("sql", sql),
-			zap.Int64("time", elapsed),
-			zap.Int64("rows", rows),
-		)
-	case l.slowThreshold != 0 && elapsed > l.slowThreshold && l.level >= logger.Warn:
-		sql, rows := fc()
-		l.logger.Warn("database query slow",
-			zap.String("type", "sql"),
-			zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
-			zap.String("sql", sql),
-			zap.Int64("time", elapsed),
-			zap.Int64("rows", rows),
-		)
-	case l.level >= logger.Info:
-		sql, rows := fc()
-		l.logger.Info("database query info",
-			zap.String("type", "sql"),
-			zap.String("trace_id", metadatahelper.GetTraceIdFromSpan(ctx)),
-			zap.String("sql", sql),
-			zap.Int64("time", elapsed),
-			zap.Int64("rows", rows),
-		)
-	}
-}
-
-// NewGromLogger 创建GORM Logger
-func NewGromLogger(zapLogger *zap.Logger, level zapcore.Level) logger.Interface {
-	gormLevel := logger.Info
-	switch level {
-	case zap.WarnLevel:
-		gormLevel = logger.Warn
-		break
-	case zap.ErrorLevel:
-		gormLevel = logger.Error
-		break
-	}
-	return &gormLogger{
-		logger:        zapLogger,
-		slowThreshold: 200,
-		level:         gormLevel,
-	}
-}
-
 // NewLogWrapper 创建日志包装器
 func NewLogWrapper(opts ...Option) *LogWrapper {
-	w := LogWrapper{
-		striBuilderPool: sync.Pool{New: func() interface{} {
-			return &strings.Builder{}
-		}},
-	}
+	w := &LogWrapper{}
 	for _, opt := range opts {
-		opt(&w)
+		opt(w)
 	}
-	return &w
+	return w
 }
 
 // WithRequestSlowThreshold 慢请求时间

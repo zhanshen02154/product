@@ -11,6 +11,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
+	"time"
 )
 
 type ServiceContext struct {
@@ -23,7 +25,13 @@ type ServiceContext struct {
 }
 
 func NewServiceContext(conf *config.SysConfig, zapLogger *zap.Logger, logLevel zapcore.Level) (*ServiceContext, error) {
-	db, err := InitDB(conf.Database, NewGromLogger(zapLogger, logLevel))
+	db, err := InitDB(conf.Database, gorm2.NewGromLogger(zapLogger, gormlogger.Config{
+		SlowThreshold:             time.Duration(conf.Database.SlowThreshold) * time.Millisecond,
+		Colorful:                  false,
+		IgnoreRecordNotFoundError: false,
+		ParameterizedQueries:      false,
+		LogLevel:                  gorm2.GetLogLevel(logLevel),
+	}))
 	if err != nil {
 		return nil, err
 	}
