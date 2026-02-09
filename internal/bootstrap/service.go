@@ -92,12 +92,12 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 		event.WithServiceName(conf.Service.Name),
 		event.WithServiceVersion(conf.Service.Version),
 		event.WrapPublishCallback(
+			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
 			event.NewDeadletterWrapper(event.WithTracer(otel.GetTracerProvider()), event.WithServiceInfo(conf.Service)),
 			event.NewPublicCallbackLogWrapper(
 				event.WithLogger(zapLogger),
 				event.WithTimeThreshold(conf.Broker.PublishTimeThreshold),
 			),
-			event.NewTracerWrapper(event.WithTracerProvider(otel.GetTracerProvider())),
 		),
 	)
 	event.RegisterPublisher(conf.Broker, eb, service.Client())
