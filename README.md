@@ -83,5 +83,5 @@
 ## 注意事项
 - proto文件更新后必须在Apisix的protos接口更新内容。
 - 安装依赖前必须指定版本并考虑与当前Golang版本的兼容性，防止在安装过程中升级golang或变更原有依赖。
-- 由于配置文件放在服务注册中心Consul的KV获取，编译Docker镜像必须指定3个环境变量：CONSUL_HOST（consul的IP地址）、CONSUL_PORT（Consul端口）、CONSUL_PREFIX（前缀），没有指定则一律按本地开发环境处理。
+- 由于配置文件放在服务注册中心Consul的KV获取，本地开发环境编译时必须指定3个环境变量：CONSUL_HOST（consul的IP地址）、CONSUL_PORT（Consul端口）、CONSUL_PREFIX（前缀），没有指定则一律按本机地址处理。
 - event更新后也要同步刷新到pb.go文件让其生效。

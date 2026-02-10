@@ -1,6 +1,32 @@
 
+<a name="v6.3.0"></a>
+## [v6.3.0](https://github.com/zhanshen02154/product/compare/v6.2.1...v6.3.0) (2026-02-09)
+
+### Bug Fixes
+
+* 忽略找不到记录的日志
+* 调整发布事件装饰器顺序
+
+### Features
+
+* 新增慢查询配置
+
+### Performance Improvements
+
+* 减少订阅事件包装器传入的配置
+* logWrapper只用一个实例
+* 监控服务器的error判断逻辑
+* **GORM日志:** 优化GORM日志
+
+### BREAKING CHANGE
+
+
+- gormLogger移到基础设施层gorm包
+- 慢查询时间由固定配置改为配置传入
+
+
 <a name="v6.2.1"></a>
-## [v6.2.1](https://github.com/zhanshen02154/product/compare/v6.2.0...v6.2.1) (2026-02-04)
+## [v6.2.1](https://github.com/zhanshen02154/product/compare/v6.2.0...v6.2.1) (2026-02-05)
 
 ### Performance Improvements
 
