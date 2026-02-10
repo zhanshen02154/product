@@ -36,7 +36,7 @@ type microListener struct {
 }
 
 // Publish 发布
-func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key string, opts ...client.PublishOption) error {
+func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key string) error {
 	if pub, ok := l.eventPublisher.Load(topic); ok {
 		if e, assertOk := pub.(micro.Event); assertOk {
 			// 将key放到metadata
@@ -45,7 +45,7 @@ func (l *microListener) Publish(ctx context.Context, topic string, msg interface
 					ctx = metadata.Set(ctx, partitionKey, key)
 				}
 			}
-			return e.Publish(ctx, msg, opts...)
+			return e.Publish(ctx, msg, client.PublishContext(ctx))
 		} else {
 			return errors.New("invalid event")
 		}
