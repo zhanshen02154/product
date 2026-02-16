@@ -1,4 +1,12 @@
 
+<a name="v6.3.2"></a>
+## [v6.3.2](https://github.com/zhanshen02154/product/compare/v6.3.1...v6.3.2) (2026-02-16)
+
+### Performance Improvements
+
+* GRPC请求时间阈值改为time.Duration
+
+
 <a name="v6.3.1"></a>
 ## [v6.3.1](https://github.com/zhanshen02154/product/compare/v6.3.0...v6.3.1) (2026-02-10)
 
@@ -8,7 +16,7 @@
 
 
 <a name="v6.3.0"></a>
-## [v6.3.0](https://github.com/zhanshen02154/product/compare/v6.2.1...v6.3.0) (2026-02-09)
+## [v6.3.0](https://github.com/zhanshen02154/product/compare/v6.2.1...v6.3.0) (2026-02-10)
 
 ### Bug Fixes
 
