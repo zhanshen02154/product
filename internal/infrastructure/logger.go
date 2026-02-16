@@ -12,7 +12,7 @@ import (
 type LogWrapper struct {
 	logger            *zap.Logger
 	level             zapcore.Level
-	requestSlowTime   int64
+	requestSlowTime   time.Duration
 	subscribeSlowTime time.Duration
 }
 
@@ -23,7 +23,7 @@ func (w *LogWrapper) RequestLogWrapper(fn server.HandlerFunc) server.HandlerFunc
 	return func(ctx context.Context, req server.Request, rsp interface{}) error {
 		startTime := time.Now()
 		err := fn(ctx, req, rsp)
-		duration := time.Since(startTime).Milliseconds()
+		duration := time.Since(startTime)
 		baseFields := make([]zap.Field, 0, 12)
 		baseFields = append(baseFields,
 			zap.String("type", "request"),
@@ -34,12 +34,12 @@ func (w *LogWrapper) RequestLogWrapper(fn server.HandlerFunc) server.HandlerFunc
 			zap.String("user_agent", metadatahelper.GetValueFromMetadata(ctx, "user-agent")),
 			zap.String("accept_encoding", metadatahelper.GetValueFromMetadata(ctx, "accept-encoding")),
 			zap.String("remote", metadatahelper.GetValueFromMetadata(ctx, "Remote")),
-			zap.Int64("duration", duration),
+			zap.Int64("duration", duration.Milliseconds()),
 		)
 		switch {
 		case err != nil:
 			w.logger.Error("Request failed: "+err.Error(), baseFields...)
-		case duration > w.requestSlowTime && duration > 0:
+		case duration > w.requestSlowTime:
 			w.logger.Warn("Slow request", baseFields...)
 		default:
 			w.logger.Info("Request processed", baseFields...)
@@ -92,7 +92,7 @@ func NewLogWrapper(opts ...Option) *LogWrapper {
 // WithRequestSlowThreshold 慢请求时间
 func WithRequestSlowThreshold(timeout int64) Option {
 	return func(p *LogWrapper) {
-		p.requestSlowTime = timeout
+		p.requestSlowTime = time.Duration(timeout) * time.Millisecond
 	}
 }
 
@@ -122,11 +122,6 @@ func FindZapLogLevel(level string) zapcore.Level {
 		break
 	case "error":
 		zapLevel = zap.ErrorLevel
-		break
-	case "fatal":
-		zapLevel = zap.FatalLevel
-	case "panic":
-		zapLevel = zap.DPanicLevel
 		break
 	}
 	return zapLevel
