@@ -23,10 +23,9 @@ const (
 
 // 库存扣减成功
 type OnInventoryDeductSuccess struct {
-	state         protoimpl.MessageState      `protogen:"open.v1"`
-	OrderId       int64                       `protobuf:"varint,1,opt,name=OrderId,proto3" json:"OrderId,omitempty"`
-	Products      []*ProductInventoryItem     `protobuf:"bytes,2,rep,name=Products,proto3" json:"Products,omitempty"`
-	ProductSizes  []*ProductSizeInventoryItem `protobuf:"bytes,3,rep,name=ProductSizes,proto3" json:"ProductSizes,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       int64                  `protobuf:"varint,1,opt,name=OrderId,proto3" json:"OrderId,omitempty"`
+	Sku           []*SkuInfo             `protobuf:"bytes,2,rep,name=Sku,proto3" json:"Sku,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -68,42 +67,36 @@ func (x *OnInventoryDeductSuccess) GetOrderId() int64 {
 	return 0
 }
 
-func (x *OnInventoryDeductSuccess) GetProducts() []*ProductInventoryItem {
+func (x *OnInventoryDeductSuccess) GetSku() []*SkuInfo {
 	if x != nil {
-		return x.Products
+		return x.Sku
 	}
 	return nil
 }
 
-func (x *OnInventoryDeductSuccess) GetProductSizes() []*ProductSizeInventoryItem {
-	if x != nil {
-		return x.ProductSizes
-	}
-	return nil
-}
-
-type ProductInventoryItem struct {
+type SkuInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
-	Count         int64                  `protobuf:"varint,2,opt,name=Count,proto3" json:"Count,omitempty"`
+	Quantity      uint32                 `protobuf:"varint,2,opt,name=Quantity,proto3" json:"Quantity,omitempty"`
+	Stock         uint32                 `protobuf:"varint,3,opt,name=Stock,proto3" json:"Stock,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ProductInventoryItem) Reset() {
-	*x = ProductInventoryItem{}
+func (x *SkuInfo) Reset() {
+	*x = SkuInfo{}
 	mi := &file_proto_product_product_event_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ProductInventoryItem) String() string {
+func (x *SkuInfo) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProductInventoryItem) ProtoMessage() {}
+func (*SkuInfo) ProtoMessage() {}
 
-func (x *ProductInventoryItem) ProtoReflect() protoreflect.Message {
+func (x *SkuInfo) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_product_product_event_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -115,73 +108,28 @@ func (x *ProductInventoryItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ProductInventoryItem.ProtoReflect.Descriptor instead.
-func (*ProductInventoryItem) Descriptor() ([]byte, []int) {
+// Deprecated: Use SkuInfo.ProtoReflect.Descriptor instead.
+func (*SkuInfo) Descriptor() ([]byte, []int) {
 	return file_proto_product_product_event_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ProductInventoryItem) GetId() int64 {
+func (x *SkuInfo) GetId() int64 {
 	if x != nil {
 		return x.Id
 	}
 	return 0
 }
 
-func (x *ProductInventoryItem) GetCount() int64 {
+func (x *SkuInfo) GetQuantity() uint32 {
 	if x != nil {
-		return x.Count
+		return x.Quantity
 	}
 	return 0
 }
 
-type ProductSizeInventoryItem struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
-	Count         int64                  `protobuf:"varint,2,opt,name=Count,proto3" json:"Count,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *ProductSizeInventoryItem) Reset() {
-	*x = ProductSizeInventoryItem{}
-	mi := &file_proto_product_product_event_proto_msgTypes[2]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ProductSizeInventoryItem) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ProductSizeInventoryItem) ProtoMessage() {}
-
-func (x *ProductSizeInventoryItem) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_product_product_event_proto_msgTypes[2]
+func (x *SkuInfo) GetStock() uint32 {
 	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ProductSizeInventoryItem.ProtoReflect.Descriptor instead.
-func (*ProductSizeInventoryItem) Descriptor() ([]byte, []int) {
-	return file_proto_product_product_event_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *ProductSizeInventoryItem) GetId() int64 {
-	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *ProductSizeInventoryItem) GetCount() int64 {
-	if x != nil {
-		return x.Count
+		return x.Stock
 	}
 	return 0
 }
@@ -190,17 +138,14 @@ var File_proto_product_product_event_proto protoreflect.FileDescriptor
 
 const file_proto_product_product_event_proto_rawDesc = "" +
 	"\n" +
-	"!proto/product/product_event.proto\x12\rproduct.event\"\xc2\x01\n" +
+	"!proto/product/product_event.proto\x12\rproduct.event\"^\n" +
 	"\x18OnInventoryDeductSuccess\x12\x18\n" +
-	"\aOrderId\x18\x01 \x01(\x03R\aOrderId\x12?\n" +
-	"\bProducts\x18\x02 \x03(\v2#.product.event.ProductInventoryItemR\bProducts\x12K\n" +
-	"\fProductSizes\x18\x03 \x03(\v2'.product.event.ProductSizeInventoryItemR\fProductSizes\"<\n" +
-	"\x14ProductInventoryItem\x12\x0e\n" +
-	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x14\n" +
-	"\x05Count\x18\x02 \x01(\x03R\x05Count\"@\n" +
-	"\x18ProductSizeInventoryItem\x12\x0e\n" +
-	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x14\n" +
-	"\x05Count\x18\x02 \x01(\x03R\x05CountB!Z\x1f./internal/domain/event/productb\x06proto3"
+	"\aOrderId\x18\x01 \x01(\x03R\aOrderId\x12(\n" +
+	"\x03Sku\x18\x02 \x03(\v2\x16.product.event.SkuInfoR\x03Sku\"K\n" +
+	"\aSkuInfo\x12\x0e\n" +
+	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x1a\n" +
+	"\bQuantity\x18\x02 \x01(\rR\bQuantity\x12\x14\n" +
+	"\x05Stock\x18\x03 \x01(\rR\x05StockB!Z\x1f./internal/domain/event/productb\x06proto3"
 
 var (
 	file_proto_product_product_event_proto_rawDescOnce sync.Once
@@ -214,20 +159,18 @@ func file_proto_product_product_event_proto_rawDescGZIP() []byte {
 	return file_proto_product_product_event_proto_rawDescData
 }
 
-var file_proto_product_product_event_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_product_product_event_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_proto_product_product_event_proto_goTypes = []any{
 	(*OnInventoryDeductSuccess)(nil), // 0: product.event.OnInventoryDeductSuccess
-	(*ProductInventoryItem)(nil),     // 1: product.event.ProductInventoryItem
-	(*ProductSizeInventoryItem)(nil), // 2: product.event.ProductSizeInventoryItem
+	(*SkuInfo)(nil),                  // 1: product.event.SkuInfo
 }
 var file_proto_product_product_event_proto_depIdxs = []int32{
-	1, // 0: product.event.OnInventoryDeductSuccess.Products:type_name -> product.event.ProductInventoryItem
-	2, // 1: product.event.OnInventoryDeductSuccess.ProductSizes:type_name -> product.event.ProductSizeInventoryItem
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	1, // 0: product.event.OnInventoryDeductSuccess.Sku:type_name -> product.event.SkuInfo
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_proto_product_product_event_proto_init() }
@@ -241,7 +184,7 @@ func file_proto_product_product_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_product_product_event_proto_rawDesc), len(file_proto_product_product_event_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

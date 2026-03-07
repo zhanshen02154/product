@@ -126,3 +126,8 @@ func (svc *ServiceContext) NewOrderInventoryEventRepo() repository.OrderInventor
 func (svc *ServiceContext) NewProductRepository() repository.IProductRepository {
 	return gorm2.NewProductRepository(svc.db)
 }
+
+// NewProductSkuRepository 创建商品SKU表仓储层
+func (svc *ServiceContext) NewProductSkuRepository() repository.ProductSkuRepository {
+	return gorm2.NewProductSkuRepository(svc.db)
+}

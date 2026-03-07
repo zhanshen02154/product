@@ -30,7 +30,7 @@ func (u *ProductRepository) FindProductByID(ctx context.Context, id int64) (prod
 // CreateProduct 创建Product信息
 func (u *ProductRepository) CreateProduct(ctx context.Context, product *model.Product) (int64, error) {
 	db := GetDBFromContext(ctx, u.db)
-	return product.Id, db.Create(product).Error
+	return product.ID, db.Create(product).Error
 }
 
 // FindProductSizeListByIds 查找产品规格
@@ -99,4 +99,17 @@ func (u *ProductRepository) DeductProductInventoryRevert(ctx context.Context, id
 		return errors.New("failed to reduce stock")
 	}
 	return nil
+}
+
+func (u *ProductRepository) FindSkusByids(ctx context.Context, ids []int64) ([]model.ProductSku, error) {
+	db := GetDBFromContext(ctx, u.db)
+	var skus []model.ProductSku
+	err := db.Model(model.ProductSku{}).Where("id IN ?", ids).Find(&skus).Error
+	if err != nil {
+		if !errors.Is(gorm.ErrRecordNotFound, err) {
+			return skus, nil
+		}
+	}
+
+	return skus, nil
 }
