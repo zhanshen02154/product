@@ -1,10 +1,5 @@
 package dto
 
-import (
-	"github.com/zhanshen02154/product/internal/domain/event/order"
-	"github.com/zhanshen02154/product/proto/product"
-)
-
 type ProductDto struct {
 	Id                 int64              `json:"id"`
 	ProductName        string             `json:"product_name"`
@@ -35,51 +30,14 @@ type AddProductResponse struct {
 	Id int64 `json:"id"`
 }
 
-// ConvertTo 将GRPC请求转换为DTO
-func (d *OrderProductInvetoryDto) ConvertTo(req *order.OnPaymentSuccess) {
-	d.OrderId = req.OrderId
-	d.ProductInvetory = make([]*OrderProductInvetoryItem, 0, 5)
-	d.ProductSizeInvetory = make([]*OrderProductSizeInvetoryItem, 0, 15)
-	productCountMap := make(map[int64]int64)
-	for _, item := range req.Products {
-		if _, ok := productCountMap[item.ProductId]; ok {
-			productCountMap[item.ProductId] += item.ProductNum
-		} else {
-			productCountMap[item.ProductId] = item.ProductNum
-		}
-		d.ProductSizeInvetory = append(d.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
-			Id:    item.ProductSizeId,
-			Count: item.ProductNum,
-		})
-	}
-	for key, val := range productCountMap {
-		d.ProductInvetory = append(d.ProductInvetory, &OrderProductInvetoryItem{
-			Id:    key,
-			Count: val,
-		})
-	}
+// OrderSkuDto 订单SKU-库存的DTO
+type OrderSkuDto struct {
+	OrderID int64             `json:"order_id"`
+	Sku     []OrderSkuItemDto `json:"sku"`
 }
 
-func (d *OrderProductInvetoryDto) ConvertFromOrderDetailReq(req *product.OrderDetailReq) {
-	d.OrderId = req.OrderId
-	d.ProductInvetory = make([]*OrderProductInvetoryItem, 0, 5)
-	d.ProductSizeInvetory = make([]*OrderProductSizeInvetoryItem, 0, 15)
-	productCountMap := make(map[int64]int64)
-	for _, item := range req.Products {
-		if _, ok := productCountMap[item.ProductId]; ok {
-			productCountMap[item.ProductId] += item.ProductNum
-		} else {
-			productCountMap[item.ProductId] = item.ProductNum
-		}
-		d.ProductSizeInvetory = append(d.ProductSizeInvetory, &OrderProductSizeInvetoryItem{
-			Id:    item.ProductSizeId,
-			Count: item.ProductNum,
-		})
-	}
-	for key, val := range productCountMap {
-		d.ProductInvetory = append(d.ProductInvetory, &OrderProductInvetoryItem{
-			Id:    key,
-			Count: val,
-		})
-	}
+type OrderSkuItemDto struct {
+	SkuID    int64  `json:"sku_id"`
+	Quantity uint32 `json:"quantity"`
+	Stock    uint32 `json:"stock"`
 }

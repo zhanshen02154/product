@@ -4,27 +4,30 @@ import (
 	"context"
 	"errors"
 	"github.com/zhanshen02154/product/internal/application/dto"
-	"github.com/zhanshen02154/product/internal/domain/event/product"
+	"github.com/zhanshen02154/product/internal/domain/event/order"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
 	"github.com/zhanshen02154/product/pkg/metadata"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type IProductDataService interface {
 	AddProduct(ctx context.Context, productInfo *model.Product) (int64, error)
-	DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) (*product.OnInventoryDeductSuccess, error)
+	DeductInventory(ctx context.Context, req *order.OnPaymentSuccess) (*dto.OrderSkuDto, error)
 	DeductOrderInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 	FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error)
 }
 
 // NewProductDataService 创建
-func NewProductDataService(productRepository repository.IProductRepository, orderInventoryRepo repository.OrderInventoryEventRepository) IProductDataService {
-	return &ProductDataService{productRepository: productRepository, orderInventoryRepo: orderInventoryRepo}
+func NewProductDataService(productRepository repository.IProductRepository, orderInventoryRepo repository.OrderInventoryEventRepository, skuRepo repository.ProductSkuRepository) IProductDataService {
+	return &ProductDataService{productRepository: productRepository, orderInventoryRepo: orderInventoryRepo, skuRepo: skuRepo}
 }
 
 type ProductDataService struct {
 	productRepository  repository.IProductRepository
 	orderInventoryRepo repository.OrderInventoryEventRepository
+	skuRepo            repository.ProductSkuRepository
 }
 
 // AddProduct 插入
@@ -33,26 +36,50 @@ func (u *ProductDataService) AddProduct(ctx context.Context, product *model.Prod
 }
 
 // DeductInventory 扣减库存
-func (u *ProductDataService) DeductInventory(ctx context.Context, req *dto.OrderProductInvetoryDto) (*product.OnInventoryDeductSuccess, error) {
+func (u *ProductDataService) DeductInventory(ctx context.Context, req *order.OnPaymentSuccess) (*dto.OrderSkuDto, error) {
 	var err error
-	for _, item := range req.ProductInvetory {
-		err = u.productRepository.DeductProductInventory(ctx, item.Id, item.Count)
-		if err != nil {
-			break
-		}
+	skuLenth := len(req.OrderDetails)
+	skuIds := make([]int64, 0, skuLenth)
+	skuQuantity := make(map[int64]uint32, skuLenth)
+	for _, orderDetail := range req.OrderDetails {
+		skuIds = append(skuIds, orderDetail.SkuId)
+		skuQuantity[orderDetail.SkuId] = orderDetail.Quantity
 	}
-	for _, item := range req.ProductSizeInvetory {
-		err = u.productRepository.DeductProductSizeInventory(ctx, item.Id, item.Count)
-		if err != nil {
-			break
-		}
-	}
-
+	skuList, err := u.skuRepo.BatchGetSkuByIDsWithFields(ctx, skuIds)
 	if err != nil {
-		return nil, err
+		return nil, status.Error(codes.NotFound, "sku query error:"+err.Error())
+	}
+	if len(skuList) == 0 || len(skuList) != skuLenth {
+		return nil, status.Error(codes.NotFound, "sku not found")
+	}
+	for _, sku := range skuList {
+		if val, ok := skuQuantity[sku.ID]; ok {
+			if sku.Stock < val {
+				return nil, status.Error(codes.FailedPrecondition, "sku stock out of order")
+			}
+		} else {
+			return nil, status.Error(codes.FailedPrecondition, "sku stock out of order")
+		}
 	}
 
+	// 执行扣减
 	eventId, ok := metadata.GetEventId(ctx)
+	orderSkuDto := &dto.OrderSkuDto{
+		OrderID: req.OrderId,
+		Sku:     make([]dto.OrderSkuItemDto, 0, skuLenth),
+	}
+	for _, sku := range skuList {
+		err = u.skuRepo.DeductInventoryById(ctx, sku.ID, skuQuantity[sku.ID])
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		orderSkuDto.Sku = append(orderSkuDto.Sku, dto.OrderSkuItemDto{
+			SkuID:    sku.ID,
+			Quantity: skuQuantity[sku.ID],
+			Stock:    sku.Stock - skuQuantity[sku.ID],
+		})
+	}
+
 	if ok {
 		orderInventoryEvent := model.OrderInventoryEvent{
 			EventId: eventId,
@@ -61,25 +88,7 @@ func (u *ProductDataService) DeductInventory(ctx context.Context, req *dto.Order
 		_, err = u.orderInventoryRepo.Create(ctx, &orderInventoryEvent)
 	}
 
-	// 发布扣减库存成功事件
-	inventoryDeductSuccessEvent := product.OnInventoryDeductSuccess{
-		OrderId:      req.OrderId,
-		Products:     make([]*product.ProductInventoryItem, len(req.ProductInvetory)),
-		ProductSizes: make([]*product.ProductSizeInventoryItem, len(req.ProductSizeInvetory)),
-	}
-	for _, item := range req.ProductInvetory {
-		inventoryDeductSuccessEvent.Products = append(inventoryDeductSuccessEvent.Products, &product.ProductInventoryItem{
-			Id:    item.Id,
-			Count: item.Count,
-		})
-	}
-	for _, item := range req.ProductSizeInvetory {
-		inventoryDeductSuccessEvent.ProductSizes = append(inventoryDeductSuccessEvent.ProductSizes, &product.ProductSizeInventoryItem{
-			Id:    item.Id,
-			Count: item.Count,
-		})
-	}
-	return &inventoryDeductSuccessEvent, err
+	return orderSkuDto, err
 }
 
 // DeductOrderInvetoryRevert 扣减订单库存补偿操作

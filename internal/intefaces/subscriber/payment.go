@@ -2,7 +2,6 @@ package subscriber
 
 import (
 	"context"
-	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/internal/domain/event/order"
 	"go-micro.dev/v4"
@@ -30,16 +29,13 @@ func NewPaymentEventHandler(appService service.IProductApplicationService) Payme
 
 // OnPaymentSuccess OnPaySuccess 支付成功回调事件
 func (h *paymentEventHandlerImpl) OnPaymentSuccess(ctx context.Context, req *order.OnPaymentSuccess) error {
-	if req.Products == nil {
+	if req.OrderDetails == nil {
 		return status.Error(codes.InvalidArgument, "inventory cannot be nil")
 	}
-	if req.OrderId == 0 || len(req.Products) == 0 {
+	if req.OrderId == 0 || len(req.OrderDetails) == 0 {
 		return status.Error(codes.InvalidArgument, "orderId or products cannot be empty")
 	}
-	inventoryDto := &dto.OrderProductInvetoryDto{}
-	inventoryDto.ConvertTo(req)
-
-	return h.productAppService.DeductInventory(ctx, inventoryDto)
+	return h.productAppService.DeductInventory(ctx, req)
 }
 
 // RegisterSubscriber 注册订阅器
