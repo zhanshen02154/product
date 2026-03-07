@@ -1,4 +1,22 @@
 
+<a name="v7.0.0"></a>
+## [v7.0.0](https://github.com/zhanshen02154/product/compare/v6.3.2...v7.0.0) (2026-03-07)
+
+### Code Refactoring
+
+* 重构扣减库存逻辑及数据表
+
+### BREAKING CHANGE
+
+
+- 重构库存扣减成功事件
+- 重构商品表
+- 重构product_sizes为商品SKU表
+- 新增商品规格属性表
+- 新增规格属性值表
+- 新增SKU图片表
+
+
 <a name="v6.3.2"></a>
 ## [v6.3.2](https://github.com/zhanshen02154/product/compare/v6.3.1...v6.3.2) (2026-02-16)
 
