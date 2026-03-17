@@ -4,12 +4,14 @@ import (
 	"context"
 	"errors"
 	"github.com/Shopify/sarama"
+	"github.com/zhanshen02154/product/internal/domain/event"
 	"github.com/zhanshen02154/product/internal/infrastructure/event/monitor"
 	"go-micro.dev/v4"
 	"go-micro.dev/v4/broker"
 	"go-micro.dev/v4/client"
 	"go-micro.dev/v4/logger"
 	"go-micro.dev/v4/metadata"
+	"google.golang.org/protobuf/proto"
 	"strconv"
 	"strings"
 	"sync"
@@ -36,16 +38,24 @@ type microListener struct {
 }
 
 // Publish 发布
-func (l *microListener) Publish(ctx context.Context, topic string, msg interface{}, key string) error {
+func (l *microListener) Publish(ctx context.Context, topic string, msg proto.Message, key string, eventType string) error {
 	if pub, ok := l.eventPublisher.Load(topic); ok {
 		if e, assertOk := pub.(micro.Event); assertOk {
+			ctx = metadata.Set(ctx, "Event-Type", eventType)
 			// 将key放到metadata
 			if key != "" {
 				if _, ok := metadata.Get(ctx, partitionKey); !ok {
 					ctx = metadata.Set(ctx, partitionKey, key)
 				}
 			}
-			return e.Publish(ctx, msg, client.PublishContext(ctx))
+			eventMsg := &event.BaseEvent{
+				Timestamp: time.Now().UnixMilli(),
+				EventType: eventType,
+				Payload:   make([]byte, 0),
+			}
+			b, _ := proto.Marshal(msg)
+			eventMsg.Payload = b
+			return e.Publish(ctx, eventMsg, client.PublishContext(ctx))
 		} else {
 			return errors.New("invalid event")
 		}

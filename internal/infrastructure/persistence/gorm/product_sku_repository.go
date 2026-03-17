@@ -2,6 +2,7 @@ package gorm
 
 import (
 	"context"
+	"errors"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
 	"gorm.io/gorm"
@@ -47,6 +48,54 @@ func (s *ProductSkuRepositoryImpl) DeductInventoryById(ctx context.Context, id i
 		return gorm.ErrRecordNotFound
 	}
 	return nil
+}
+
+// GetSkuDetailByID 根据SKU ID获取SKU详情，包括关联的商品信息和图片
+func (s *ProductSkuRepositoryImpl) GetSkuDetailByID(ctx context.Context, skuID int64) (*model.ProductSku, error) {
+	db := GetDBFromContext(ctx, s.db)
+	var sku model.ProductSku
+
+	// 预加载关联关系：Product（商品）、Images（SKU图片）
+	// 注意：Product又关联了Category和Brand，根据需要决定是否预加载
+	err := db.Model(&model.ProductSku{}).
+		Where("id = ?", skuID).
+		Preload("Product").
+		Preload("Images").
+		First(&sku).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil // 返回nil表示未找到，而不是错误
+		}
+		return nil, err
+	}
+
+	return &sku, nil
+}
+
+// BatchGetSkuInventoryInfo 批量获取SKU库存信息（用于库存阈值检查）
+// 返回SKU的ID、编码、名称、库存和预警值
+func (s *ProductSkuRepositoryImpl) BatchGetSkuInventoryInfo(ctx context.Context, skuIDs []int64) ([]model.ProductSku, error) {
+	// 如果skuIDs为空，直接返回空切片
+	if len(skuIDs) == 0 {
+		return []model.ProductSku{}, nil
+	}
+
+	db := GetDBFromContext(ctx, s.db)
+	var results []model.ProductSku
+
+	// 只查询需要的字段：ID、编码、名称、库存、预警值
+	err := db.Model(model.ProductSku{}).
+		Select("id", "sku_no", "sku_name", "stock", "stock_warn").
+		Where("id IN ?", skuIDs).
+		Where("status = ?", 1). // 只查询上架状态的SKU
+		Find(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
 
 // NewProductSkuRepository 创建商品SKU表仓储层

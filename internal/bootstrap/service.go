@@ -2,6 +2,9 @@ package bootstrap
 
 import (
 	"context"
+	"fmt"
+	"time"
+
 	"github.com/Shopify/sarama"
 	"github.com/go-micro/plugins/v4/broker/kafka"
 	grpcclient "github.com/go-micro/plugins/v4/client/grpc"
@@ -20,7 +23,6 @@ import (
 	"go-micro.dev/v4/logger"
 	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
-	"time"
 )
 
 func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceContext, zapLogger *zap.Logger) error {
@@ -108,8 +110,26 @@ func RunService(conf *config.SysConfig, serviceContext *infrastructure.ServiceCo
 	event.RegisterPublisher(conf.Broker, eb, service.Client())
 	productService := appservice.NewProductApplicationService(serviceContext, eb)
 
+	// 创建事件分发器
+	eventDispatcher := event.NewEventDispatcher()
+
+	// 注册支付事件处理器
 	paymentEventHandler := subscriber.NewPaymentEventHandler(productService)
-	paymentEventHandler.RegisterSubscriber(service.Server())
+	// 类型断言，获取 RegisterToDispatcher 方法
+	if dispatcher, ok := interface{}(paymentEventHandler).(interface {
+		RegisterToDispatcher(*event.EventDispatcher) error
+	}); ok {
+		if err := dispatcher.RegisterToDispatcher(eventDispatcher); err != nil {
+			return fmt.Errorf("failed to register order event handlers: %w", err)
+		}
+	} else {
+		logger.Warn("PaymentEventHandler does not implement RegisterToDispatcher, using legacy method")
+	}
+
+	// 注册所有订阅器到 micro server
+	if err := eventDispatcher.RegisterSubscribers(service.Server()); err != nil {
+		return fmt.Errorf("failed to register subscribers: %w", err)
+	}
 
 	err := product.RegisterProductHandler(service.Server(), handler.NewProductHandler(productService))
 	if err != nil {
