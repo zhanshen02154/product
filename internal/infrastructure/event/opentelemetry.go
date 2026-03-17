@@ -47,6 +47,7 @@ func NewTracerWrapper(traceOpts ...TraceOption) PublishCallbackWrapper {
 						attribute.Int64("kafka.offset", offset),
 						attribute.Int("kafka.partition", int(partition)),
 						attribute.String("kafka.topic", msg.Header["Micro-Topic"]),
+						attribute.String("event.type", msg.Header["Event-Type"]),
 					)
 				}
 			}

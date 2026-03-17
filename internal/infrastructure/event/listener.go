@@ -4,11 +4,12 @@ import (
 	"context"
 	"github.com/zhanshen02154/product/internal/config"
 	"go-micro.dev/v4/client"
+	"google.golang.org/protobuf/proto"
 )
 
 // Listener 事件总线
 type Listener interface {
-	Publish(ctx context.Context, topic string, event interface{}, key string) error
+	Publish(ctx context.Context, topic string, event proto.Message, key string, eventType string) error
 	Register(topic string, c client.Client) bool
 	UnRegister(topic string) bool
 	Close()

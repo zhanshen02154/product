@@ -51,6 +51,7 @@ func NewDeadletterWrapper(opts ...DeadLetterOption) PublishCallbackWrapper {
 			defer span.End()
 			header := make(map[string]string)
 			header["x-origin-topic"] = msg.Header["Micro-Topic"]
+			header["Event-Type"] = msg.Header["Event-Type"] + deadletterSuffix
 			header["x-error"] = err.Error()
 			header["x-origin-timestamp"] = msg.Header["Timestamp"]
 			for k, v := range msg.Header {

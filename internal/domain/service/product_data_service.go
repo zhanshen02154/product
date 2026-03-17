@@ -17,6 +17,8 @@ type IProductDataService interface {
 	DeductInventory(ctx context.Context, req *order.OnPaymentSuccess) (*dto.OrderSkuDto, error)
 	DeductOrderInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 	FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error)
+	GetProductSkuDetail(ctx context.Context, skuID int64) (*model.ProductSku, error)
+	BatchGetSkuInventoryInfo(ctx context.Context, skuIDs []int64) ([]model.ProductSku, error)
 }
 
 // NewProductDataService 创建
@@ -128,4 +130,14 @@ func (u *ProductDataService) DeductOrderInvetoryRevert(ctx context.Context, req 
 // FindEventExistsByOrderId 查找订单库存已被处理过
 func (u *ProductDataService) FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error) {
 	return u.orderInventoryRepo.FindEventExistsByOrderId(ctx, orderId)
+}
+
+// GetProductSkuDetail 获取SKU详情
+func (u *ProductDataService) GetProductSkuDetail(ctx context.Context, skuID int64) (*model.ProductSku, error) {
+	return u.skuRepo.GetSkuDetailByID(ctx, skuID)
+}
+
+// BatchGetSkuInventoryInfo 批量获取SKU库存信息
+func (u *ProductDataService) BatchGetSkuInventoryInfo(ctx context.Context, skuIDs []int64) ([]model.ProductSku, error) {
+	return u.skuRepo.BatchGetSkuInventoryInfo(ctx, skuIDs)
 }
