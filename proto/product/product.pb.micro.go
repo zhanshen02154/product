@@ -39,6 +39,7 @@ type ProductService interface {
 	AddProduct(ctx context.Context, in *ProductInfo, opts ...client.CallOption) (*ResponseProduct, error)
 	GetProductSkuDetail(ctx context.Context, in *GetProductSkuDetailRequest, opts ...client.CallOption) (*GetProductSkuDetailResponse, error)
 	CheckSkuInventoryThreshold(ctx context.Context, in *CheckSkuInventoryThresholdRequest, opts ...client.CallOption) (*CheckSkuInventoryThresholdResponse, error)
+	GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStockBySkuNoRequest, opts ...client.CallOption) (*GetSkuStockBySkuNoResponse, error)
 }
 
 type productService struct {
@@ -83,12 +84,23 @@ func (c *productService) CheckSkuInventoryThreshold(ctx context.Context, in *Che
 	return out, nil
 }
 
+func (c *productService) GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStockBySkuNoRequest, opts ...client.CallOption) (*GetSkuStockBySkuNoResponse, error) {
+	req := c.c.NewRequest(c.name, "Product.GetSkuStockBySkuNo", in)
+	out := new(GetSkuStockBySkuNoResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Product service
 
 type ProductHandler interface {
 	AddProduct(context.Context, *ProductInfo, *ResponseProduct) error
 	GetProductSkuDetail(context.Context, *GetProductSkuDetailRequest, *GetProductSkuDetailResponse) error
 	CheckSkuInventoryThreshold(context.Context, *CheckSkuInventoryThresholdRequest, *CheckSkuInventoryThresholdResponse) error
+	GetSkuStockBySkuNo(context.Context, *GetSkuStockBySkuNoRequest, *GetSkuStockBySkuNoResponse) error
 }
 
 func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server.HandlerOption) error {
@@ -96,6 +108,7 @@ func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server
 		AddProduct(ctx context.Context, in *ProductInfo, out *ResponseProduct) error
 		GetProductSkuDetail(ctx context.Context, in *GetProductSkuDetailRequest, out *GetProductSkuDetailResponse) error
 		CheckSkuInventoryThreshold(ctx context.Context, in *CheckSkuInventoryThresholdRequest, out *CheckSkuInventoryThresholdResponse) error
+		GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStockBySkuNoRequest, out *GetSkuStockBySkuNoResponse) error
 	}
 	type Product struct {
 		product
@@ -118,4 +131,8 @@ func (h *productHandler) GetProductSkuDetail(ctx context.Context, in *GetProduct
 
 func (h *productHandler) CheckSkuInventoryThreshold(ctx context.Context, in *CheckSkuInventoryThresholdRequest, out *CheckSkuInventoryThresholdResponse) error {
 	return h.ProductHandler.CheckSkuInventoryThreshold(ctx, in, out)
+}
+
+func (h *productHandler) GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStockBySkuNoRequest, out *GetSkuStockBySkuNoResponse) error {
+	return h.ProductHandler.GetSkuStockBySkuNo(ctx, in, out)
 }

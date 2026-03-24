@@ -75,9 +75,15 @@
 ```bash
   protoc --go_out=. --micro_out=. ./proto/product/product.proto
 ```
-- 生成事件
+5. 生成事件
 ```bash
   protoc --go_out=. ./proto/product/product_event.proto
+```
+
+6. 生成protobuf文件
+```bash
+  protoc --include_imports --descriptor_set_out=./product.pb --proto_path=./proto --go_out=. --micro_out=. ./proto/product/product.proto
+  echo $(base64 -w0 product.pb) > product.txt  # 上传到Apisix用的是这个文件里的内容
 ```
 
 ## 注意事项

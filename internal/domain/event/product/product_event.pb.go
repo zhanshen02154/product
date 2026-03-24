@@ -79,6 +79,7 @@ type SkuInfo struct {
 	Id            int64                  `protobuf:"varint,1,opt,name=Id,proto3" json:"Id,omitempty"`
 	Quantity      uint32                 `protobuf:"varint,2,opt,name=Quantity,proto3" json:"Quantity,omitempty"`
 	Stock         uint32                 `protobuf:"varint,3,opt,name=Stock,proto3" json:"Stock,omitempty"`
+	Threshold     uint32                 `protobuf:"varint,4,opt,name=Threshold,proto3" json:"Threshold,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -134,6 +135,13 @@ func (x *SkuInfo) GetStock() uint32 {
 	return 0
 }
 
+func (x *SkuInfo) GetThreshold() uint32 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
 var File_proto_product_product_event_proto protoreflect.FileDescriptor
 
 const file_proto_product_product_event_proto_rawDesc = "" +
@@ -141,11 +149,12 @@ const file_proto_product_product_event_proto_rawDesc = "" +
 	"!proto/product/product_event.proto\x12\rproduct.event\"^\n" +
 	"\x18OnInventoryDeductSuccess\x12\x18\n" +
 	"\aOrderId\x18\x01 \x01(\x03R\aOrderId\x12(\n" +
-	"\x03Sku\x18\x02 \x03(\v2\x16.product.event.SkuInfoR\x03Sku\"K\n" +
+	"\x03Sku\x18\x02 \x03(\v2\x16.product.event.SkuInfoR\x03Sku\"i\n" +
 	"\aSkuInfo\x12\x0e\n" +
 	"\x02Id\x18\x01 \x01(\x03R\x02Id\x12\x1a\n" +
 	"\bQuantity\x18\x02 \x01(\rR\bQuantity\x12\x14\n" +
-	"\x05Stock\x18\x03 \x01(\rR\x05StockB!Z\x1f./internal/domain/event/productb\x06proto3"
+	"\x05Stock\x18\x03 \x01(\rR\x05Stock\x12\x1c\n" +
+	"\tThreshold\x18\x04 \x01(\rR\tThresholdB!Z\x1f./internal/domain/event/productb\x06proto3"
 
 var (
 	file_proto_product_product_event_proto_rawDescOnce sync.Once

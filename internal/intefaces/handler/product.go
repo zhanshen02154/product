@@ -125,6 +125,27 @@ func (h *ProductHandler) CheckSkuInventoryThreshold(ctx context.Context, req *pr
 	return nil
 }
 
+// GetSkuStockBySkuNo
+//
+//	@Description: 根据SKU编号查询SKU库存信息
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) GetSkuStockBySkuNo(ctx context.Context, req *product.GetSkuStockBySkuNoRequest, resp *product.GetSkuStockBySkuNoResponse) error {
+	response, err := h.ProductApplicationService.GetSkuStockBySkuNo(ctx, req.SkuId)
+	if err != nil {
+		return err
+	}
+	resp.SkuId = response.SkuId
+	resp.Name = response.Name
+	resp.Stock = response.Stock
+	resp.Status = response.Status
+	resp.StockWarn = response.StockWarn
+	return nil
+}
+
 // NewProductHandler 创建Handler
 func NewProductHandler(appService service.IProductApplicationService) product.ProductHandler {
 	return &ProductHandler{
