@@ -8,6 +8,7 @@ service Product {
   rpc AddProduct(ProductInfo) returns (ResponseProduct){}
   rpc GetProductSkuDetail(GetProductSkuDetailRequest) returns (GetProductSkuDetailResponse){}
   rpc CheckSkuInventoryThreshold(CheckSkuInventoryThresholdRequest) returns (CheckSkuInventoryThresholdResponse){}
+  rpc GetSkuStockBySkuNo(GetSkuStockBySkuNoRequest) returns (GetSkuStockBySkuNoResponse){}
 }
 
 message ProductInfo {
@@ -82,4 +83,18 @@ message SkuInventoryCheckResult {
 // 批量检查SKU库存阈值响应
 message CheckSkuInventoryThresholdResponse {
   repeated SkuInventoryCheckResult results = 1;  // 检查结果列表
+}
+
+// 根据SKU编号查询库存请求
+message GetSkuStockBySkuNoRequest {
+  string sku_id = 1;  // SKU编号(SkuNo)
+}
+
+// 根据SKU编号查询库存响应
+message GetSkuStockBySkuNoResponse {
+  string sku_id = 1;       // SKU编号
+  string name = 2;         // SKU名称
+  uint32 stock = 3;        // 当前库存
+  int32 status = 4;        // 商品状态（1上架 0下架）
+  uint32 stock_warn = 5;   // 库存预警值
 }

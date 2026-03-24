@@ -693,6 +693,128 @@ func (x *CheckSkuInventoryThresholdResponse) GetResults() []*SkuInventoryCheckRe
 	return nil
 }
 
+// 根据SKU编号查询库存请求
+type GetSkuStockBySkuNoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuId         string                 `protobuf:"bytes,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"` // SKU编号(SkuNo)
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkuStockBySkuNoRequest) Reset() {
+	*x = GetSkuStockBySkuNoRequest{}
+	mi := &file_product_product_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkuStockBySkuNoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkuStockBySkuNoRequest) ProtoMessage() {}
+
+func (x *GetSkuStockBySkuNoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkuStockBySkuNoRequest.ProtoReflect.Descriptor instead.
+func (*GetSkuStockBySkuNoRequest) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *GetSkuStockBySkuNoRequest) GetSkuId() string {
+	if x != nil {
+		return x.SkuId
+	}
+	return ""
+}
+
+// 根据SKU编号查询库存响应
+type GetSkuStockBySkuNoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuId         string                 `protobuf:"bytes,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`              // SKU编号
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                             // SKU名称
+	Stock         uint32                 `protobuf:"varint,3,opt,name=stock,proto3" json:"stock,omitempty"`                          // 当前库存
+	Status        int32                  `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
+	StockWarn     uint32                 `protobuf:"varint,5,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkuStockBySkuNoResponse) Reset() {
+	*x = GetSkuStockBySkuNoResponse{}
+	mi := &file_product_product_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkuStockBySkuNoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkuStockBySkuNoResponse) ProtoMessage() {}
+
+func (x *GetSkuStockBySkuNoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkuStockBySkuNoResponse.ProtoReflect.Descriptor instead.
+func (*GetSkuStockBySkuNoResponse) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetSkuId() string {
+	if x != nil {
+		return x.SkuId
+	}
+	return ""
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetStock() uint32 {
+	if x != nil {
+		return x.Stock
+	}
+	return 0
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetStatus() int32 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetStockWarn() uint32 {
+	if x != nil {
+		return x.StockWarn
+	}
+	return 0
+}
+
 var File_product_product_proto protoreflect.FileDescriptor
 
 const file_product_product_proto_rawDesc = "" +
@@ -759,12 +881,22 @@ const file_product_product_proto_rawDesc = "" +
 	"\tthreshold\x18\x05 \x01(\rR\tthreshold\x12#\n" +
 	"\ris_sufficient\x18\x06 \x01(\bR\fisSufficient\"i\n" +
 	"\"CheckSkuInventoryThresholdResponse\x12C\n" +
-	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults2\xdd\x02\n" +
+	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults\"2\n" +
+	"\x19GetSkuStockBySkuNoRequest\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\"\x94\x01\n" +
+	"\x1aGetSkuStockBySkuNoResponse\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05stock\x18\x03 \x01(\rR\x05stock\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1d\n" +
+	"\n" +
+	"stock_warn\x18\x05 \x01(\rR\tstockWarn2\xd0\x03\n" +
 	"\aProduct\x12P\n" +
 	"\n" +
 	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00\x12t\n" +
 	"\x13GetProductSkuDetail\x12,.go.micro.service.GetProductSkuDetailRequest\x1a-.go.micro.service.GetProductSkuDetailResponse\"\x00\x12\x89\x01\n" +
-	"\x1aCheckSkuInventoryThreshold\x123.go.micro.service.CheckSkuInventoryThresholdRequest\x1a4.go.micro.service.CheckSkuInventoryThresholdResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
+	"\x1aCheckSkuInventoryThreshold\x123.go.micro.service.CheckSkuInventoryThresholdRequest\x1a4.go.micro.service.CheckSkuInventoryThresholdResponse\"\x00\x12q\n" +
+	"\x12GetSkuStockBySkuNo\x12+.go.micro.service.GetSkuStockBySkuNoRequest\x1a,.go.micro.service.GetSkuStockBySkuNoResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
 
 var (
 	file_product_product_proto_rawDescOnce sync.Once
@@ -778,7 +910,7 @@ func file_product_product_proto_rawDescGZIP() []byte {
 	return file_product_product_proto_rawDescData
 }
 
-var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
+var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_product_product_proto_goTypes = []any{
 	(*ProductInfo)(nil),                        // 0: go.micro.service.ProductInfo
 	(*ResponseProduct)(nil),                    // 1: go.micro.service.ResponseProduct
@@ -789,22 +921,26 @@ var file_product_product_proto_goTypes = []any{
 	(*CheckSkuInventoryThresholdRequest)(nil),  // 6: go.micro.service.CheckSkuInventoryThresholdRequest
 	(*SkuInventoryCheckResult)(nil),            // 7: go.micro.service.SkuInventoryCheckResult
 	(*CheckSkuInventoryThresholdResponse)(nil), // 8: go.micro.service.CheckSkuInventoryThresholdResponse
+	(*GetSkuStockBySkuNoRequest)(nil),          // 9: go.micro.service.GetSkuStockBySkuNoRequest
+	(*GetSkuStockBySkuNoResponse)(nil),         // 10: go.micro.service.GetSkuStockBySkuNoResponse
 }
 var file_product_product_proto_depIdxs = []int32{
-	4, // 0: go.micro.service.GetProductSkuDetailResponse.product:type_name -> go.micro.service.ProductBasicInfo
-	5, // 1: go.micro.service.GetProductSkuDetailResponse.images:type_name -> go.micro.service.SkuImageInfo
-	7, // 2: go.micro.service.CheckSkuInventoryThresholdResponse.results:type_name -> go.micro.service.SkuInventoryCheckResult
-	0, // 3: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
-	2, // 4: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
-	6, // 5: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
-	1, // 6: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
-	3, // 7: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
-	8, // 8: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	4,  // 0: go.micro.service.GetProductSkuDetailResponse.product:type_name -> go.micro.service.ProductBasicInfo
+	5,  // 1: go.micro.service.GetProductSkuDetailResponse.images:type_name -> go.micro.service.SkuImageInfo
+	7,  // 2: go.micro.service.CheckSkuInventoryThresholdResponse.results:type_name -> go.micro.service.SkuInventoryCheckResult
+	0,  // 3: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
+	2,  // 4: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
+	6,  // 5: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
+	9,  // 6: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
+	1,  // 7: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
+	3,  // 8: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
+	8,  // 9: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
+	10, // 10: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
+	7,  // [7:11] is the sub-list for method output_type
+	3,  // [3:7] is the sub-list for method input_type
+	3,  // [3:3] is the sub-list for extension type_name
+	3,  // [3:3] is the sub-list for extension extendee
+	0,  // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_product_product_proto_init() }
@@ -818,7 +954,7 @@ func file_product_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_product_product_proto_rawDesc), len(file_product_product_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   9,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

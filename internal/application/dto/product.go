@@ -37,7 +37,8 @@ type OrderSkuDto struct {
 }
 
 type OrderSkuItemDto struct {
-	SkuID    int64  `json:"sku_id"`
-	Quantity uint32 `json:"quantity"`
-	Stock    uint32 `json:"stock"`
+	SkuID     int64  `json:"sku_id"`
+	Quantity  uint32 `json:"quantity"`
+	Stock     uint32 `json:"stock"`
+	Threshold uint32 `json:"threshold"`
 }

@@ -14,4 +14,5 @@ message SkuInfo {
   int64 Id = 1;
   uint32 Quantity = 2;
   uint32 Stock = 3;
+  uint32 Threshold = 4;
 }

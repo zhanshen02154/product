@@ -19,6 +19,7 @@ type IProductDataService interface {
 	FindEventExistsByOrderId(ctx context.Context, orderId int64) (bool, error)
 	GetProductSkuDetail(ctx context.Context, skuID int64) (*model.ProductSku, error)
 	BatchGetSkuInventoryInfo(ctx context.Context, skuIDs []int64) ([]model.ProductSku, error)
+	GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error)
 }
 
 // NewProductDataService 创建
@@ -76,9 +77,10 @@ func (u *ProductDataService) DeductInventory(ctx context.Context, req *order.OnP
 			return nil, status.Error(codes.Internal, err.Error())
 		}
 		orderSkuDto.Sku = append(orderSkuDto.Sku, dto.OrderSkuItemDto{
-			SkuID:    sku.ID,
-			Quantity: skuQuantity[sku.ID],
-			Stock:    sku.Stock - skuQuantity[sku.ID],
+			SkuID:     sku.ID,
+			Quantity:  skuQuantity[sku.ID],
+			Stock:     sku.Stock - skuQuantity[sku.ID],
+			Threshold: sku.StockWarn,
 		})
 	}
 
@@ -140,4 +142,9 @@ func (u *ProductDataService) GetProductSkuDetail(ctx context.Context, skuID int6
 // BatchGetSkuInventoryInfo 批量获取SKU库存信息
 func (u *ProductDataService) BatchGetSkuInventoryInfo(ctx context.Context, skuIDs []int64) ([]model.ProductSku, error) {
 	return u.skuRepo.BatchGetSkuInventoryInfo(ctx, skuIDs)
+}
+
+// GetSkuStockBySkuNo 根据SKU编号获取SKU库存信息
+func (u *ProductDataService) GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error) {
+	return u.skuRepo.GetSkuStockBySkuNo(ctx, skuNo)
 }

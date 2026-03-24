@@ -23,6 +23,7 @@ type IProductApplicationService interface {
 	DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 	GetProductSkuDetail(ctx context.Context, skuID int64) (*productProto.GetProductSkuDetailResponse, error)
 	CheckSkuInventoryThreshold(ctx context.Context, skuIDs []int64, threshold uint32) (*productProto.CheckSkuInventoryThresholdResponse, error)
+	GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*productProto.GetSkuStockBySkuNoResponse, error)
 }
 
 // ProductApplicationService 商品服务应用层
@@ -78,9 +79,10 @@ func (appService *ProductApplicationService) DeductInventory(ctx context.Context
 			}
 			for _, item := range skuDto.Sku {
 				inventoryEvent.Sku = append(inventoryEvent.Sku, &productEvent.SkuInfo{
-					Id:       item.SkuID,
-					Quantity: item.Quantity,
-					Stock:    item.Stock,
+					Id:        item.SkuID,
+					Quantity:  item.Quantity,
+					Stock:     item.Stock,
+					Threshold: item.Threshold,
 				})
 			}
 			err = appService.eb.Publish(txCtx, "ProductEvent", &inventoryEvent, strconv.FormatInt(req.OrderId, 10), "OnInventoryDeductSuccess")
@@ -226,4 +228,27 @@ func (appService *ProductApplicationService) CheckSkuInventoryThreshold(ctx cont
 	}
 
 	return response, nil
+}
+
+// GetSkuStockBySkuNo 根据SKU编号查询SKU库存信息
+func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*productProto.GetSkuStockBySkuNoResponse, error) {
+	if skuNo == "" {
+		return nil, status.Error(codes.InvalidArgument, "sku_id cannot be empty")
+	}
+
+	sku, err := appService.productDomainService.GetSkuStockBySkuNo(ctx, skuNo)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get sku stock: "+err.Error())
+	}
+	if sku == nil {
+		return nil, status.Error(codes.NotFound, "sku not found")
+	}
+
+	return &productProto.GetSkuStockBySkuNoResponse{
+		SkuId:     sku.SkuNo,
+		Name:      sku.SkuName,
+		Stock:     sku.Stock,
+		Status:    int32(sku.Status),
+		StockWarn: sku.StockWarn,
+	}, nil
 }

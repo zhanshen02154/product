@@ -98,6 +98,26 @@ func (s *ProductSkuRepositoryImpl) BatchGetSkuInventoryInfo(ctx context.Context,
 	return results, nil
 }
 
+// GetSkuStockBySkuNo 根据SKU编号获取SKU库存信息
+func (s *ProductSkuRepositoryImpl) GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error) {
+	db := GetDBFromContext(ctx, s.db)
+	var result model.ProductSku
+
+	err := db.Model(model.ProductSku{}).
+		Select("id", "sku_no", "sku_name", "stock", "status", "stock_warn").
+		Where("sku_no = ?", skuNo).
+		First(&result).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 // NewProductSkuRepository 创建商品SKU表仓储层
 func NewProductSkuRepository(db *gorm.DB) repository.ProductSkuRepository {
 	return &ProductSkuRepositoryImpl{db: db}
