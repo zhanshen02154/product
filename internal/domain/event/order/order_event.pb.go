@@ -23,9 +23,9 @@ const (
 
 // 订单支付成功事件
 type OnPaymentSuccess struct {
-	state         protoimpl.MessageState  `protogen:"open.v1"`
-	OrderId       int64                   `protobuf:"varint,1,opt,name=OrderId,proto3" json:"OrderId,omitempty"`
-	Products      []*ProductInventoryItem `protobuf:"bytes,2,rep,name=products,proto3" json:"products,omitempty"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	OrderId       int64                  `protobuf:"varint,1,opt,name=OrderId,proto3" json:"OrderId,omitempty"`
+	OrderDetails  []*OrderDetail         `protobuf:"bytes,2,rep,name=OrderDetails,proto3" json:"OrderDetails,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -67,37 +67,37 @@ func (x *OnPaymentSuccess) GetOrderId() int64 {
 	return 0
 }
 
-func (x *OnPaymentSuccess) GetProducts() []*ProductInventoryItem {
+func (x *OnPaymentSuccess) GetOrderDetails() []*OrderDetail {
 	if x != nil {
-		return x.Products
+		return x.OrderDetails
 	}
 	return nil
 }
 
-// 订单涉及的商品库存
-type ProductInventoryItem struct {
+// 订单-商品Sku
+type OrderDetail struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	ProductId     int64                  `protobuf:"varint,1,opt,name=product_id,json=productId,proto3" json:"product_id,omitempty"`
-	ProductNum    int64                  `protobuf:"varint,2,opt,name=product_num,json=productNum,proto3" json:"product_num,omitempty"`
-	ProductSizeId int64                  `protobuf:"varint,3,opt,name=product_size_id,json=productSizeId,proto3" json:"product_size_id,omitempty"`
+	SkuId         int64                  `protobuf:"varint,2,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`
+	Quantity      uint32                 `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *ProductInventoryItem) Reset() {
-	*x = ProductInventoryItem{}
+func (x *OrderDetail) Reset() {
+	*x = OrderDetail{}
 	mi := &file_order_order_event_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *ProductInventoryItem) String() string {
+func (x *OrderDetail) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*ProductInventoryItem) ProtoMessage() {}
+func (*OrderDetail) ProtoMessage() {}
 
-func (x *ProductInventoryItem) ProtoReflect() protoreflect.Message {
+func (x *OrderDetail) ProtoReflect() protoreflect.Message {
 	mi := &file_order_order_event_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -109,28 +109,28 @@ func (x *ProductInventoryItem) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use ProductInventoryItem.ProtoReflect.Descriptor instead.
-func (*ProductInventoryItem) Descriptor() ([]byte, []int) {
+// Deprecated: Use OrderDetail.ProtoReflect.Descriptor instead.
+func (*OrderDetail) Descriptor() ([]byte, []int) {
 	return file_order_order_event_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *ProductInventoryItem) GetProductId() int64 {
+func (x *OrderDetail) GetProductId() int64 {
 	if x != nil {
 		return x.ProductId
 	}
 	return 0
 }
 
-func (x *ProductInventoryItem) GetProductNum() int64 {
+func (x *OrderDetail) GetSkuId() int64 {
 	if x != nil {
-		return x.ProductNum
+		return x.SkuId
 	}
 	return 0
 }
 
-func (x *ProductInventoryItem) GetProductSizeId() int64 {
+func (x *OrderDetail) GetQuantity() uint32 {
 	if x != nil {
-		return x.ProductSizeId
+		return x.Quantity
 	}
 	return 0
 }
@@ -139,16 +139,15 @@ var File_order_order_event_proto protoreflect.FileDescriptor
 
 const file_order_order_event_proto_rawDesc = "" +
 	"\n" +
-	"\x17order/order_event.proto\x12\vorder.event\"k\n" +
+	"\x17order/order_event.proto\x12\vorder.event\"j\n" +
 	"\x10OnPaymentSuccess\x12\x18\n" +
-	"\aOrderId\x18\x01 \x01(\x03R\aOrderId\x12=\n" +
-	"\bproducts\x18\x02 \x03(\v2!.order.event.ProductInventoryItemR\bproducts\"~\n" +
-	"\x14ProductInventoryItem\x12\x1d\n" +
+	"\aOrderId\x18\x01 \x01(\x03R\aOrderId\x12<\n" +
+	"\fOrderDetails\x18\x02 \x03(\v2\x18.order.event.OrderDetailR\fOrderDetails\"_\n" +
+	"\vOrderDetail\x12\x1d\n" +
 	"\n" +
-	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x1f\n" +
-	"\vproduct_num\x18\x02 \x01(\x03R\n" +
-	"productNum\x12&\n" +
-	"\x0fproduct_size_id\x18\x03 \x01(\x03R\rproductSizeIdB\x1fZ\x1d./internal/domain/event/orderb\x06proto3"
+	"product_id\x18\x01 \x01(\x03R\tproductId\x12\x15\n" +
+	"\x06sku_id\x18\x02 \x01(\x03R\x05skuId\x12\x1a\n" +
+	"\bquantity\x18\x03 \x01(\rR\bquantityB\x1fZ\x1d./internal/domain/event/orderb\x06proto3"
 
 var (
 	file_order_order_event_proto_rawDescOnce sync.Once
@@ -164,11 +163,11 @@ func file_order_order_event_proto_rawDescGZIP() []byte {
 
 var file_order_order_event_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_order_order_event_proto_goTypes = []any{
-	(*OnPaymentSuccess)(nil),     // 0: order.event.OnPaymentSuccess
-	(*ProductInventoryItem)(nil), // 1: order.event.ProductInventoryItem
+	(*OnPaymentSuccess)(nil), // 0: order.event.OnPaymentSuccess
+	(*OrderDetail)(nil),      // 1: order.event.OrderDetail
 }
 var file_order_order_event_proto_depIdxs = []int32{
-	1, // 0: order.event.OnPaymentSuccess.products:type_name -> order.event.ProductInventoryItem
+	1, // 0: order.event.OnPaymentSuccess.OrderDetails:type_name -> order.event.OrderDetail
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

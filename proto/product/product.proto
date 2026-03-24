@@ -6,8 +6,9 @@ package go.micro.service;
 
 service Product {
   rpc AddProduct(ProductInfo) returns (ResponseProduct){}
-  rpc DeductInvetory(OrderDetailReq) returns (OrderProductResp) {}
-  rpc DeductInvetoryRevert(OrderDetailReq) returns (OrderProductResp) {}
+  rpc GetProductSkuDetail(GetProductSkuDetailRequest) returns (GetProductSkuDetailResponse){}
+  rpc CheckSkuInventoryThreshold(CheckSkuInventoryThresholdRequest) returns (CheckSkuInventoryThresholdResponse){}
+  rpc GetSkuStockBySkuNo(GetSkuStockBySkuNoRequest) returns (GetSkuStockBySkuNoResponse){}
 }
 
 message ProductInfo {
@@ -23,18 +24,77 @@ message ResponseProduct {
   int64 product_id = 1;
 }
 
-message OrderDetailReq {
-  int64 order_id = 1;
-  repeated ProductInvetoryItem products = 2;
+message GetProductSkuDetailRequest {
+  int64 sku_id = 1;
 }
 
-message ProductInvetoryItem {
-  int64 product_id = 1;
-  int64 product_num = 2;
-  int64 product_size_id = 3;
+message GetProductSkuDetailResponse {
+  int64 id = 1;
+  int64 product_id = 2;
+  string sku_no = 3;
+  string sku_name = 4;
+  string spec_value_ids = 5;
+  string spec_value_text = 6;
+  double price = 7;
+  double market_price = 8;
+  uint32 stock = 9;
+  uint32 stock_warn = 10;
+  int32 sales = 11;
+  string main_image = 12;
+  int32 status = 13;
+  string created_at = 14;
+  string updated_at = 15;
+  // 关联信息
+  ProductBasicInfo product = 16;
+  repeated SkuImageInfo images = 17;
 }
 
-message OrderProductResp {
-  int64 order_id = 1;
-  string StatusCode = 2;
+message ProductBasicInfo {
+  int64 id = 1;
+  string product_no = 2;
+  string product_name = 3;
+  string main_image = 4;
+  string description = 5;
+}
+
+message SkuImageInfo {
+  int64 id = 1;
+  string image_url = 2;
+  bool is_main = 3;
+  int32 display_order = 4;
+}
+
+// 批量检查SKU库存阈值请求
+message CheckSkuInventoryThresholdRequest {
+  repeated int64 sku_ids = 1;  // SKU ID列表
+  uint32 threshold = 2;  // 可选阈值，为0时使用SKU自己的stock_warn值
+}
+
+// 单个SKU库存检查结果
+message SkuInventoryCheckResult {
+  int64 sku_id = 1;  // SKU ID
+  string sku_no = 2;  // SKU编码
+  string sku_name = 3;  // SKU名称
+  uint32 stock = 4;  // 当前库存
+  uint32 threshold = 5;  // 阈值
+  bool is_sufficient = 6;  // 库存是否充足（stock >= threshold）
+}
+
+// 批量检查SKU库存阈值响应
+message CheckSkuInventoryThresholdResponse {
+  repeated SkuInventoryCheckResult results = 1;  // 检查结果列表
+}
+
+// 根据SKU编号查询库存请求
+message GetSkuStockBySkuNoRequest {
+  string sku_id = 1;  // SKU编号(SkuNo)
+}
+
+// 根据SKU编号查询库存响应
+message GetSkuStockBySkuNoResponse {
+  string sku_id = 1;       // SKU编号
+  string name = 2;         // SKU名称
+  uint32 stock = 3;        // 当前库存
+  int32 status = 4;        // 商品状态（1上架 0下架）
+  uint32 stock_warn = 5;   // 库存预警值
 }

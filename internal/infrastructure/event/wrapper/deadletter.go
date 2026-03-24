@@ -41,6 +41,7 @@ func ErrorHandler() broker.Handler {
 		if v, ok := event.Message().Header["Traceparent"]; ok {
 			event.Message().Header["traceparent"] = v
 		}
+		event.Message().Header["Event-Type"] = event.Message().Header["Event-Type"] + deadLetterTopicKey
 		ctx := context.TODO()
 		ctx = metadata.NewContext(ctx, event.Message().Header)
 		err := options.publishDeadLetter(ctx, topic, event.Message(), event.Error())

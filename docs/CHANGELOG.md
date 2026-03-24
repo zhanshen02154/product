@@ -1,4 +1,33 @@
 
+<a name="v8.0.0"></a>
+## [v8.0.0](https://github.com/zhanshen02154/product/compare/v7.0.0...v8.0.0) (2026-03-24)
+
+### Code Refactoring
+
+* 重构事件处理Handler
+* 重构扣减库存逻辑及数据表
+
+### Features
+
+* 新增查询单个商品SKU库存接口
+
+### BREAKING CHANGE
+
+
+- 新增事件信封
+- 重构事件处理的Handler
+- 重构库存扣减成功事件
+- 重构商品表
+- 重构product_sizes为商品SKU表
+- 新增商品规格属性表
+- 新增规格属性值表
+- 新增SKU图片表
+
+
+<a name="v7.0.0"></a>
+## [v7.0.0](https://github.com/zhanshen02154/product/compare/v6.3.2...v7.0.0) (2026-03-06)
+
+
 <a name="v6.3.2"></a>
 ## [v6.3.2](https://github.com/zhanshen02154/product/compare/v6.3.1...v6.3.2) (2026-02-16)
 
