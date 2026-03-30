@@ -12,3 +12,8 @@ type OrderInventoryEvent struct {
 	CreatedAt sql.NullTime `gorm:"type:datetime;comment:'创建时间'" json:"created_at"`
 	UpdatedAt sql.NullTime `gorm:"type:datetime;comment:'更新时间'" json:"updated_at"`
 }
+
+// TableName 指定表名
+func (OrderInventoryEvent) TableName() string {
+	return "order_inventory_events"
+}

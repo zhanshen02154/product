@@ -131,3 +131,18 @@ func (svc *ServiceContext) NewProductRepository() repository.IProductRepository 
 func (svc *ServiceContext) NewProductSkuRepository() repository.ProductSkuRepository {
 	return gorm2.NewProductSkuRepository(svc.db)
 }
+
+// NewInventoryStockChangeRecordRepository 创建库存变更记录仓储层
+func (svc *ServiceContext) NewInventoryStockChangeRecordRepository() repository.InventoryStockChangeRecordRepository {
+	return gorm2.NewInventoryStockChangeRecordRepository(svc.db)
+}
+
+// NewSkuRestockRepository 创建补货记录仓储层
+func (svc *ServiceContext) NewSkuRestockRepository() repository.SkuRestockRepository {
+	return gorm2.NewSkuRestockRepository(svc.db)
+}
+
+// NewSkuRestockAuditRepository 创建补货审核记录仓储层
+func (svc *ServiceContext) NewSkuRestockAuditRepository() repository.SkuRestockAuditRepository {
+	return gorm2.NewSkuRestockAuditRepository(svc.db)
+}
