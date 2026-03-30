@@ -28,3 +28,7 @@ type ProductSku struct {
 	Product *Product   `gorm:"foreignKey:ProductID"`
 	Images  []SkuImage `gorm:"foreignKey:SkuID"`
 }
+
+func (*ProductSku) TableName() string {
+	return "product_skus"
+}

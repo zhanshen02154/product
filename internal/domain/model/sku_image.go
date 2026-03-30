@@ -18,3 +18,8 @@ type SkuImage struct {
 	// 关联关系
 	Sku *ProductSku `gorm:"foreignKey:SkuID"`
 }
+
+// TableName 指定表名
+func (SkuImage) TableName() string {
+	return "sku_images"
+}

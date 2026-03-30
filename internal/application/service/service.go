@@ -38,9 +38,14 @@ type ProductApplicationService struct {
 
 func NewProductApplicationService(serviceContext *infrastructure.ServiceContext, eb event.Listener) IProductApplicationService {
 	return &ProductApplicationService{
-		productDomainService: service.NewProductDataService(serviceContext.NewProductRepository(), serviceContext.NewOrderInventoryEventRepo(), serviceContext.NewProductSkuRepository()),
-		serviceContext:       serviceContext,
-		eb:                   eb,
+		productDomainService: service.NewProductDataService(
+			serviceContext.NewProductRepository(),
+			serviceContext.NewOrderInventoryEventRepo(),
+			serviceContext.NewProductSkuRepository(),
+			serviceContext.NewInventoryStockChangeRecordRepository(),
+		),
+		serviceContext: serviceContext,
+		eb:             eb,
 	}
 }
 
