@@ -22,20 +22,20 @@ const (
 
 // SkuRestockRecord 补货记录表
 type SkuRestockRecord struct {
-	ID           int64        `gorm:"primaryKey;autoIncrement;comment:ID"`
-	UserID       int          `gorm:"column:user_id;not null;default:-1;index:idx_user_id;comment:用户ID"`
-	SkuID        uint64       `gorm:"column:sku_id;not null;default:0;index:idx_sku_id;comment:SKU ID"`
-	Quantity     int          `gorm:"column:quantity;not null;comment:补货数量"`
-	Reason       string       `gorm:"column:reason;type:varchar(255);not null;comment:补货原因"`
-	Status       uint8        `gorm:"column:status;not null;default:1;index:idx_status;comment:补货状态:1=待订货 2=部分订货 3=已订货 4=失败"`
-	FailedReason string       `gorm:"column:failed_reason;type:varchar(200);not null;default:'';comment:补货失败原因"`
-	CreatedAt    sql.NullTime `gorm:"column:created_at;autoCreateTime;comment:创建时间"`
-	UpdatedAt    sql.NullTime `gorm:"column:updated_at;autoUpdateTime;comment:更新时间"`
-	DeletedAt    sql.NullTime `gorm:"column:deleted_at;index:idx_deleted_at;comment:删除时间"`
+	ID           int64        `gorm:"primaryKey;autoIncrement;comment:ID" json:"id"`
+	UserID       int          `gorm:"column:user_id;not null;default:-1;index:idx_user_id;comment:用户ID" json:"user_id"`
+	SkuID        uint64       `gorm:"column:sku_id;not null;default:0;index:idx_sku_id;comment:SKU ID" json:"sku_id"`
+	Quantity     int32        `gorm:"column:quantity;not null;comment:补货数量" json:"quantity"`
+	Reason       string       `gorm:"column:reason;type:varchar(255);not null;comment:补货原因" json:"reason"`
+	Status       uint8        `gorm:"column:status;not null;default:1;index:idx_status;comment:补货状态:1=待订货 2=部分订货 3=已订货 4=失败" json:"status"`
+	FailedReason string       `gorm:"column:failed_reason;type:varchar(200);not null;default:'';comment:补货失败原因" json:"failed_reason"`
+	CreatedAt    sql.NullTime `gorm:"column:created_at;autoCreateTime;comment:创建时间" json:"created_at"`
+	UpdatedAt    sql.NullTime `gorm:"column:updated_at;autoUpdateTime;comment:更新时间" json:"updated_at"`
+	DeletedAt    sql.NullTime `gorm:"column:deleted_at;index:idx_deleted_at;comment:删除时间" json:"deleted_at"`
 
 	// 关联关系
-	Sku    *ProductSku       `gorm:"foreignKey:SkuID;references:ID"`
-	Audits []SkuRestockAudit `gorm:"foreignKey:RestockID;references:ID"`
+	Sku    *ProductSku       `gorm:"foreignKey:SkuID;references:ID" json:"sku"`
+	Audits []SkuRestockAudit `gorm:"foreignKey:RestockID;references:ID" json:"audits"`
 }
 
 // TableName 指定表名
