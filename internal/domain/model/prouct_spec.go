@@ -20,3 +20,8 @@ type ProductSpec struct {
 	Product    *Product    `gorm:"foreignKey:ProductID"`
 	SpecValues []SpecValue `gorm:"foreignKey:SpecID"`
 }
+
+// TableName 指定表名
+func (ProductSpec) TableName() string {
+	return "product_specs"
+}

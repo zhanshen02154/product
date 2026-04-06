@@ -15,3 +15,8 @@ type ProductBrand struct {
 	UpdatedAt time.Time      `gorm:"autoUpdateTime;comment:更新时间"`
 	DeletedAt gorm.DeletedAt `gorm:"index"`
 }
+
+// TableName 指定表名
+func (ProductBrand) TableName() string {
+	return "product_brands"
+}

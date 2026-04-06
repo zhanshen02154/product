@@ -7,3 +7,8 @@ type ProductImage struct {
 	ImageUrl       string `gorm:"type:varchar(150);not null;default:''" json:"image_url"`
 	ImageProductId int64  `gorm:"type:bigint(20);not null;default:0" json:"image_product_id"`
 }
+
+// TableName 指定表名
+func (ProductImage) TableName() string {
+	return "product_images"
+}

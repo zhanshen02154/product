@@ -24,12 +24,15 @@ type IProductApplicationService interface {
 	GetProductSkuDetail(ctx context.Context, skuID int64) (*productProto.GetProductSkuDetailResponse, error)
 	CheckSkuInventoryThreshold(ctx context.Context, skuIDs []int64, threshold uint32) (*productProto.CheckSkuInventoryThresholdResponse, error)
 	GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*productProto.GetSkuStockBySkuNoResponse, error)
+	CreateRestockApply(ctx context.Context, req *dto.CreateRestockApplyDto) (*dto.CreateRestockApplyResponseDto, error)
 }
 
 // ProductApplicationService 商品服务应用层
 type ProductApplicationService struct {
 	// 领域服务层
 	productDomainService service.IProductDataService
+	// 补货领域服务
+	skuRestockService service.ISkuRestockService
 	// 服务上下文
 	serviceContext *infrastructure.ServiceContext
 	// 事件总线
@@ -38,9 +41,18 @@ type ProductApplicationService struct {
 
 func NewProductApplicationService(serviceContext *infrastructure.ServiceContext, eb event.Listener) IProductApplicationService {
 	return &ProductApplicationService{
-		productDomainService: service.NewProductDataService(serviceContext.NewProductRepository(), serviceContext.NewOrderInventoryEventRepo(), serviceContext.NewProductSkuRepository()),
-		serviceContext:       serviceContext,
-		eb:                   eb,
+		productDomainService: service.NewProductDataService(
+			serviceContext.NewProductRepository(),
+			serviceContext.NewOrderInventoryEventRepo(),
+			serviceContext.NewProductSkuRepository(),
+			serviceContext.NewInventoryStockChangeRecordRepository(),
+		),
+		skuRestockService: service.NewSkuRestockService(
+			serviceContext.NewProductSkuRepository(),
+			serviceContext.NewSkuRestockRepository(),
+		),
+		serviceContext: serviceContext,
+		eb:             eb,
 	}
 }
 
@@ -251,4 +263,9 @@ func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Cont
 		Status:    int32(sku.Status),
 		StockWarn: sku.StockWarn,
 	}, nil
+}
+
+// CreateRestockApply 提交补货申请
+func (appService *ProductApplicationService) CreateRestockApply(ctx context.Context, req *dto.CreateRestockApplyDto) (*dto.CreateRestockApplyResponseDto, error) {
+	return appService.skuRestockService.CreateRestockApply(ctx, req)
 }

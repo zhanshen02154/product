@@ -9,6 +9,7 @@ service Product {
   rpc GetProductSkuDetail(GetProductSkuDetailRequest) returns (GetProductSkuDetailResponse){}
   rpc CheckSkuInventoryThreshold(CheckSkuInventoryThresholdRequest) returns (CheckSkuInventoryThresholdResponse){}
   rpc GetSkuStockBySkuNo(GetSkuStockBySkuNoRequest) returns (GetSkuStockBySkuNoResponse){}
+  rpc CreateRestockApply(CreateRestockApplyRequest) returns (CreateRestockApplyResponse){}
 }
 
 message ProductInfo {
@@ -97,4 +98,38 @@ message GetSkuStockBySkuNoResponse {
   uint32 stock = 3;        // 当前库存
   int32 status = 4;        // 商品状态（1上架 0下架）
   uint32 stock_warn = 5;   // 库存预警值
+}
+
+// 提交补货申请请求
+message CreateRestockApplyRequest {
+  string sku_id = 1;    // SKU编号(SkuNo)
+  int32 user_id = 2;    // 用户ID（一律为-1）
+  int32 quantity = 3;   // 补货数量（必须大于0）
+  string reason = 4;    // 补货原因
+}
+
+// 提交补货申请响应
+message CreateRestockApplyResponse {
+  RestockRecordInfo restock_record = 1;  // 补货记录信息
+  SkuBasicInfo sku_info = 2;              // SKU基本信息
+}
+
+// 补货记录信息
+message RestockRecordInfo {
+  int64 id = 1;             // 补货记录ID
+  int32 user_id = 2;        // 用户ID
+  uint64 sku_id = 3;        // SKU ID
+  int32 quantity = 4;       // 补货数量
+  string reason = 5;        // 补货原因
+  uint32 status = 6;        // 补货状态：1=待订货 2=部分订货 3=已订货 4=失败
+  string failed_reason = 7; // 失败原因
+  string created_at = 8;    // 创建时间
+}
+
+// SKU基本信息
+message SkuBasicInfo {
+  int64 id = 1;              // SKU ID
+  string sku_no = 2;         // SKU编号
+  string sku_name = 3;       // SKU名称
+  string spec_value_text = 4; // 规格值文本
 }
