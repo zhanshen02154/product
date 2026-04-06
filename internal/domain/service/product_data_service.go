@@ -23,14 +23,15 @@ type IProductDataService interface {
 }
 
 // NewProductDataService 创建
-func NewProductDataService(productRepository repository.IProductRepository, orderInventoryRepo repository.OrderInventoryEventRepository, skuRepo repository.ProductSkuRepository) IProductDataService {
-	return &ProductDataService{productRepository: productRepository, orderInventoryRepo: orderInventoryRepo, skuRepo: skuRepo}
+func NewProductDataService(productRepository repository.IProductRepository, orderInventoryRepo repository.OrderInventoryEventRepository, skuRepo repository.ProductSkuRepository, stockChangeRepo repository.InventoryStockChangeRecordRepository) IProductDataService {
+	return &ProductDataService{productRepository: productRepository, orderInventoryRepo: orderInventoryRepo, skuRepo: skuRepo, stockChangeRepo: stockChangeRepo}
 }
 
 type ProductDataService struct {
 	productRepository  repository.IProductRepository
 	orderInventoryRepo repository.OrderInventoryEventRepository
 	skuRepo            repository.ProductSkuRepository
+	stockChangeRepo    repository.InventoryStockChangeRecordRepository
 }
 
 // AddProduct 插入
@@ -71,17 +72,40 @@ func (u *ProductDataService) DeductInventory(ctx context.Context, req *order.OnP
 		OrderID: req.OrderId,
 		Sku:     make([]dto.OrderSkuItemDto, 0, skuLenth),
 	}
+
+	// 准备库存变更记录
+	stockChangeRecords := make([]*model.InventoryStockChangeRecord, 0, skuLenth)
+
 	for _, sku := range skuList {
 		err = u.skuRepo.DeductInventoryById(ctx, sku.ID, skuQuantity[sku.ID])
 		if err != nil {
 			return nil, status.Error(codes.Internal, err.Error())
 		}
+
+		afterStock := sku.Stock - skuQuantity[sku.ID]
 		orderSkuDto.Sku = append(orderSkuDto.Sku, dto.OrderSkuItemDto{
 			SkuID:     sku.ID,
 			Quantity:  skuQuantity[sku.ID],
-			Stock:     sku.Stock - skuQuantity[sku.ID],
+			Stock:     afterStock,
 			Threshold: sku.StockWarn,
 		})
+
+		// 构建库存变更记录
+		stockChangeRecords = append(stockChangeRecords, &model.InventoryStockChangeRecord{
+			OrderID:     req.OrderId,
+			SkuID:       sku.ID,
+			SourceType:  model.SourceTypeOrderPayment,
+			Quantity:    int64(skuQuantity[sku.ID]),
+			BeforeStock: int64(sku.Stock),
+			AfterStock:  int64(afterStock),
+		})
+	}
+
+	// 批量写入库存变更记录
+	if len(stockChangeRecords) > 0 {
+		if err = u.stockChangeRepo.BatchCreate(ctx, stockChangeRecords); err != nil {
+			return nil, status.Error(codes.Internal, "failed to create stock change records: "+err.Error())
+		}
 	}
 
 	if ok {

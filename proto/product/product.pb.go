@@ -815,6 +815,298 @@ func (x *GetSkuStockBySkuNoResponse) GetStockWarn() uint32 {
 	return 0
 }
 
+// 提交补货申请请求
+type CreateRestockApplyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuId         string                 `protobuf:"bytes,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`     // SKU编号(SkuNo)
+	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 用户ID（一律为-1）
+	Quantity      int32                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`           // 补货数量（必须大于0）
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`                // 补货原因
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateRestockApplyRequest) Reset() {
+	*x = CreateRestockApplyRequest{}
+	mi := &file_product_product_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateRestockApplyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateRestockApplyRequest) ProtoMessage() {}
+
+func (x *CreateRestockApplyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateRestockApplyRequest.ProtoReflect.Descriptor instead.
+func (*CreateRestockApplyRequest) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *CreateRestockApplyRequest) GetSkuId() string {
+	if x != nil {
+		return x.SkuId
+	}
+	return ""
+}
+
+func (x *CreateRestockApplyRequest) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CreateRestockApplyRequest) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *CreateRestockApplyRequest) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+// 提交补货申请响应
+type CreateRestockApplyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RestockRecord *RestockRecordInfo     `protobuf:"bytes,1,opt,name=restock_record,json=restockRecord,proto3" json:"restock_record,omitempty"` // 补货记录信息
+	SkuInfo       *SkuBasicInfo          `protobuf:"bytes,2,opt,name=sku_info,json=skuInfo,proto3" json:"sku_info,omitempty"`                   // SKU基本信息
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateRestockApplyResponse) Reset() {
+	*x = CreateRestockApplyResponse{}
+	mi := &file_product_product_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateRestockApplyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateRestockApplyResponse) ProtoMessage() {}
+
+func (x *CreateRestockApplyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateRestockApplyResponse.ProtoReflect.Descriptor instead.
+func (*CreateRestockApplyResponse) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CreateRestockApplyResponse) GetRestockRecord() *RestockRecordInfo {
+	if x != nil {
+		return x.RestockRecord
+	}
+	return nil
+}
+
+func (x *CreateRestockApplyResponse) GetSkuInfo() *SkuBasicInfo {
+	if x != nil {
+		return x.SkuInfo
+	}
+	return nil
+}
+
+// 补货记录信息
+type RestockRecordInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                        // 补货记录ID
+	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                  // 用户ID
+	SkuId         uint64                 `protobuf:"varint,3,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                     // SKU ID
+	Quantity      int32                  `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`                            // 补货数量
+	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`                                 // 补货原因
+	Status        uint32                 `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`                                // 补货状态：1=待订货 2=部分订货 3=已订货 4=失败
+	FailedReason  string                 `protobuf:"bytes,7,opt,name=failed_reason,json=failedReason,proto3" json:"failed_reason,omitempty"` // 失败原因
+	CreatedAt     string                 `protobuf:"bytes,8,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`          // 创建时间
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *RestockRecordInfo) Reset() {
+	*x = RestockRecordInfo{}
+	mi := &file_product_product_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestockRecordInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestockRecordInfo) ProtoMessage() {}
+
+func (x *RestockRecordInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestockRecordInfo.ProtoReflect.Descriptor instead.
+func (*RestockRecordInfo) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *RestockRecordInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RestockRecordInfo) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *RestockRecordInfo) GetSkuId() uint64 {
+	if x != nil {
+		return x.SkuId
+	}
+	return 0
+}
+
+func (x *RestockRecordInfo) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *RestockRecordInfo) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *RestockRecordInfo) GetStatus() uint32 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *RestockRecordInfo) GetFailedReason() string {
+	if x != nil {
+		return x.FailedReason
+	}
+	return ""
+}
+
+func (x *RestockRecordInfo) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+// SKU基本信息
+type SkuBasicInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                             // SKU ID
+	SkuNo         string                 `protobuf:"bytes,2,opt,name=sku_no,json=skuNo,proto3" json:"sku_no,omitempty"`                           // SKU编号
+	SkuName       string                 `protobuf:"bytes,3,opt,name=sku_name,json=skuName,proto3" json:"sku_name,omitempty"`                     // SKU名称
+	SpecValueText string                 `protobuf:"bytes,4,opt,name=spec_value_text,json=specValueText,proto3" json:"spec_value_text,omitempty"` // 规格值文本
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SkuBasicInfo) Reset() {
+	*x = SkuBasicInfo{}
+	mi := &file_product_product_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SkuBasicInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SkuBasicInfo) ProtoMessage() {}
+
+func (x *SkuBasicInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SkuBasicInfo.ProtoReflect.Descriptor instead.
+func (*SkuBasicInfo) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SkuBasicInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SkuBasicInfo) GetSkuNo() string {
+	if x != nil {
+		return x.SkuNo
+	}
+	return ""
+}
+
+func (x *SkuBasicInfo) GetSkuName() string {
+	if x != nil {
+		return x.SkuName
+	}
+	return ""
+}
+
+func (x *SkuBasicInfo) GetSpecValueText() string {
+	if x != nil {
+		return x.SpecValueText
+	}
+	return ""
+}
+
 var File_product_product_proto protoreflect.FileDescriptor
 
 const file_product_product_proto_rawDesc = "" +
@@ -890,13 +1182,37 @@ const file_product_product_proto_rawDesc = "" +
 	"\x05stock\x18\x03 \x01(\rR\x05stock\x12\x16\n" +
 	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1d\n" +
 	"\n" +
-	"stock_warn\x18\x05 \x01(\rR\tstockWarn2\xd0\x03\n" +
+	"stock_warn\x18\x05 \x01(\rR\tstockWarn\"\x7f\n" +
+	"\x19CreateRestockApplyRequest\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x1a\n" +
+	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\"\xa3\x01\n" +
+	"\x1aCreateRestockApplyResponse\x12J\n" +
+	"\x0erestock_record\x18\x01 \x01(\v2#.go.micro.service.RestockRecordInfoR\rrestockRecord\x129\n" +
+	"\bsku_info\x18\x02 \x01(\v2\x1e.go.micro.service.SkuBasicInfoR\askuInfo\"\xe3\x01\n" +
+	"\x11RestockRecordInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x15\n" +
+	"\x06sku_id\x18\x03 \x01(\x04R\x05skuId\x12\x1a\n" +
+	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x16\n" +
+	"\x06reason\x18\x05 \x01(\tR\x06reason\x12\x16\n" +
+	"\x06status\x18\x06 \x01(\rR\x06status\x12#\n" +
+	"\rfailed_reason\x18\a \x01(\tR\ffailedReason\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\b \x01(\tR\tcreatedAt\"x\n" +
+	"\fSkuBasicInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
+	"\x06sku_no\x18\x02 \x01(\tR\x05skuNo\x12\x19\n" +
+	"\bsku_name\x18\x03 \x01(\tR\askuName\x12&\n" +
+	"\x0fspec_value_text\x18\x04 \x01(\tR\rspecValueText2\xc3\x04\n" +
 	"\aProduct\x12P\n" +
 	"\n" +
 	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00\x12t\n" +
 	"\x13GetProductSkuDetail\x12,.go.micro.service.GetProductSkuDetailRequest\x1a-.go.micro.service.GetProductSkuDetailResponse\"\x00\x12\x89\x01\n" +
 	"\x1aCheckSkuInventoryThreshold\x123.go.micro.service.CheckSkuInventoryThresholdRequest\x1a4.go.micro.service.CheckSkuInventoryThresholdResponse\"\x00\x12q\n" +
-	"\x12GetSkuStockBySkuNo\x12+.go.micro.service.GetSkuStockBySkuNoRequest\x1a,.go.micro.service.GetSkuStockBySkuNoResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
+	"\x12GetSkuStockBySkuNo\x12+.go.micro.service.GetSkuStockBySkuNoRequest\x1a,.go.micro.service.GetSkuStockBySkuNoResponse\"\x00\x12q\n" +
+	"\x12CreateRestockApply\x12+.go.micro.service.CreateRestockApplyRequest\x1a,.go.micro.service.CreateRestockApplyResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
 
 var (
 	file_product_product_proto_rawDescOnce sync.Once
@@ -910,7 +1226,7 @@ func file_product_product_proto_rawDescGZIP() []byte {
 	return file_product_product_proto_rawDescData
 }
 
-var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_product_product_proto_goTypes = []any{
 	(*ProductInfo)(nil),                        // 0: go.micro.service.ProductInfo
 	(*ResponseProduct)(nil),                    // 1: go.micro.service.ResponseProduct
@@ -923,24 +1239,32 @@ var file_product_product_proto_goTypes = []any{
 	(*CheckSkuInventoryThresholdResponse)(nil), // 8: go.micro.service.CheckSkuInventoryThresholdResponse
 	(*GetSkuStockBySkuNoRequest)(nil),          // 9: go.micro.service.GetSkuStockBySkuNoRequest
 	(*GetSkuStockBySkuNoResponse)(nil),         // 10: go.micro.service.GetSkuStockBySkuNoResponse
+	(*CreateRestockApplyRequest)(nil),          // 11: go.micro.service.CreateRestockApplyRequest
+	(*CreateRestockApplyResponse)(nil),         // 12: go.micro.service.CreateRestockApplyResponse
+	(*RestockRecordInfo)(nil),                  // 13: go.micro.service.RestockRecordInfo
+	(*SkuBasicInfo)(nil),                       // 14: go.micro.service.SkuBasicInfo
 }
 var file_product_product_proto_depIdxs = []int32{
 	4,  // 0: go.micro.service.GetProductSkuDetailResponse.product:type_name -> go.micro.service.ProductBasicInfo
 	5,  // 1: go.micro.service.GetProductSkuDetailResponse.images:type_name -> go.micro.service.SkuImageInfo
 	7,  // 2: go.micro.service.CheckSkuInventoryThresholdResponse.results:type_name -> go.micro.service.SkuInventoryCheckResult
-	0,  // 3: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
-	2,  // 4: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
-	6,  // 5: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
-	9,  // 6: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
-	1,  // 7: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
-	3,  // 8: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
-	8,  // 9: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
-	10, // 10: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
-	7,  // [7:11] is the sub-list for method output_type
-	3,  // [3:7] is the sub-list for method input_type
-	3,  // [3:3] is the sub-list for extension type_name
-	3,  // [3:3] is the sub-list for extension extendee
-	0,  // [0:3] is the sub-list for field type_name
+	13, // 3: go.micro.service.CreateRestockApplyResponse.restock_record:type_name -> go.micro.service.RestockRecordInfo
+	14, // 4: go.micro.service.CreateRestockApplyResponse.sku_info:type_name -> go.micro.service.SkuBasicInfo
+	0,  // 5: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
+	2,  // 6: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
+	6,  // 7: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
+	9,  // 8: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
+	11, // 9: go.micro.service.Product.CreateRestockApply:input_type -> go.micro.service.CreateRestockApplyRequest
+	1,  // 10: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
+	3,  // 11: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
+	8,  // 12: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
+	10, // 13: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
+	12, // 14: go.micro.service.Product.CreateRestockApply:output_type -> go.micro.service.CreateRestockApplyResponse
+	10, // [10:15] is the sub-list for method output_type
+	5,  // [5:10] is the sub-list for method input_type
+	5,  // [5:5] is the sub-list for extension type_name
+	5,  // [5:5] is the sub-list for extension extendee
+	0,  // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_product_product_proto_init() }
@@ -954,7 +1278,7 @@ func file_product_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_product_product_proto_rawDesc), len(file_product_product_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   11,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -12,3 +12,8 @@ type ProductSize struct {
 	CreatedAt     time.Time `gorm:"type:datetime;comment:'创建时间'" json:"created_at"`
 	UpdatedAt     time.Time `gorm:"type:datetime;comment:'更新时间'" json:"updated_at"`
 }
+
+// TableName 指定表名
+func (ProductSize) TableName() string {
+	return "product_sizes"
+}

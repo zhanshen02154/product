@@ -20,3 +20,8 @@ type ProductCategory struct {
 	Parent        *ProductCategory  `gorm:"foreignKey:ParentID"`
 	SubCategories []ProductCategory `gorm:"foreignKey:ParentID"`
 }
+
+// TableName 指定表名
+func (ProductCategory) TableName() string {
+	return "product_categories"
+}

@@ -20,3 +20,8 @@ type SpecValue struct {
 	// 关联关系
 	Spec *ProductSpec `gorm:"foreignKey:SpecID"`
 }
+
+// TableName 指定表名
+func (SpecValue) TableName() string {
+	return "spec_values"
+}

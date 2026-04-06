@@ -146,6 +146,55 @@ func (h *ProductHandler) GetSkuStockBySkuNo(ctx context.Context, req *product.Ge
 	return nil
 }
 
+// CreateRestockApply
+//
+//	@Description: 提交补货申请
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) CreateRestockApply(ctx context.Context, req *product.CreateRestockApplyRequest, resp *product.CreateRestockApplyResponse) error {
+	// 构建DTO
+	applyDto := &dto.CreateRestockApplyDto{
+		SkuID:    req.SkuId,
+		UserID:   req.UserId,
+		Quantity: req.Quantity,
+		Reason:   req.Reason,
+	}
+
+	// 调用应用服务
+	response, err := h.ProductApplicationService.CreateRestockApply(ctx, applyDto)
+	if err != nil {
+		return err
+	}
+
+	// 构建响应
+	if response.RestockRecord != nil {
+		resp.RestockRecord = &product.RestockRecordInfo{
+			Id:           response.RestockRecord.ID,
+			UserId:       response.RestockRecord.UserID,
+			SkuId:        response.RestockRecord.SkuID,
+			Quantity:     response.RestockRecord.Quantity,
+			Reason:       response.RestockRecord.Reason,
+			Status:       uint32(response.RestockRecord.Status),
+			FailedReason: response.RestockRecord.FailedReason,
+			CreatedAt:    response.RestockRecord.CreatedAt,
+		}
+	}
+
+	if response.SkuInfo != nil {
+		resp.SkuInfo = &product.SkuBasicInfo{
+			Id:            response.SkuInfo.ID,
+			SkuNo:         response.SkuInfo.SkuNo,
+			SkuName:       response.SkuInfo.SkuName,
+			SpecValueText: response.SkuInfo.SpecValueText,
+		}
+	}
+
+	return nil
+}
+
 // NewProductHandler 创建Handler
 func NewProductHandler(appService service.IProductApplicationService) product.ProductHandler {
 	return &ProductHandler{
