@@ -37,10 +37,15 @@ func (s *ProductSkuRepositoryImpl) BatchGetSkuByIDsWithFields(ctx context.Contex
 	return results, nil
 }
 
-// DeductInventoryById 根据ID扣减库存
+// DeductInventoryById 根据ID扣减库存并增加销量
 func (s *ProductSkuRepositoryImpl) DeductInventoryById(ctx context.Context, id int64, count uint32) error {
 	db := GetDBFromContext(ctx, s.db)
-	tx := db.Model(model.ProductSku{}).Where("id = ?", id).Update("stock", gorm.Expr("stock - ?", count))
+	tx := db.Model(model.ProductSku{}).
+		Where("id = ?", id).
+		Updates(map[string]interface{}{
+			"stock": gorm.Expr("stock - ?", count),
+			"sales": gorm.Expr("sales + ?", count),
+		})
 	if err := tx.Error; err != nil {
 		return err
 	}
