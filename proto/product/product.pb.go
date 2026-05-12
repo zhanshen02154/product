@@ -741,11 +741,12 @@ func (x *GetSkuStockBySkuNoRequest) GetSkuId() string {
 // 根据SKU编号查询库存响应
 type GetSkuStockBySkuNoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SkuId         string                 `protobuf:"bytes,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`              // SKU编号
-	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                             // SKU名称
-	Stock         uint32                 `protobuf:"varint,3,opt,name=stock,proto3" json:"stock,omitempty"`                          // 当前库存
-	Status        int32                  `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
-	StockWarn     uint32                 `protobuf:"varint,5,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
+	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                // SKU ID
+	SkuId         string                 `protobuf:"bytes,2,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`              // SKU编号
+	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`                             // SKU名称
+	Stock         uint32                 `protobuf:"varint,4,opt,name=stock,proto3" json:"stock,omitempty"`                          // 当前库存
+	Status        int32                  `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
+	StockWarn     uint32                 `protobuf:"varint,6,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -778,6 +779,13 @@ func (x *GetSkuStockBySkuNoResponse) ProtoReflect() protoreflect.Message {
 // Deprecated: Use GetSkuStockBySkuNoResponse.ProtoReflect.Descriptor instead.
 func (*GetSkuStockBySkuNoResponse) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetId() uint64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
 }
 
 func (x *GetSkuStockBySkuNoResponse) GetSkuId() string {
@@ -1107,6 +1115,651 @@ func (x *SkuBasicInfo) GetSpecValueText() string {
 	return ""
 }
 
+// 查询SKU销量请求
+type GetSkuSalesVolumeRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuId         int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`            // SKU ID
+	StartTime     string                 `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"` // 开始时间（格式：2006-01-02 15:04:05），不填则默认为当天00:00:00
+	EndTime       string                 `protobuf:"bytes,3,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`       // 结束时间（格式：2006-01-02 15:04:05），不填则默认为当天23:59:59
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkuSalesVolumeRequest) Reset() {
+	*x = GetSkuSalesVolumeRequest{}
+	mi := &file_product_product_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkuSalesVolumeRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkuSalesVolumeRequest) ProtoMessage() {}
+
+func (x *GetSkuSalesVolumeRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkuSalesVolumeRequest.ProtoReflect.Descriptor instead.
+func (*GetSkuSalesVolumeRequest) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetSkuSalesVolumeRequest) GetSkuId() int64 {
+	if x != nil {
+		return x.SkuId
+	}
+	return 0
+}
+
+func (x *GetSkuSalesVolumeRequest) GetStartTime() string {
+	if x != nil {
+		return x.StartTime
+	}
+	return ""
+}
+
+func (x *GetSkuSalesVolumeRequest) GetEndTime() string {
+	if x != nil {
+		return x.EndTime
+	}
+	return ""
+}
+
+// 查询SKU销量响应
+type GetSkuSalesVolumeResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuId         int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                            // SKU ID
+	SalesVolume   int64                  `protobuf:"varint,2,opt,name=sales_volume,json=salesVolume,proto3" json:"sales_volume,omitempty"`          // 销量
+	DailyAvgSales float64                `protobuf:"fixed64,3,opt,name=daily_avg_sales,json=dailyAvgSales,proto3" json:"daily_avg_sales,omitempty"` // 日均销量
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkuSalesVolumeResponse) Reset() {
+	*x = GetSkuSalesVolumeResponse{}
+	mi := &file_product_product_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkuSalesVolumeResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkuSalesVolumeResponse) ProtoMessage() {}
+
+func (x *GetSkuSalesVolumeResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkuSalesVolumeResponse.ProtoReflect.Descriptor instead.
+func (*GetSkuSalesVolumeResponse) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *GetSkuSalesVolumeResponse) GetSkuId() int64 {
+	if x != nil {
+		return x.SkuId
+	}
+	return 0
+}
+
+func (x *GetSkuSalesVolumeResponse) GetSalesVolume() int64 {
+	if x != nil {
+		return x.SalesVolume
+	}
+	return 0
+}
+
+func (x *GetSkuSalesVolumeResponse) GetDailyAvgSales() float64 {
+	if x != nil {
+		return x.DailyAvgSales
+	}
+	return 0
+}
+
+// 获取供应商信息请求
+type GetSupplierInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuId         int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"` // SKU ID
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSupplierInfoRequest) Reset() {
+	*x = GetSupplierInfoRequest{}
+	mi := &file_product_product_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSupplierInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSupplierInfoRequest) ProtoMessage() {}
+
+func (x *GetSupplierInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSupplierInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetSupplierInfoRequest) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *GetSupplierInfoRequest) GetSkuId() int64 {
+	if x != nil {
+		return x.SkuId
+	}
+	return 0
+}
+
+// 供应商信息项
+type SupplierInfoItem struct {
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	SkuId            int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                                    // SKU ID
+	SupplierId       int64                  `protobuf:"varint,2,opt,name=supplier_id,json=supplierId,proto3" json:"supplier_id,omitempty"`                     // 供应商 ID
+	SupplyPrice      float64                `protobuf:"fixed64,3,opt,name=supply_price,json=supplyPrice,proto3" json:"supply_price,omitempty"`                 // 供应价
+	MinOrderQuantity int32                  `protobuf:"varint,4,opt,name=min_order_quantity,json=minOrderQuantity,proto3" json:"min_order_quantity,omitempty"` // 最小起订量
+	IsPreferred      bool                   `protobuf:"varint,5,opt,name=is_preferred,json=isPreferred,proto3" json:"is_preferred,omitempty"`                  // 是否首选
+	Supplier         *SupplierDTO           `protobuf:"bytes,6,opt,name=supplier,proto3" json:"supplier,omitempty"`                                            // 供应商信息
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
+}
+
+func (x *SupplierInfoItem) Reset() {
+	*x = SupplierInfoItem{}
+	mi := &file_product_product_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SupplierInfoItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SupplierInfoItem) ProtoMessage() {}
+
+func (x *SupplierInfoItem) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SupplierInfoItem.ProtoReflect.Descriptor instead.
+func (*SupplierInfoItem) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *SupplierInfoItem) GetSkuId() int64 {
+	if x != nil {
+		return x.SkuId
+	}
+	return 0
+}
+
+func (x *SupplierInfoItem) GetSupplierId() int64 {
+	if x != nil {
+		return x.SupplierId
+	}
+	return 0
+}
+
+func (x *SupplierInfoItem) GetSupplyPrice() float64 {
+	if x != nil {
+		return x.SupplyPrice
+	}
+	return 0
+}
+
+func (x *SupplierInfoItem) GetMinOrderQuantity() int32 {
+	if x != nil {
+		return x.MinOrderQuantity
+	}
+	return 0
+}
+
+func (x *SupplierInfoItem) GetIsPreferred() bool {
+	if x != nil {
+		return x.IsPreferred
+	}
+	return false
+}
+
+func (x *SupplierInfoItem) GetSupplier() *SupplierDTO {
+	if x != nil {
+		return x.Supplier
+	}
+	return nil
+}
+
+// 供应商数据传输对象
+type SupplierDTO struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                           // 供应商 ID
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                                        // 名称
+	ContactPerson string                 `protobuf:"bytes,3,opt,name=contact_person,json=contactPerson,proto3" json:"contact_person,omitempty"` // 联系人
+	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`                                      // 联系电话
+	Email         string                 `protobuf:"bytes,5,opt,name=email,proto3" json:"email,omitempty"`                                      // 电子邮件
+	Address       string                 `protobuf:"bytes,6,opt,name=address,proto3" json:"address,omitempty"`                                  // 地址
+	Rating        float64                `protobuf:"fixed64,7,opt,name=rating,proto3" json:"rating,omitempty"`                                  // 供应商评级
+	LeadTimeDays  int32                  `protobuf:"varint,8,opt,name=lead_time_days,json=leadTimeDays,proto3" json:"lead_time_days,omitempty"` // 交货周期（天）
+	PaymentTerms  string                 `protobuf:"bytes,9,opt,name=payment_terms,json=paymentTerms,proto3" json:"payment_terms,omitempty"`    // 支付条款
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SupplierDTO) Reset() {
+	*x = SupplierDTO{}
+	mi := &file_product_product_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SupplierDTO) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SupplierDTO) ProtoMessage() {}
+
+func (x *SupplierDTO) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SupplierDTO.ProtoReflect.Descriptor instead.
+func (*SupplierDTO) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *SupplierDTO) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SupplierDTO) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *SupplierDTO) GetContactPerson() string {
+	if x != nil {
+		return x.ContactPerson
+	}
+	return ""
+}
+
+func (x *SupplierDTO) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
+func (x *SupplierDTO) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *SupplierDTO) GetAddress() string {
+	if x != nil {
+		return x.Address
+	}
+	return ""
+}
+
+func (x *SupplierDTO) GetRating() float64 {
+	if x != nil {
+		return x.Rating
+	}
+	return 0
+}
+
+func (x *SupplierDTO) GetLeadTimeDays() int32 {
+	if x != nil {
+		return x.LeadTimeDays
+	}
+	return 0
+}
+
+func (x *SupplierDTO) GetPaymentTerms() string {
+	if x != nil {
+		return x.PaymentTerms
+	}
+	return ""
+}
+
+// 获取供应商信息响应
+type GetSupplierInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Suppliers     []*SupplierInfoItem    `protobuf:"bytes,1,rep,name=suppliers,proto3" json:"suppliers,omitempty"` // 供应商列表
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSupplierInfoResponse) Reset() {
+	*x = GetSupplierInfoResponse{}
+	mi := &file_product_product_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSupplierInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSupplierInfoResponse) ProtoMessage() {}
+
+func (x *GetSupplierInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSupplierInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetSupplierInfoResponse) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetSupplierInfoResponse) GetSuppliers() []*SupplierInfoItem {
+	if x != nil {
+		return x.Suppliers
+	}
+	return nil
+}
+
+// 获取补货申请信息请求
+type GetRestockApplyInfoRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApplicationNo string                 `protobuf:"bytes,1,opt,name=application_no,json=applicationNo,proto3" json:"application_no,omitempty"` // 业务流水号
+	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                     // 用户ID
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRestockApplyInfoRequest) Reset() {
+	*x = GetRestockApplyInfoRequest{}
+	mi := &file_product_product_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRestockApplyInfoRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRestockApplyInfoRequest) ProtoMessage() {}
+
+func (x *GetRestockApplyInfoRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRestockApplyInfoRequest.ProtoReflect.Descriptor instead.
+func (*GetRestockApplyInfoRequest) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetRestockApplyInfoRequest) GetApplicationNo() string {
+	if x != nil {
+		return x.ApplicationNo
+	}
+	return ""
+}
+
+func (x *GetRestockApplyInfoRequest) GetUserId() int32 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+// 补货审核信息
+type RestockAuditInfo struct {
+	state             protoimpl.MessageState `protogen:"open.v1"`
+	Id                int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                                         // ID
+	RestockId         int64                  `protobuf:"varint,2,opt,name=restock_id,json=restockId,proto3" json:"restock_id,omitempty"`                          // 补货记录ID
+	AuditUserId       uint32                 `protobuf:"varint,3,opt,name=audit_user_id,json=auditUserId,proto3" json:"audit_user_id,omitempty"`                  // 审核用户ID
+	AuditStatus       uint32                 `protobuf:"varint,4,opt,name=audit_status,json=auditStatus,proto3" json:"audit_status,omitempty"`                    // 审核状态：1=待审核 2=审核成功 3=审核失败
+	AuditFailedReason string                 `protobuf:"bytes,5,opt,name=audit_failed_reason,json=auditFailedReason,proto3" json:"audit_failed_reason,omitempty"` // 审核失败原因
+	CreatedAt         string                 `protobuf:"bytes,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`                           // 创建时间
+	UpdatedAt         string                 `protobuf:"bytes,7,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`                           // 更新时间
+	unknownFields     protoimpl.UnknownFields
+	sizeCache         protoimpl.SizeCache
+}
+
+func (x *RestockAuditInfo) Reset() {
+	*x = RestockAuditInfo{}
+	mi := &file_product_product_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *RestockAuditInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*RestockAuditInfo) ProtoMessage() {}
+
+func (x *RestockAuditInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use RestockAuditInfo.ProtoReflect.Descriptor instead.
+func (*RestockAuditInfo) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *RestockAuditInfo) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *RestockAuditInfo) GetRestockId() int64 {
+	if x != nil {
+		return x.RestockId
+	}
+	return 0
+}
+
+func (x *RestockAuditInfo) GetAuditUserId() uint32 {
+	if x != nil {
+		return x.AuditUserId
+	}
+	return 0
+}
+
+func (x *RestockAuditInfo) GetAuditStatus() uint32 {
+	if x != nil {
+		return x.AuditStatus
+	}
+	return 0
+}
+
+func (x *RestockAuditInfo) GetAuditFailedReason() string {
+	if x != nil {
+		return x.AuditFailedReason
+	}
+	return ""
+}
+
+func (x *RestockAuditInfo) GetCreatedAt() string {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return ""
+}
+
+func (x *RestockAuditInfo) GetUpdatedAt() string {
+	if x != nil {
+		return x.UpdatedAt
+	}
+	return ""
+}
+
+// 获取补货申请信息响应
+type GetRestockApplyInfoResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                           // ID
+	SkuId         int64                  `protobuf:"varint,2,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                        // SKU ID
+	Quantity      int32                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`                               // 补货数量
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`                                    // 补货原因
+	Status        uint32                 `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`                                   // 状态（补货状态：1=待订货 2=部分订货 3=已订货 4=失败）
+	ApplicationNo string                 `protobuf:"bytes,6,opt,name=application_no,json=applicationNo,proto3" json:"application_no,omitempty"` // 业务流水号
+	Audit         *RestockAuditInfo      `protobuf:"bytes,7,opt,name=audit,proto3" json:"audit,omitempty"`                                      // 最新一条审核信息
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRestockApplyInfoResponse) Reset() {
+	*x = GetRestockApplyInfoResponse{}
+	mi := &file_product_product_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRestockApplyInfoResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRestockApplyInfoResponse) ProtoMessage() {}
+
+func (x *GetRestockApplyInfoResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRestockApplyInfoResponse.ProtoReflect.Descriptor instead.
+func (*GetRestockApplyInfoResponse) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetRestockApplyInfoResponse) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *GetRestockApplyInfoResponse) GetSkuId() int64 {
+	if x != nil {
+		return x.SkuId
+	}
+	return 0
+}
+
+func (x *GetRestockApplyInfoResponse) GetQuantity() int32 {
+	if x != nil {
+		return x.Quantity
+	}
+	return 0
+}
+
+func (x *GetRestockApplyInfoResponse) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
+func (x *GetRestockApplyInfoResponse) GetStatus() uint32 {
+	if x != nil {
+		return x.Status
+	}
+	return 0
+}
+
+func (x *GetRestockApplyInfoResponse) GetApplicationNo() string {
+	if x != nil {
+		return x.ApplicationNo
+	}
+	return ""
+}
+
+func (x *GetRestockApplyInfoResponse) GetAudit() *RestockAuditInfo {
+	if x != nil {
+		return x.Audit
+	}
+	return nil
+}
+
 var File_product_product_proto protoreflect.FileDescriptor
 
 const file_product_product_proto_rawDesc = "" +
@@ -1175,14 +1828,15 @@ const file_product_product_proto_rawDesc = "" +
 	"\"CheckSkuInventoryThresholdResponse\x12C\n" +
 	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults\"2\n" +
 	"\x19GetSkuStockBySkuNoRequest\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\"\x94\x01\n" +
-	"\x1aGetSkuStockBySkuNoResponse\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\x12\x12\n" +
-	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
-	"\x05stock\x18\x03 \x01(\rR\x05stock\x12\x16\n" +
-	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1d\n" +
+	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\"\xa4\x01\n" +
+	"\x1aGetSkuStockBySkuNoResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x15\n" +
+	"\x06sku_id\x18\x02 \x01(\tR\x05skuId\x12\x12\n" +
+	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
+	"\x05stock\x18\x04 \x01(\rR\x05stock\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\x05R\x06status\x12\x1d\n" +
 	"\n" +
-	"stock_warn\x18\x05 \x01(\rR\tstockWarn\"\x7f\n" +
+	"stock_warn\x18\x06 \x01(\rR\tstockWarn\"\x7f\n" +
 	"\x19CreateRestockApplyRequest\x12\x15\n" +
 	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x1a\n" +
@@ -1205,14 +1859,70 @@ const file_product_product_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
 	"\x06sku_no\x18\x02 \x01(\tR\x05skuNo\x12\x19\n" +
 	"\bsku_name\x18\x03 \x01(\tR\askuName\x12&\n" +
-	"\x0fspec_value_text\x18\x04 \x01(\tR\rspecValueText2\xc3\x04\n" +
+	"\x0fspec_value_text\x18\x04 \x01(\tR\rspecValueText\"k\n" +
+	"\x18GetSkuSalesVolumeRequest\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\x12\x1d\n" +
+	"\n" +
+	"start_time\x18\x02 \x01(\tR\tstartTime\x12\x19\n" +
+	"\bend_time\x18\x03 \x01(\tR\aendTime\"}\n" +
+	"\x19GetSkuSalesVolumeResponse\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\x12!\n" +
+	"\fsales_volume\x18\x02 \x01(\x03R\vsalesVolume\x12&\n" +
+	"\x0fdaily_avg_sales\x18\x03 \x01(\x01R\rdailyAvgSales\"/\n" +
+	"\x16GetSupplierInfoRequest\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\"\xf9\x01\n" +
+	"\x10SupplierInfoItem\x12\x15\n" +
+	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\x12\x1f\n" +
+	"\vsupplier_id\x18\x02 \x01(\x03R\n" +
+	"supplierId\x12!\n" +
+	"\fsupply_price\x18\x03 \x01(\x01R\vsupplyPrice\x12,\n" +
+	"\x12min_order_quantity\x18\x04 \x01(\x05R\x10minOrderQuantity\x12!\n" +
+	"\fis_preferred\x18\x05 \x01(\bR\visPreferred\x129\n" +
+	"\bsupplier\x18\x06 \x01(\v2\x1d.go.micro.service.SupplierDTOR\bsupplier\"\x81\x02\n" +
+	"\vSupplierDTO\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12%\n" +
+	"\x0econtact_person\x18\x03 \x01(\tR\rcontactPerson\x12\x14\n" +
+	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x14\n" +
+	"\x05email\x18\x05 \x01(\tR\x05email\x12\x18\n" +
+	"\aaddress\x18\x06 \x01(\tR\aaddress\x12\x16\n" +
+	"\x06rating\x18\a \x01(\x01R\x06rating\x12$\n" +
+	"\x0elead_time_days\x18\b \x01(\x05R\fleadTimeDays\x12#\n" +
+	"\rpayment_terms\x18\t \x01(\tR\fpaymentTerms\"[\n" +
+	"\x17GetSupplierInfoResponse\x12@\n" +
+	"\tsuppliers\x18\x01 \x03(\v2\".go.micro.service.SupplierInfoItemR\tsuppliers\"\\\n" +
+	"\x1aGetRestockApplyInfoRequest\x12%\n" +
+	"\x0eapplication_no\x18\x01 \x01(\tR\rapplicationNo\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x05R\x06userId\"\xf6\x01\n" +
+	"\x10RestockAuditInfo\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
+	"\n" +
+	"restock_id\x18\x02 \x01(\x03R\trestockId\x12\"\n" +
+	"\raudit_user_id\x18\x03 \x01(\rR\vauditUserId\x12!\n" +
+	"\faudit_status\x18\x04 \x01(\rR\vauditStatus\x12.\n" +
+	"\x13audit_failed_reason\x18\x05 \x01(\tR\x11auditFailedReason\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
+	"\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\"\xf1\x01\n" +
+	"\x1bGetRestockApplyInfoResponse\x12\x0e\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
+	"\x06sku_id\x18\x02 \x01(\x03R\x05skuId\x12\x1a\n" +
+	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x16\n" +
+	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x16\n" +
+	"\x06status\x18\x05 \x01(\rR\x06status\x12%\n" +
+	"\x0eapplication_no\x18\x06 \x01(\tR\rapplicationNo\x128\n" +
+	"\x05audit\x18\a \x01(\v2\".go.micro.service.RestockAuditInfoR\x05audit2\x93\a\n" +
 	"\aProduct\x12P\n" +
 	"\n" +
 	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00\x12t\n" +
 	"\x13GetProductSkuDetail\x12,.go.micro.service.GetProductSkuDetailRequest\x1a-.go.micro.service.GetProductSkuDetailResponse\"\x00\x12\x89\x01\n" +
 	"\x1aCheckSkuInventoryThreshold\x123.go.micro.service.CheckSkuInventoryThresholdRequest\x1a4.go.micro.service.CheckSkuInventoryThresholdResponse\"\x00\x12q\n" +
 	"\x12GetSkuStockBySkuNo\x12+.go.micro.service.GetSkuStockBySkuNoRequest\x1a,.go.micro.service.GetSkuStockBySkuNoResponse\"\x00\x12q\n" +
-	"\x12CreateRestockApply\x12+.go.micro.service.CreateRestockApplyRequest\x1a,.go.micro.service.CreateRestockApplyResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
+	"\x12CreateRestockApply\x12+.go.micro.service.CreateRestockApplyRequest\x1a,.go.micro.service.CreateRestockApplyResponse\"\x00\x12n\n" +
+	"\x11GetSkuSalesVolume\x12*.go.micro.service.GetSkuSalesVolumeRequest\x1a+.go.micro.service.GetSkuSalesVolumeResponse\"\x00\x12h\n" +
+	"\x0fGetSupplierInfo\x12(.go.micro.service.GetSupplierInfoRequest\x1a).go.micro.service.GetSupplierInfoResponse\"\x00\x12t\n" +
+	"\x13GetRestockApplyInfo\x12,.go.micro.service.GetRestockApplyInfoRequest\x1a-.go.micro.service.GetRestockApplyInfoResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
 
 var (
 	file_product_product_proto_rawDescOnce sync.Once
@@ -1226,7 +1936,7 @@ func file_product_product_proto_rawDescGZIP() []byte {
 	return file_product_product_proto_rawDescData
 }
 
-var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_product_product_proto_goTypes = []any{
 	(*ProductInfo)(nil),                        // 0: go.micro.service.ProductInfo
 	(*ResponseProduct)(nil),                    // 1: go.micro.service.ResponseProduct
@@ -1243,6 +1953,15 @@ var file_product_product_proto_goTypes = []any{
 	(*CreateRestockApplyResponse)(nil),         // 12: go.micro.service.CreateRestockApplyResponse
 	(*RestockRecordInfo)(nil),                  // 13: go.micro.service.RestockRecordInfo
 	(*SkuBasicInfo)(nil),                       // 14: go.micro.service.SkuBasicInfo
+	(*GetSkuSalesVolumeRequest)(nil),           // 15: go.micro.service.GetSkuSalesVolumeRequest
+	(*GetSkuSalesVolumeResponse)(nil),          // 16: go.micro.service.GetSkuSalesVolumeResponse
+	(*GetSupplierInfoRequest)(nil),             // 17: go.micro.service.GetSupplierInfoRequest
+	(*SupplierInfoItem)(nil),                   // 18: go.micro.service.SupplierInfoItem
+	(*SupplierDTO)(nil),                        // 19: go.micro.service.SupplierDTO
+	(*GetSupplierInfoResponse)(nil),            // 20: go.micro.service.GetSupplierInfoResponse
+	(*GetRestockApplyInfoRequest)(nil),         // 21: go.micro.service.GetRestockApplyInfoRequest
+	(*RestockAuditInfo)(nil),                   // 22: go.micro.service.RestockAuditInfo
+	(*GetRestockApplyInfoResponse)(nil),        // 23: go.micro.service.GetRestockApplyInfoResponse
 }
 var file_product_product_proto_depIdxs = []int32{
 	4,  // 0: go.micro.service.GetProductSkuDetailResponse.product:type_name -> go.micro.service.ProductBasicInfo
@@ -1250,21 +1969,30 @@ var file_product_product_proto_depIdxs = []int32{
 	7,  // 2: go.micro.service.CheckSkuInventoryThresholdResponse.results:type_name -> go.micro.service.SkuInventoryCheckResult
 	13, // 3: go.micro.service.CreateRestockApplyResponse.restock_record:type_name -> go.micro.service.RestockRecordInfo
 	14, // 4: go.micro.service.CreateRestockApplyResponse.sku_info:type_name -> go.micro.service.SkuBasicInfo
-	0,  // 5: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
-	2,  // 6: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
-	6,  // 7: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
-	9,  // 8: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
-	11, // 9: go.micro.service.Product.CreateRestockApply:input_type -> go.micro.service.CreateRestockApplyRequest
-	1,  // 10: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
-	3,  // 11: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
-	8,  // 12: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
-	10, // 13: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
-	12, // 14: go.micro.service.Product.CreateRestockApply:output_type -> go.micro.service.CreateRestockApplyResponse
-	10, // [10:15] is the sub-list for method output_type
-	5,  // [5:10] is the sub-list for method input_type
-	5,  // [5:5] is the sub-list for extension type_name
-	5,  // [5:5] is the sub-list for extension extendee
-	0,  // [0:5] is the sub-list for field type_name
+	19, // 5: go.micro.service.SupplierInfoItem.supplier:type_name -> go.micro.service.SupplierDTO
+	18, // 6: go.micro.service.GetSupplierInfoResponse.suppliers:type_name -> go.micro.service.SupplierInfoItem
+	22, // 7: go.micro.service.GetRestockApplyInfoResponse.audit:type_name -> go.micro.service.RestockAuditInfo
+	0,  // 8: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
+	2,  // 9: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
+	6,  // 10: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
+	9,  // 11: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
+	11, // 12: go.micro.service.Product.CreateRestockApply:input_type -> go.micro.service.CreateRestockApplyRequest
+	15, // 13: go.micro.service.Product.GetSkuSalesVolume:input_type -> go.micro.service.GetSkuSalesVolumeRequest
+	17, // 14: go.micro.service.Product.GetSupplierInfo:input_type -> go.micro.service.GetSupplierInfoRequest
+	21, // 15: go.micro.service.Product.GetRestockApplyInfo:input_type -> go.micro.service.GetRestockApplyInfoRequest
+	1,  // 16: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
+	3,  // 17: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
+	8,  // 18: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
+	10, // 19: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
+	12, // 20: go.micro.service.Product.CreateRestockApply:output_type -> go.micro.service.CreateRestockApplyResponse
+	16, // 21: go.micro.service.Product.GetSkuSalesVolume:output_type -> go.micro.service.GetSkuSalesVolumeResponse
+	20, // 22: go.micro.service.Product.GetSupplierInfo:output_type -> go.micro.service.GetSupplierInfoResponse
+	23, // 23: go.micro.service.Product.GetRestockApplyInfo:output_type -> go.micro.service.GetRestockApplyInfoResponse
+	16, // [16:24] is the sub-list for method output_type
+	8,  // [8:16] is the sub-list for method input_type
+	8,  // [8:8] is the sub-list for extension type_name
+	8,  // [8:8] is the sub-list for extension extendee
+	0,  // [0:8] is the sub-list for field type_name
 }
 
 func init() { file_product_product_proto_init() }
@@ -1278,7 +2006,7 @@ func file_product_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_product_product_proto_rawDesc), len(file_product_product_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   15,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

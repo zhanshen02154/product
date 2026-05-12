@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/model"
 	"github.com/zhanshen02154/product/internal/domain/repository"
@@ -10,22 +11,26 @@ import (
 
 type ISkuRestockService interface {
 	CreateRestockApply(ctx context.Context, req *dto.CreateRestockApplyDto) (*dto.CreateRestockApplyResponseDto, error)
+	GetRestockApplyInfo(ctx context.Context, applicationNo string, userID int) (*model.SkuRestockRecord, error)
 }
 
 // NewSkuRestockService 创建补货服务
 func NewSkuRestockService(
 	skuRepo repository.ProductSkuRepository,
 	restockRepo repository.SkuRestockRepository,
+	auditRepo repository.SkuRestockAuditRepository,
 ) ISkuRestockService {
 	return &SkuRestockService{
 		skuRepo:     skuRepo,
 		restockRepo: restockRepo,
+		auditRepo:   auditRepo,
 	}
 }
 
 type SkuRestockService struct {
 	skuRepo     repository.ProductSkuRepository
 	restockRepo repository.SkuRestockRepository
+	auditRepo   repository.SkuRestockAuditRepository
 }
 
 // CreateRestockApply 提交补货申请
@@ -100,4 +105,29 @@ func (s *SkuRestockService) CreateRestockApply(ctx context.Context, req *dto.Cre
 	}
 
 	return response, nil
+}
+
+// GetRestockApplyInfo 获取补货申请信息
+func (s *SkuRestockService) GetRestockApplyInfo(ctx context.Context, applicationNo string, userID int) (*model.SkuRestockRecord, error) {
+	// 1. 根据业务流水号和用户ID查询补货记录
+	record, err := s.restockRepo.GetByApplicationNo(ctx, applicationNo, userID)
+	if err != nil {
+		return nil, err
+	}
+	if record == nil {
+		return nil, nil
+	}
+
+	// 2. 查询最新审核记录
+	audit, err := s.auditRepo.GetLatestByRestockID(ctx, uint64(record.ID))
+	if err != nil {
+		return nil, err
+	}
+
+	// 3. 设置审核记录
+	if audit != nil {
+		record.Audits = []model.SkuRestockAudit{*audit}
+	}
+
+	return record, nil
 }

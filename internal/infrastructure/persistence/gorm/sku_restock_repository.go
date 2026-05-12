@@ -143,6 +143,20 @@ func (r *SkuRestockRepositoryImpl) UpdateStatus(ctx context.Context, id int64, s
 	return db.Model(&model.SkuRestockRecord{}).Where("id = ?", id).Updates(updates).Error
 }
 
+// GetByApplicationNo 根据业务流水号和用户ID查询补货记录
+func (r *SkuRestockRepositoryImpl) GetByApplicationNo(ctx context.Context, applicationNo string, userID int) (*model.SkuRestockRecord, error) {
+	db := GetDBFromContext(ctx, r.db)
+	var record model.SkuRestockRecord
+	err := db.Where("application_no = ? AND user_id = ? AND deleted_at IS NULL", applicationNo, userID).First(&record).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &record, nil
+}
+
 // SkuRestockAuditRepositoryImpl 补货审核记录仓储实现
 type SkuRestockAuditRepositoryImpl struct {
 	db *gorm.DB
