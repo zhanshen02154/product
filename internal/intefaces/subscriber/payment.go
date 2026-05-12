@@ -3,6 +3,7 @@ package subscriber
 import (
 	"context"
 	"fmt"
+
 	event2 "github.com/zhanshen02154/product/internal/infrastructure/event"
 	"go-micro.dev/v4/server"
 
