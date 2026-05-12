@@ -22,6 +22,9 @@ type SkuRestockRepository interface {
 	// GetByIDWithDetail 根据ID查询补货记录（包含SKU和审核记录）
 	GetByIDWithDetail(ctx context.Context, id int64) (*model.SkuRestockRecord, error)
 
+	// GetByApplicationNo 根据业务流水号和用户ID查询补货记录
+	GetByApplicationNo(ctx context.Context, applicationNo string, userID int) (*model.SkuRestockRecord, error)
+
 	// ListBySkuID 根据SKU ID查询补货记录列表
 	ListBySkuID(ctx context.Context, skuID uint64, offset, limit int) ([]model.SkuRestockRecord, int64, error)
 

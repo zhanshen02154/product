@@ -10,6 +10,9 @@ service Product {
   rpc CheckSkuInventoryThreshold(CheckSkuInventoryThresholdRequest) returns (CheckSkuInventoryThresholdResponse){}
   rpc GetSkuStockBySkuNo(GetSkuStockBySkuNoRequest) returns (GetSkuStockBySkuNoResponse){}
   rpc CreateRestockApply(CreateRestockApplyRequest) returns (CreateRestockApplyResponse){}
+  rpc GetSkuSalesVolume(GetSkuSalesVolumeRequest) returns (GetSkuSalesVolumeResponse){}
+  rpc GetSupplierInfo(GetSupplierInfoRequest) returns (GetSupplierInfoResponse){}
+  rpc GetRestockApplyInfo(GetRestockApplyInfoRequest) returns (GetRestockApplyInfoResponse){}
 }
 
 message ProductInfo {
@@ -93,11 +96,12 @@ message GetSkuStockBySkuNoRequest {
 
 // 根据SKU编号查询库存响应
 message GetSkuStockBySkuNoResponse {
-  string sku_id = 1;       // SKU编号
-  string name = 2;         // SKU名称
-  uint32 stock = 3;        // 当前库存
-  int32 status = 4;        // 商品状态（1上架 0下架）
-  uint32 stock_warn = 5;   // 库存预警值
+  uint64 id = 1;           // SKU ID
+  string sku_id = 2;       // SKU编号
+  string name = 3;         // SKU名称
+  uint32 stock = 4;        // 当前库存
+  int32 status = 5;        // 商品状态（1上架 0下架）
+  uint32 stock_warn = 6;   // 库存预警值
 }
 
 // 提交补货申请请求
@@ -132,4 +136,79 @@ message SkuBasicInfo {
   string sku_no = 2;         // SKU编号
   string sku_name = 3;       // SKU名称
   string spec_value_text = 4; // 规格值文本
+}
+
+// 查询SKU销量请求
+message GetSkuSalesVolumeRequest {
+  int64 sku_id = 1;      // SKU ID
+  string start_time = 2; // 开始时间（格式：2006-01-02 15:04:05），不填则默认为当天00:00:00
+  string end_time = 3;   // 结束时间（格式：2006-01-02 15:04:05），不填则默认为当天23:59:59
+}
+
+// 查询SKU销量响应
+message GetSkuSalesVolumeResponse {
+  int64 sku_id = 1;            // SKU ID
+  int64 sales_volume = 2;      // 销量
+  double daily_avg_sales = 3;  // 日均销量
+}
+
+// 获取供应商信息请求
+message GetSupplierInfoRequest {
+  int64 sku_id = 1;          // SKU ID
+}
+
+// 供应商信息项
+message SupplierInfoItem {
+  int64 sku_id = 1;                     // SKU ID
+  int64 supplier_id = 2;                // 供应商 ID
+  double supply_price = 3;              // 供应价
+  int32 min_order_quantity = 4;         // 最小起订量
+  bool is_preferred = 5;                // 是否首选
+  SupplierDTO supplier = 6;             // 供应商信息
+}
+
+// 供应商数据传输对象
+message SupplierDTO {
+  int64 id = 1;                 // 供应商 ID
+  string name = 2;              // 名称
+  string contact_person = 3;    // 联系人
+  string phone = 4;             // 联系电话
+  string email = 5;             // 电子邮件
+  string address = 6;           // 地址
+  double rating = 7;            // 供应商评级
+  int32 lead_time_days = 8;     // 交货周期（天）
+  string payment_terms = 9;     // 支付条款
+}
+
+// 获取供应商信息响应
+message GetSupplierInfoResponse {
+  repeated SupplierInfoItem suppliers = 1;  // 供应商列表
+}
+
+// 获取补货申请信息请求
+message GetRestockApplyInfoRequest {
+  string application_no = 1;  // 业务流水号
+  int32 user_id = 2;         // 用户ID
+}
+
+// 补货审核信息
+message RestockAuditInfo {
+  int64 id = 1;                // ID
+  int64 restock_id = 2;        // 补货记录ID
+  uint32 audit_user_id = 3;    // 审核用户ID
+  uint32 audit_status = 4;     // 审核状态：1=待审核 2=审核成功 3=审核失败
+  string audit_failed_reason = 5;  // 审核失败原因
+  string created_at = 6;       // 创建时间
+  string updated_at = 7;       // 更新时间
+}
+
+// 获取补货申请信息响应
+message GetRestockApplyInfoResponse {
+  int64 id = 1;                // ID
+  int64 sku_id = 2;            // SKU ID
+  int32 quantity = 3;          // 补货数量
+  string reason = 4;            // 补货原因
+  uint32 status = 5;           // 状态（补货状态：1=待订货 2=部分订货 3=已订货 4=失败）
+  string application_no = 6;   // 业务流水号
+  RestockAuditInfo audit = 7;  // 最新一条审核信息
 }
