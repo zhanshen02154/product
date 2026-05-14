@@ -696,7 +696,7 @@ func (x *CheckSkuInventoryThresholdResponse) GetResults() []*SkuInventoryCheckRe
 // 根据SKU编号查询库存请求
 type GetSkuStockBySkuNoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SkuId         string                 `protobuf:"bytes,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"` // SKU编号(SkuNo)
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"` // SKU编号(SkuNo)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -731,9 +731,9 @@ func (*GetSkuStockBySkuNoRequest) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *GetSkuStockBySkuNoRequest) GetSkuId() string {
+func (x *GetSkuStockBySkuNoRequest) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
 	return ""
 }
@@ -741,12 +741,11 @@ func (x *GetSkuStockBySkuNoRequest) GetSkuId() string {
 // 根据SKU编号查询库存响应
 type GetSkuStockBySkuNoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            uint64                 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                // SKU ID
-	SkuId         string                 `protobuf:"bytes,2,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`              // SKU编号
-	Name          string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`                             // SKU名称
-	Stock         uint32                 `protobuf:"varint,4,opt,name=stock,proto3" json:"stock,omitempty"`                          // 当前库存
-	Status        int32                  `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
-	StockWarn     uint32                 `protobuf:"varint,6,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`        // SKU编号
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`                             // SKU名称
+	Stock         uint32                 `protobuf:"varint,3,opt,name=stock,proto3" json:"stock,omitempty"`                          // 当前库存
+	Status        int32                  `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
+	StockWarn     uint32                 `protobuf:"varint,5,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -781,16 +780,9 @@ func (*GetSkuStockBySkuNoResponse) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *GetSkuStockBySkuNoResponse) GetId() uint64 {
+func (x *GetSkuStockBySkuNoResponse) GetSkuCode() string {
 	if x != nil {
-		return x.Id
-	}
-	return 0
-}
-
-func (x *GetSkuStockBySkuNoResponse) GetSkuId() string {
-	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
 	return ""
 }
@@ -1118,7 +1110,7 @@ func (x *SkuBasicInfo) GetSpecValueText() string {
 // 查询SKU销量请求
 type GetSkuSalesVolumeRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SkuId         int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`            // SKU ID
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`       // SKU编号(SkuNo)
 	StartTime     string                 `protobuf:"bytes,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"` // 开始时间（格式：2006-01-02 15:04:05），不填则默认为当天00:00:00
 	EndTime       string                 `protobuf:"bytes,3,opt,name=end_time,json=endTime,proto3" json:"end_time,omitempty"`       // 结束时间（格式：2006-01-02 15:04:05），不填则默认为当天23:59:59
 	unknownFields protoimpl.UnknownFields
@@ -1155,11 +1147,11 @@ func (*GetSkuSalesVolumeRequest) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{15}
 }
 
-func (x *GetSkuSalesVolumeRequest) GetSkuId() int64 {
+func (x *GetSkuSalesVolumeRequest) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
-	return 0
+	return ""
 }
 
 func (x *GetSkuSalesVolumeRequest) GetStartTime() string {
@@ -1179,7 +1171,7 @@ func (x *GetSkuSalesVolumeRequest) GetEndTime() string {
 // 查询SKU销量响应
 type GetSkuSalesVolumeResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SkuId         int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                            // SKU ID
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`                       // SKU编号
 	SalesVolume   int64                  `protobuf:"varint,2,opt,name=sales_volume,json=salesVolume,proto3" json:"sales_volume,omitempty"`          // 销量
 	DailyAvgSales float64                `protobuf:"fixed64,3,opt,name=daily_avg_sales,json=dailyAvgSales,proto3" json:"daily_avg_sales,omitempty"` // 日均销量
 	unknownFields protoimpl.UnknownFields
@@ -1216,11 +1208,11 @@ func (*GetSkuSalesVolumeResponse) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{16}
 }
 
-func (x *GetSkuSalesVolumeResponse) GetSkuId() int64 {
+func (x *GetSkuSalesVolumeResponse) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
-	return 0
+	return ""
 }
 
 func (x *GetSkuSalesVolumeResponse) GetSalesVolume() int64 {
@@ -1240,7 +1232,7 @@ func (x *GetSkuSalesVolumeResponse) GetDailyAvgSales() float64 {
 // 获取供应商信息请求
 type GetSupplierInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SkuId         int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"` // SKU ID
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"` // SKU编号(SkuNo)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -1275,17 +1267,17 @@ func (*GetSupplierInfoRequest) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{17}
 }
 
-func (x *GetSupplierInfoRequest) GetSkuId() int64 {
+func (x *GetSupplierInfoRequest) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
-	return 0
+	return ""
 }
 
 // 供应商信息项
 type SupplierInfoItem struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	SkuId            int64                  `protobuf:"varint,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                                    // SKU ID
+	SkuCode          string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`                               // SKU编号
 	SupplierId       int64                  `protobuf:"varint,2,opt,name=supplier_id,json=supplierId,proto3" json:"supplier_id,omitempty"`                     // 供应商 ID
 	SupplyPrice      float64                `protobuf:"fixed64,3,opt,name=supply_price,json=supplyPrice,proto3" json:"supply_price,omitempty"`                 // 供应价
 	MinOrderQuantity int32                  `protobuf:"varint,4,opt,name=min_order_quantity,json=minOrderQuantity,proto3" json:"min_order_quantity,omitempty"` // 最小起订量
@@ -1325,11 +1317,11 @@ func (*SupplierInfoItem) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{18}
 }
 
-func (x *SupplierInfoItem) GetSkuId() int64 {
+func (x *SupplierInfoItem) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
-	return 0
+	return ""
 }
 
 func (x *SupplierInfoItem) GetSupplierId() int64 {
@@ -1521,6 +1513,173 @@ func (x *GetSupplierInfoResponse) GetSuppliers() []*SupplierInfoItem {
 	return nil
 }
 
+// 获取SKU每日销量请求
+type GetSkuDailySalesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`       // SKU编号(SkuNo)
+	StartDate     string                 `protobuf:"bytes,2,opt,name=start_date,json=startDate,proto3" json:"start_date,omitempty"` // 开始日期（格式：YYYY-MM-DD）
+	EndDate       string                 `protobuf:"bytes,3,opt,name=end_date,json=endDate,proto3" json:"end_date,omitempty"`       // 结束日期（格式：YYYY-MM-DD）
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkuDailySalesRequest) Reset() {
+	*x = GetSkuDailySalesRequest{}
+	mi := &file_product_product_proto_msgTypes[21]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkuDailySalesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkuDailySalesRequest) ProtoMessage() {}
+
+func (x *GetSkuDailySalesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[21]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkuDailySalesRequest.ProtoReflect.Descriptor instead.
+func (*GetSkuDailySalesRequest) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{21}
+}
+
+func (x *GetSkuDailySalesRequest) GetSkuCode() string {
+	if x != nil {
+		return x.SkuCode
+	}
+	return ""
+}
+
+func (x *GetSkuDailySalesRequest) GetStartDate() string {
+	if x != nil {
+		return x.StartDate
+	}
+	return ""
+}
+
+func (x *GetSkuDailySalesRequest) GetEndDate() string {
+	if x != nil {
+		return x.EndDate
+	}
+	return ""
+}
+
+// SKU每日销量数据项
+type DailySalesItem struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`              // SKU编号
+	SalesVolume   int64                  `protobuf:"varint,2,opt,name=sales_volume,json=salesVolume,proto3" json:"sales_volume,omitempty"` // 当日销量
+	Date          string                 `protobuf:"bytes,3,opt,name=date,proto3" json:"date,omitempty"`                                   // 日期（格式：YYYY-MM-DD）
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DailySalesItem) Reset() {
+	*x = DailySalesItem{}
+	mi := &file_product_product_proto_msgTypes[22]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DailySalesItem) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DailySalesItem) ProtoMessage() {}
+
+func (x *DailySalesItem) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[22]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DailySalesItem.ProtoReflect.Descriptor instead.
+func (*DailySalesItem) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{22}
+}
+
+func (x *DailySalesItem) GetSkuCode() string {
+	if x != nil {
+		return x.SkuCode
+	}
+	return ""
+}
+
+func (x *DailySalesItem) GetSalesVolume() int64 {
+	if x != nil {
+		return x.SalesVolume
+	}
+	return 0
+}
+
+func (x *DailySalesItem) GetDate() string {
+	if x != nil {
+		return x.Date
+	}
+	return ""
+}
+
+// 获取SKU每日销量响应
+type GetSkuDailySalesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	DailySales    []*DailySalesItem      `protobuf:"bytes,1,rep,name=daily_sales,json=dailySales,proto3" json:"daily_sales,omitempty"` // 每日销量列表
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetSkuDailySalesResponse) Reset() {
+	*x = GetSkuDailySalesResponse{}
+	mi := &file_product_product_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetSkuDailySalesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetSkuDailySalesResponse) ProtoMessage() {}
+
+func (x *GetSkuDailySalesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_product_product_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetSkuDailySalesResponse.ProtoReflect.Descriptor instead.
+func (*GetSkuDailySalesResponse) Descriptor() ([]byte, []int) {
+	return file_product_product_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *GetSkuDailySalesResponse) GetDailySales() []*DailySalesItem {
+	if x != nil {
+		return x.DailySales
+	}
+	return nil
+}
+
 // 获取补货申请信息请求
 type GetRestockApplyInfoRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1532,7 +1691,7 @@ type GetRestockApplyInfoRequest struct {
 
 func (x *GetRestockApplyInfoRequest) Reset() {
 	*x = GetRestockApplyInfoRequest{}
-	mi := &file_product_product_proto_msgTypes[21]
+	mi := &file_product_product_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1544,7 +1703,7 @@ func (x *GetRestockApplyInfoRequest) String() string {
 func (*GetRestockApplyInfoRequest) ProtoMessage() {}
 
 func (x *GetRestockApplyInfoRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_product_product_proto_msgTypes[21]
+	mi := &file_product_product_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1557,7 +1716,7 @@ func (x *GetRestockApplyInfoRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRestockApplyInfoRequest.ProtoReflect.Descriptor instead.
 func (*GetRestockApplyInfoRequest) Descriptor() ([]byte, []int) {
-	return file_product_product_proto_rawDescGZIP(), []int{21}
+	return file_product_product_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *GetRestockApplyInfoRequest) GetApplicationNo() string {
@@ -1590,7 +1749,7 @@ type RestockAuditInfo struct {
 
 func (x *RestockAuditInfo) Reset() {
 	*x = RestockAuditInfo{}
-	mi := &file_product_product_proto_msgTypes[22]
+	mi := &file_product_product_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1602,7 +1761,7 @@ func (x *RestockAuditInfo) String() string {
 func (*RestockAuditInfo) ProtoMessage() {}
 
 func (x *RestockAuditInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_product_product_proto_msgTypes[22]
+	mi := &file_product_product_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1615,7 +1774,7 @@ func (x *RestockAuditInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RestockAuditInfo.ProtoReflect.Descriptor instead.
 func (*RestockAuditInfo) Descriptor() ([]byte, []int) {
-	return file_product_product_proto_rawDescGZIP(), []int{22}
+	return file_product_product_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *RestockAuditInfo) GetId() int64 {
@@ -1683,7 +1842,7 @@ type GetRestockApplyInfoResponse struct {
 
 func (x *GetRestockApplyInfoResponse) Reset() {
 	*x = GetRestockApplyInfoResponse{}
-	mi := &file_product_product_proto_msgTypes[23]
+	mi := &file_product_product_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1695,7 +1854,7 @@ func (x *GetRestockApplyInfoResponse) String() string {
 func (*GetRestockApplyInfoResponse) ProtoMessage() {}
 
 func (x *GetRestockApplyInfoResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_product_product_proto_msgTypes[23]
+	mi := &file_product_product_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1708,7 +1867,7 @@ func (x *GetRestockApplyInfoResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRestockApplyInfoResponse.ProtoReflect.Descriptor instead.
 func (*GetRestockApplyInfoResponse) Descriptor() ([]byte, []int) {
-	return file_product_product_proto_rawDescGZIP(), []int{23}
+	return file_product_product_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *GetRestockApplyInfoResponse) GetId() int64 {
@@ -1826,17 +1985,16 @@ const file_product_product_proto_rawDesc = "" +
 	"\tthreshold\x18\x05 \x01(\rR\tthreshold\x12#\n" +
 	"\ris_sufficient\x18\x06 \x01(\bR\fisSufficient\"i\n" +
 	"\"CheckSkuInventoryThresholdResponse\x12C\n" +
-	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults\"2\n" +
-	"\x19GetSkuStockBySkuNoRequest\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\"\xa4\x01\n" +
-	"\x1aGetSkuStockBySkuNoResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x04R\x02id\x12\x15\n" +
-	"\x06sku_id\x18\x02 \x01(\tR\x05skuId\x12\x12\n" +
-	"\x04name\x18\x03 \x01(\tR\x04name\x12\x14\n" +
-	"\x05stock\x18\x04 \x01(\rR\x05stock\x12\x16\n" +
-	"\x06status\x18\x05 \x01(\x05R\x06status\x12\x1d\n" +
+	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults\"6\n" +
+	"\x19GetSkuStockBySkuNoRequest\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\"\x98\x01\n" +
+	"\x1aGetSkuStockBySkuNoResponse\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
+	"\x05stock\x18\x03 \x01(\rR\x05stock\x12\x16\n" +
+	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1d\n" +
 	"\n" +
-	"stock_warn\x18\x06 \x01(\rR\tstockWarn\"\x7f\n" +
+	"stock_warn\x18\x05 \x01(\rR\tstockWarn\"\x7f\n" +
 	"\x19CreateRestockApplyRequest\x12\x15\n" +
 	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x1a\n" +
@@ -1859,20 +2017,20 @@ const file_product_product_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
 	"\x06sku_no\x18\x02 \x01(\tR\x05skuNo\x12\x19\n" +
 	"\bsku_name\x18\x03 \x01(\tR\askuName\x12&\n" +
-	"\x0fspec_value_text\x18\x04 \x01(\tR\rspecValueText\"k\n" +
-	"\x18GetSkuSalesVolumeRequest\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\x12\x1d\n" +
+	"\x0fspec_value_text\x18\x04 \x01(\tR\rspecValueText\"o\n" +
+	"\x18GetSkuSalesVolumeRequest\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x1d\n" +
 	"\n" +
 	"start_time\x18\x02 \x01(\tR\tstartTime\x12\x19\n" +
-	"\bend_time\x18\x03 \x01(\tR\aendTime\"}\n" +
-	"\x19GetSkuSalesVolumeResponse\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\x12!\n" +
+	"\bend_time\x18\x03 \x01(\tR\aendTime\"\x81\x01\n" +
+	"\x19GetSkuSalesVolumeResponse\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12!\n" +
 	"\fsales_volume\x18\x02 \x01(\x03R\vsalesVolume\x12&\n" +
-	"\x0fdaily_avg_sales\x18\x03 \x01(\x01R\rdailyAvgSales\"/\n" +
-	"\x16GetSupplierInfoRequest\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\"\xf9\x01\n" +
-	"\x10SupplierInfoItem\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\x03R\x05skuId\x12\x1f\n" +
+	"\x0fdaily_avg_sales\x18\x03 \x01(\x01R\rdailyAvgSales\"3\n" +
+	"\x16GetSupplierInfoRequest\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\"\xfd\x01\n" +
+	"\x10SupplierInfoItem\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x1f\n" +
 	"\vsupplier_id\x18\x02 \x01(\x03R\n" +
 	"supplierId\x12!\n" +
 	"\fsupply_price\x18\x03 \x01(\x01R\vsupplyPrice\x12,\n" +
@@ -1890,7 +2048,19 @@ const file_product_product_proto_rawDesc = "" +
 	"\x0elead_time_days\x18\b \x01(\x05R\fleadTimeDays\x12#\n" +
 	"\rpayment_terms\x18\t \x01(\tR\fpaymentTerms\"[\n" +
 	"\x17GetSupplierInfoResponse\x12@\n" +
-	"\tsuppliers\x18\x01 \x03(\v2\".go.micro.service.SupplierInfoItemR\tsuppliers\"\\\n" +
+	"\tsuppliers\x18\x01 \x03(\v2\".go.micro.service.SupplierInfoItemR\tsuppliers\"n\n" +
+	"\x17GetSkuDailySalesRequest\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x1d\n" +
+	"\n" +
+	"start_date\x18\x02 \x01(\tR\tstartDate\x12\x19\n" +
+	"\bend_date\x18\x03 \x01(\tR\aendDate\"b\n" +
+	"\x0eDailySalesItem\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12!\n" +
+	"\fsales_volume\x18\x02 \x01(\x03R\vsalesVolume\x12\x12\n" +
+	"\x04date\x18\x03 \x01(\tR\x04date\"]\n" +
+	"\x18GetSkuDailySalesResponse\x12A\n" +
+	"\vdaily_sales\x18\x01 \x03(\v2 .go.micro.service.DailySalesItemR\n" +
+	"dailySales\"\\\n" +
 	"\x1aGetRestockApplyInfoRequest\x12%\n" +
 	"\x0eapplication_no\x18\x01 \x01(\tR\rapplicationNo\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x05R\x06userId\"\xf6\x01\n" +
@@ -1912,7 +2082,7 @@ const file_product_product_proto_rawDesc = "" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\rR\x06status\x12%\n" +
 	"\x0eapplication_no\x18\x06 \x01(\tR\rapplicationNo\x128\n" +
-	"\x05audit\x18\a \x01(\v2\".go.micro.service.RestockAuditInfoR\x05audit2\x93\a\n" +
+	"\x05audit\x18\a \x01(\v2\".go.micro.service.RestockAuditInfoR\x05audit2\x80\b\n" +
 	"\aProduct\x12P\n" +
 	"\n" +
 	"AddProduct\x12\x1d.go.micro.service.ProductInfo\x1a!.go.micro.service.ResponseProduct\"\x00\x12t\n" +
@@ -1922,7 +2092,8 @@ const file_product_product_proto_rawDesc = "" +
 	"\x12CreateRestockApply\x12+.go.micro.service.CreateRestockApplyRequest\x1a,.go.micro.service.CreateRestockApplyResponse\"\x00\x12n\n" +
 	"\x11GetSkuSalesVolume\x12*.go.micro.service.GetSkuSalesVolumeRequest\x1a+.go.micro.service.GetSkuSalesVolumeResponse\"\x00\x12h\n" +
 	"\x0fGetSupplierInfo\x12(.go.micro.service.GetSupplierInfoRequest\x1a).go.micro.service.GetSupplierInfoResponse\"\x00\x12t\n" +
-	"\x13GetRestockApplyInfo\x12,.go.micro.service.GetRestockApplyInfoRequest\x1a-.go.micro.service.GetRestockApplyInfoResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
+	"\x13GetRestockApplyInfo\x12,.go.micro.service.GetRestockApplyInfoRequest\x1a-.go.micro.service.GetRestockApplyInfoResponse\"\x00\x12k\n" +
+	"\x10GetSkuDailySales\x12).go.micro.service.GetSkuDailySalesRequest\x1a*.go.micro.service.GetSkuDailySalesResponse\"\x00B\x11Z\x0f./proto/productb\x06proto3"
 
 var (
 	file_product_product_proto_rawDescOnce sync.Once
@@ -1936,7 +2107,7 @@ func file_product_product_proto_rawDescGZIP() []byte {
 	return file_product_product_proto_rawDescData
 }
 
-var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
+var file_product_product_proto_msgTypes = make([]protoimpl.MessageInfo, 27)
 var file_product_product_proto_goTypes = []any{
 	(*ProductInfo)(nil),                        // 0: go.micro.service.ProductInfo
 	(*ResponseProduct)(nil),                    // 1: go.micro.service.ResponseProduct
@@ -1959,9 +2130,12 @@ var file_product_product_proto_goTypes = []any{
 	(*SupplierInfoItem)(nil),                   // 18: go.micro.service.SupplierInfoItem
 	(*SupplierDTO)(nil),                        // 19: go.micro.service.SupplierDTO
 	(*GetSupplierInfoResponse)(nil),            // 20: go.micro.service.GetSupplierInfoResponse
-	(*GetRestockApplyInfoRequest)(nil),         // 21: go.micro.service.GetRestockApplyInfoRequest
-	(*RestockAuditInfo)(nil),                   // 22: go.micro.service.RestockAuditInfo
-	(*GetRestockApplyInfoResponse)(nil),        // 23: go.micro.service.GetRestockApplyInfoResponse
+	(*GetSkuDailySalesRequest)(nil),            // 21: go.micro.service.GetSkuDailySalesRequest
+	(*DailySalesItem)(nil),                     // 22: go.micro.service.DailySalesItem
+	(*GetSkuDailySalesResponse)(nil),           // 23: go.micro.service.GetSkuDailySalesResponse
+	(*GetRestockApplyInfoRequest)(nil),         // 24: go.micro.service.GetRestockApplyInfoRequest
+	(*RestockAuditInfo)(nil),                   // 25: go.micro.service.RestockAuditInfo
+	(*GetRestockApplyInfoResponse)(nil),        // 26: go.micro.service.GetRestockApplyInfoResponse
 }
 var file_product_product_proto_depIdxs = []int32{
 	4,  // 0: go.micro.service.GetProductSkuDetailResponse.product:type_name -> go.micro.service.ProductBasicInfo
@@ -1971,28 +2145,31 @@ var file_product_product_proto_depIdxs = []int32{
 	14, // 4: go.micro.service.CreateRestockApplyResponse.sku_info:type_name -> go.micro.service.SkuBasicInfo
 	19, // 5: go.micro.service.SupplierInfoItem.supplier:type_name -> go.micro.service.SupplierDTO
 	18, // 6: go.micro.service.GetSupplierInfoResponse.suppliers:type_name -> go.micro.service.SupplierInfoItem
-	22, // 7: go.micro.service.GetRestockApplyInfoResponse.audit:type_name -> go.micro.service.RestockAuditInfo
-	0,  // 8: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
-	2,  // 9: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
-	6,  // 10: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
-	9,  // 11: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
-	11, // 12: go.micro.service.Product.CreateRestockApply:input_type -> go.micro.service.CreateRestockApplyRequest
-	15, // 13: go.micro.service.Product.GetSkuSalesVolume:input_type -> go.micro.service.GetSkuSalesVolumeRequest
-	17, // 14: go.micro.service.Product.GetSupplierInfo:input_type -> go.micro.service.GetSupplierInfoRequest
-	21, // 15: go.micro.service.Product.GetRestockApplyInfo:input_type -> go.micro.service.GetRestockApplyInfoRequest
-	1,  // 16: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
-	3,  // 17: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
-	8,  // 18: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
-	10, // 19: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
-	12, // 20: go.micro.service.Product.CreateRestockApply:output_type -> go.micro.service.CreateRestockApplyResponse
-	16, // 21: go.micro.service.Product.GetSkuSalesVolume:output_type -> go.micro.service.GetSkuSalesVolumeResponse
-	20, // 22: go.micro.service.Product.GetSupplierInfo:output_type -> go.micro.service.GetSupplierInfoResponse
-	23, // 23: go.micro.service.Product.GetRestockApplyInfo:output_type -> go.micro.service.GetRestockApplyInfoResponse
-	16, // [16:24] is the sub-list for method output_type
-	8,  // [8:16] is the sub-list for method input_type
-	8,  // [8:8] is the sub-list for extension type_name
-	8,  // [8:8] is the sub-list for extension extendee
-	0,  // [0:8] is the sub-list for field type_name
+	22, // 7: go.micro.service.GetSkuDailySalesResponse.daily_sales:type_name -> go.micro.service.DailySalesItem
+	25, // 8: go.micro.service.GetRestockApplyInfoResponse.audit:type_name -> go.micro.service.RestockAuditInfo
+	0,  // 9: go.micro.service.Product.AddProduct:input_type -> go.micro.service.ProductInfo
+	2,  // 10: go.micro.service.Product.GetProductSkuDetail:input_type -> go.micro.service.GetProductSkuDetailRequest
+	6,  // 11: go.micro.service.Product.CheckSkuInventoryThreshold:input_type -> go.micro.service.CheckSkuInventoryThresholdRequest
+	9,  // 12: go.micro.service.Product.GetSkuStockBySkuNo:input_type -> go.micro.service.GetSkuStockBySkuNoRequest
+	11, // 13: go.micro.service.Product.CreateRestockApply:input_type -> go.micro.service.CreateRestockApplyRequest
+	15, // 14: go.micro.service.Product.GetSkuSalesVolume:input_type -> go.micro.service.GetSkuSalesVolumeRequest
+	17, // 15: go.micro.service.Product.GetSupplierInfo:input_type -> go.micro.service.GetSupplierInfoRequest
+	24, // 16: go.micro.service.Product.GetRestockApplyInfo:input_type -> go.micro.service.GetRestockApplyInfoRequest
+	21, // 17: go.micro.service.Product.GetSkuDailySales:input_type -> go.micro.service.GetSkuDailySalesRequest
+	1,  // 18: go.micro.service.Product.AddProduct:output_type -> go.micro.service.ResponseProduct
+	3,  // 19: go.micro.service.Product.GetProductSkuDetail:output_type -> go.micro.service.GetProductSkuDetailResponse
+	8,  // 20: go.micro.service.Product.CheckSkuInventoryThreshold:output_type -> go.micro.service.CheckSkuInventoryThresholdResponse
+	10, // 21: go.micro.service.Product.GetSkuStockBySkuNo:output_type -> go.micro.service.GetSkuStockBySkuNoResponse
+	12, // 22: go.micro.service.Product.CreateRestockApply:output_type -> go.micro.service.CreateRestockApplyResponse
+	16, // 23: go.micro.service.Product.GetSkuSalesVolume:output_type -> go.micro.service.GetSkuSalesVolumeResponse
+	20, // 24: go.micro.service.Product.GetSupplierInfo:output_type -> go.micro.service.GetSupplierInfoResponse
+	26, // 25: go.micro.service.Product.GetRestockApplyInfo:output_type -> go.micro.service.GetRestockApplyInfoResponse
+	23, // 26: go.micro.service.Product.GetSkuDailySales:output_type -> go.micro.service.GetSkuDailySalesResponse
+	18, // [18:27] is the sub-list for method output_type
+	9,  // [9:18] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_product_product_proto_init() }
@@ -2006,7 +2183,7 @@ func file_product_product_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_product_product_proto_rawDesc), len(file_product_product_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   24,
+			NumMessages:   27,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

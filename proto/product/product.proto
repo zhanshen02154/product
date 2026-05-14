@@ -13,6 +13,7 @@ service Product {
   rpc GetSkuSalesVolume(GetSkuSalesVolumeRequest) returns (GetSkuSalesVolumeResponse){}
   rpc GetSupplierInfo(GetSupplierInfoRequest) returns (GetSupplierInfoResponse){}
   rpc GetRestockApplyInfo(GetRestockApplyInfoRequest) returns (GetRestockApplyInfoResponse){}
+  rpc GetSkuDailySales(GetSkuDailySalesRequest) returns (GetSkuDailySalesResponse){}
 }
 
 message ProductInfo {
@@ -91,17 +92,16 @@ message CheckSkuInventoryThresholdResponse {
 
 // 根据SKU编号查询库存请求
 message GetSkuStockBySkuNoRequest {
-  string sku_id = 1;  // SKU编号(SkuNo)
+  string sku_code = 1;  // SKU编号(SkuNo)
 }
 
 // 根据SKU编号查询库存响应
 message GetSkuStockBySkuNoResponse {
-  uint64 id = 1;           // SKU ID
-  string sku_id = 2;       // SKU编号
-  string name = 3;         // SKU名称
-  uint32 stock = 4;        // 当前库存
-  int32 status = 5;        // 商品状态（1上架 0下架）
-  uint32 stock_warn = 6;   // 库存预警值
+  string sku_code = 1;       // SKU编号
+  string name = 2;         // SKU名称
+  uint32 stock = 3;        // 当前库存
+  int32 status = 4;        // 商品状态（1上架 0下架）
+  uint32 stock_warn = 5;   // 库存预警值
 }
 
 // 提交补货申请请求
@@ -140,26 +140,26 @@ message SkuBasicInfo {
 
 // 查询SKU销量请求
 message GetSkuSalesVolumeRequest {
-  int64 sku_id = 1;      // SKU ID
+  string sku_code = 1;    // SKU编号(SkuNo)
   string start_time = 2; // 开始时间（格式：2006-01-02 15:04:05），不填则默认为当天00:00:00
   string end_time = 3;   // 结束时间（格式：2006-01-02 15:04:05），不填则默认为当天23:59:59
 }
 
 // 查询SKU销量响应
 message GetSkuSalesVolumeResponse {
-  int64 sku_id = 1;            // SKU ID
+  string sku_code = 1;         // SKU编号
   int64 sales_volume = 2;      // 销量
   double daily_avg_sales = 3;  // 日均销量
 }
 
 // 获取供应商信息请求
 message GetSupplierInfoRequest {
-  int64 sku_id = 1;          // SKU ID
+  string sku_code = 1;          // SKU编号(SkuNo)
 }
 
 // 供应商信息项
 message SupplierInfoItem {
-  int64 sku_id = 1;                     // SKU ID
+  string sku_code = 1;                   // SKU编号
   int64 supplier_id = 2;                // 供应商 ID
   double supply_price = 3;              // 供应价
   int32 min_order_quantity = 4;         // 最小起订量
@@ -183,6 +183,25 @@ message SupplierDTO {
 // 获取供应商信息响应
 message GetSupplierInfoResponse {
   repeated SupplierInfoItem suppliers = 1;  // 供应商列表
+}
+
+// 获取SKU每日销量请求
+message GetSkuDailySalesRequest {
+  string sku_code = 1;    // SKU编号(SkuNo)
+  string start_date = 2;  // 开始日期（格式：YYYY-MM-DD）
+  string end_date = 3;    // 结束日期（格式：YYYY-MM-DD）
+}
+
+// SKU每日销量数据项
+message DailySalesItem {
+  string sku_code = 1;   // SKU编号
+  int64 sales_volume = 2; // 当日销量
+  string date = 3;        // 日期（格式：YYYY-MM-DD）
+}
+
+// 获取SKU每日销量响应
+message GetSkuDailySalesResponse {
+  repeated DailySalesItem daily_sales = 1;  // 每日销量列表
 }
 
 // 获取补货申请信息请求
