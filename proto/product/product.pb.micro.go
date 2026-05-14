@@ -44,6 +44,7 @@ type ProductService interface {
 	GetSkuSalesVolume(ctx context.Context, in *GetSkuSalesVolumeRequest, opts ...client.CallOption) (*GetSkuSalesVolumeResponse, error)
 	GetSupplierInfo(ctx context.Context, in *GetSupplierInfoRequest, opts ...client.CallOption) (*GetSupplierInfoResponse, error)
 	GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, opts ...client.CallOption) (*GetRestockApplyInfoResponse, error)
+	GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, opts ...client.CallOption) (*GetSkuDailySalesResponse, error)
 }
 
 type productService struct {
@@ -138,6 +139,16 @@ func (c *productService) GetRestockApplyInfo(ctx context.Context, in *GetRestock
 	return out, nil
 }
 
+func (c *productService) GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, opts ...client.CallOption) (*GetSkuDailySalesResponse, error) {
+	req := c.c.NewRequest(c.name, "Product.GetSkuDailySales", in)
+	out := new(GetSkuDailySalesResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Product service
 
 type ProductHandler interface {
@@ -149,6 +160,7 @@ type ProductHandler interface {
 	GetSkuSalesVolume(context.Context, *GetSkuSalesVolumeRequest, *GetSkuSalesVolumeResponse) error
 	GetSupplierInfo(context.Context, *GetSupplierInfoRequest, *GetSupplierInfoResponse) error
 	GetRestockApplyInfo(context.Context, *GetRestockApplyInfoRequest, *GetRestockApplyInfoResponse) error
+	GetSkuDailySales(context.Context, *GetSkuDailySalesRequest, *GetSkuDailySalesResponse) error
 }
 
 func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server.HandlerOption) error {
@@ -161,6 +173,7 @@ func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server
 		GetSkuSalesVolume(ctx context.Context, in *GetSkuSalesVolumeRequest, out *GetSkuSalesVolumeResponse) error
 		GetSupplierInfo(ctx context.Context, in *GetSupplierInfoRequest, out *GetSupplierInfoResponse) error
 		GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, out *GetRestockApplyInfoResponse) error
+		GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, out *GetSkuDailySalesResponse) error
 	}
 	type Product struct {
 		product
@@ -203,4 +216,8 @@ func (h *productHandler) GetSupplierInfo(ctx context.Context, in *GetSupplierInf
 
 func (h *productHandler) GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, out *GetRestockApplyInfoResponse) error {
 	return h.ProductHandler.GetRestockApplyInfo(ctx, in, out)
+}
+
+func (h *productHandler) GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, out *GetSkuDailySalesResponse) error {
+	return h.ProductHandler.GetSkuDailySales(ctx, in, out)
 }

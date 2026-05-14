@@ -135,12 +135,11 @@ func (h *ProductHandler) CheckSkuInventoryThreshold(ctx context.Context, req *pr
 //	@param resp
 //	@return error
 func (h *ProductHandler) GetSkuStockBySkuNo(ctx context.Context, req *product.GetSkuStockBySkuNoRequest, resp *product.GetSkuStockBySkuNoResponse) error {
-	response, err := h.ProductApplicationService.GetSkuStockBySkuNo(ctx, req.SkuId)
+	response, err := h.ProductApplicationService.GetSkuStockBySkuNo(ctx, req.SkuCode)
 	if err != nil {
 		return err
 	}
-	resp.Id = response.Id
-	resp.SkuId = response.SkuId
+	resp.SkuCode = response.SkuCode
 	resp.Name = response.Name
 	resp.Stock = response.Stock
 	resp.Status = response.Status
@@ -243,13 +242,13 @@ func (h *ProductHandler) GetRestockApplyInfo(ctx context.Context, req *product.G
 //	@return error
 func (h *ProductHandler) GetSkuSalesVolume(ctx context.Context, req *product.GetSkuSalesVolumeRequest, resp *product.GetSkuSalesVolumeResponse) error {
 	// 调用应用层服务
-	response, err := h.ProductApplicationService.GetSkuSalesVolume(ctx, req.SkuId, req.StartTime, req.EndTime)
+	response, err := h.ProductApplicationService.GetSkuSalesVolume(ctx, req.SkuCode, req.StartTime, req.EndTime)
 	if err != nil {
 		return err
 	}
 
 	// 复制响应数据
-	resp.SkuId = response.SkuId
+	resp.SkuCode = response.SkuCode
 	resp.SalesVolume = response.SalesVolume
 	resp.DailyAvgSales = response.DailyAvgSales
 
@@ -266,7 +265,7 @@ func (h *ProductHandler) GetSkuSalesVolume(ctx context.Context, req *product.Get
 //	@return error
 func (h *ProductHandler) GetSupplierInfo(ctx context.Context, req *product.GetSupplierInfoRequest, resp *product.GetSupplierInfoResponse) error {
 	// 调用应用层服务
-	response, err := h.ProductApplicationService.GetSupplierInfo(ctx, req.SkuId)
+	response, err := h.ProductApplicationService.GetSupplierInfo(ctx, req.SkuCode)
 	if err != nil {
 		return err
 	}
@@ -278,6 +277,27 @@ func (h *ProductHandler) GetSupplierInfo(ctx context.Context, req *product.GetSu
 
 	// 复制响应数据
 	resp.Suppliers = response.Suppliers
+
+	return nil
+}
+
+// GetSkuDailySales
+//
+//	@Description: 获取SKU在指定时间段内每天的销量数据
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) GetSkuDailySales(ctx context.Context, req *product.GetSkuDailySalesRequest, resp *product.GetSkuDailySalesResponse) error {
+	// 调用应用层服务
+	response, err := h.ProductApplicationService.GetSkuDailySales(ctx, req.SkuCode, req.StartDate, req.EndDate)
+	if err != nil {
+		return err
+	}
+
+	// 复制响应数据
+	resp.DailySales = response.DailySales
 
 	return nil
 }

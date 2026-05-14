@@ -69,6 +69,33 @@ func (r *InventoryStockChangeRecordRepositoryImpl) GetSalesVolume(ctx context.Co
 	return total, dailyAvg, nil
 }
 
+// GetDailySales 获取SKU在指定时间范围内的每日销量数据
+func (r *InventoryStockChangeRecordRepositoryImpl) GetDailySales(ctx context.Context, skuID int64, skuCode string, startDate, endDate string) ([]*repository.DailySalesData, error) {
+	db := GetDBFromContext(ctx, r.db)
+
+	var results []*repository.DailySalesData
+	err := db.Model(&model.InventoryStockChangeRecord{}).
+		Select("DATE_FORMAT(created_at, '%Y-%m-%d') as date, COALESCE(SUM(ABS(quantity)), 0) as sales_volume").
+		Where("sku_id = ?", skuID).
+		Where("source_type = ?", model.SourceTypeOrderPayment).
+		Where("DATE(created_at) >= ?", startDate).
+		Where("DATE(created_at) <= ?", endDate).
+		Group("DATE(created_at)").
+		Order("date ASC").
+		Scan(&results).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	// 填充 sku_code
+	for _, result := range results {
+		result.SkuCode = skuCode
+	}
+
+	return results, nil
+}
+
 // NewInventoryStockChangeRecordRepository 创建库存变更记录仓储实例
 func NewInventoryStockChangeRecordRepository(db *gorm.DB) repository.InventoryStockChangeRecordRepository {
 	return &InventoryStockChangeRecordRepositoryImpl{db: db}
