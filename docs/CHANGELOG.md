@@ -1,3 +1,23 @@
+<a name="v8.2.0"></a>
+## [v8.2.0](https://github.com/zhanshen02154/product/compare/v8.1.0...v8.2.0) (2026-05-13)
+
+### Features
+
+* 新增SKU每日销量接口（GetSkuDailySales），支持按日期范围查询每日销量数据
+* 新增获取补货申请信息接口（GetRestockApplyInfo），支持按业务流水号查询
+* GetSupplierInfo接口新增嵌套的供应商信息结构（SupplierDTO）
+* GetSkuSalesVolume接口新增日均销量字段
+* 将GetSkuSalesVolume、GetSupplierInfo、GetSkuStockBySkuNo三个方法的请求参数从sku_id改为sku_code
+* CreateRestockApply方法改为事务模式，使用TransactionManager
+
+### Bug Fixes
+
+* 修复Kafka消费者组协议不兼容问题（消费者组名称冲突导致启动报错）
+* 修复GetSkuDailySales接口返回的date字段格式（从带时区的时间格式改为YYYY-MM-DD）
+
+### Build
+
+* 修复依赖关系
 
 <a name="v8.1.0"></a>
 ## [v8.1.0](https://github.com/zhanshen02154/product/compare/v8.0.0...v8.1.0) (2026-04-06)
