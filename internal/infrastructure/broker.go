@@ -1,8 +1,9 @@
 package infrastructure
 
 import (
-	"github.com/zhanshen02154/product/internal/infrastructure/event/wrapper"
 	"time"
+
+	"github.com/zhanshen02154/product/internal/infrastructure/event/wrapper"
 
 	"github.com/Shopify/sarama"
 	"github.com/go-micro/plugins/v4/broker/kafka"
@@ -45,11 +46,16 @@ func loadKafkaConfig(conf *config.Kafka) *sarama.Config {
 // NewKafkaBroker 创建Broker
 func NewKafkaBroker(conf *config.Kafka, opts ...broker.Option) broker.Broker {
 	// 将额外传入的 broker.Option 直接透传给 kafka.NewBroker，便于注入 AsyncProducer channels
+	kafkaConf := loadKafkaConfig(conf)
+	clusterConf := loadKafkaConfig(conf)
+	clusterConf.ClientID = "product-subscriber-client"
+	clusterConf.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRange
 	options := []broker.Option{
 		broker.Addrs(conf.Hosts...),
-		kafka.BrokerConfig(loadKafkaConfig(conf)),
+		kafka.BrokerConfig(kafkaConf),
 		broker.Logger(logger.DefaultLogger),
 		broker.ErrorHandler(wrapper.ErrorHandler()),
+		kafka.ClusterConfig(clusterConf),
 	}
 	options = append(options, opts...)
 	return kafka.NewBroker(options...)

@@ -41,6 +41,10 @@ type ProductService interface {
 	CheckSkuInventoryThreshold(ctx context.Context, in *CheckSkuInventoryThresholdRequest, opts ...client.CallOption) (*CheckSkuInventoryThresholdResponse, error)
 	GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStockBySkuNoRequest, opts ...client.CallOption) (*GetSkuStockBySkuNoResponse, error)
 	CreateRestockApply(ctx context.Context, in *CreateRestockApplyRequest, opts ...client.CallOption) (*CreateRestockApplyResponse, error)
+	GetSkuSalesVolume(ctx context.Context, in *GetSkuSalesVolumeRequest, opts ...client.CallOption) (*GetSkuSalesVolumeResponse, error)
+	GetSupplierInfo(ctx context.Context, in *GetSupplierInfoRequest, opts ...client.CallOption) (*GetSupplierInfoResponse, error)
+	GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, opts ...client.CallOption) (*GetRestockApplyInfoResponse, error)
+	GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, opts ...client.CallOption) (*GetSkuDailySalesResponse, error)
 }
 
 type productService struct {
@@ -105,6 +109,46 @@ func (c *productService) CreateRestockApply(ctx context.Context, in *CreateResto
 	return out, nil
 }
 
+func (c *productService) GetSkuSalesVolume(ctx context.Context, in *GetSkuSalesVolumeRequest, opts ...client.CallOption) (*GetSkuSalesVolumeResponse, error) {
+	req := c.c.NewRequest(c.name, "Product.GetSkuSalesVolume", in)
+	out := new(GetSkuSalesVolumeResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productService) GetSupplierInfo(ctx context.Context, in *GetSupplierInfoRequest, opts ...client.CallOption) (*GetSupplierInfoResponse, error) {
+	req := c.c.NewRequest(c.name, "Product.GetSupplierInfo", in)
+	out := new(GetSupplierInfoResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productService) GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, opts ...client.CallOption) (*GetRestockApplyInfoResponse, error) {
+	req := c.c.NewRequest(c.name, "Product.GetRestockApplyInfo", in)
+	out := new(GetRestockApplyInfoResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *productService) GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, opts ...client.CallOption) (*GetSkuDailySalesResponse, error) {
+	req := c.c.NewRequest(c.name, "Product.GetSkuDailySales", in)
+	out := new(GetSkuDailySalesResponse)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Product service
 
 type ProductHandler interface {
@@ -113,6 +157,10 @@ type ProductHandler interface {
 	CheckSkuInventoryThreshold(context.Context, *CheckSkuInventoryThresholdRequest, *CheckSkuInventoryThresholdResponse) error
 	GetSkuStockBySkuNo(context.Context, *GetSkuStockBySkuNoRequest, *GetSkuStockBySkuNoResponse) error
 	CreateRestockApply(context.Context, *CreateRestockApplyRequest, *CreateRestockApplyResponse) error
+	GetSkuSalesVolume(context.Context, *GetSkuSalesVolumeRequest, *GetSkuSalesVolumeResponse) error
+	GetSupplierInfo(context.Context, *GetSupplierInfoRequest, *GetSupplierInfoResponse) error
+	GetRestockApplyInfo(context.Context, *GetRestockApplyInfoRequest, *GetRestockApplyInfoResponse) error
+	GetSkuDailySales(context.Context, *GetSkuDailySalesRequest, *GetSkuDailySalesResponse) error
 }
 
 func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server.HandlerOption) error {
@@ -122,6 +170,10 @@ func RegisterProductHandler(s server.Server, hdlr ProductHandler, opts ...server
 		CheckSkuInventoryThreshold(ctx context.Context, in *CheckSkuInventoryThresholdRequest, out *CheckSkuInventoryThresholdResponse) error
 		GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStockBySkuNoRequest, out *GetSkuStockBySkuNoResponse) error
 		CreateRestockApply(ctx context.Context, in *CreateRestockApplyRequest, out *CreateRestockApplyResponse) error
+		GetSkuSalesVolume(ctx context.Context, in *GetSkuSalesVolumeRequest, out *GetSkuSalesVolumeResponse) error
+		GetSupplierInfo(ctx context.Context, in *GetSupplierInfoRequest, out *GetSupplierInfoResponse) error
+		GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, out *GetRestockApplyInfoResponse) error
+		GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, out *GetSkuDailySalesResponse) error
 	}
 	type Product struct {
 		product
@@ -152,4 +204,20 @@ func (h *productHandler) GetSkuStockBySkuNo(ctx context.Context, in *GetSkuStock
 
 func (h *productHandler) CreateRestockApply(ctx context.Context, in *CreateRestockApplyRequest, out *CreateRestockApplyResponse) error {
 	return h.ProductHandler.CreateRestockApply(ctx, in, out)
+}
+
+func (h *productHandler) GetSkuSalesVolume(ctx context.Context, in *GetSkuSalesVolumeRequest, out *GetSkuSalesVolumeResponse) error {
+	return h.ProductHandler.GetSkuSalesVolume(ctx, in, out)
+}
+
+func (h *productHandler) GetSupplierInfo(ctx context.Context, in *GetSupplierInfoRequest, out *GetSupplierInfoResponse) error {
+	return h.ProductHandler.GetSupplierInfo(ctx, in, out)
+}
+
+func (h *productHandler) GetRestockApplyInfo(ctx context.Context, in *GetRestockApplyInfoRequest, out *GetRestockApplyInfoResponse) error {
+	return h.ProductHandler.GetRestockApplyInfo(ctx, in, out)
+}
+
+func (h *productHandler) GetSkuDailySales(ctx context.Context, in *GetSkuDailySalesRequest, out *GetSkuDailySalesResponse) error {
+	return h.ProductHandler.GetSkuDailySales(ctx, in, out)
 }

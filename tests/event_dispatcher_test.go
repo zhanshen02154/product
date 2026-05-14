@@ -1,7 +1,8 @@
-package event
+package tests
 
 import (
 	"context"
+	event2 "github.com/zhanshen02154/product/internal/infrastructure/event"
 	"github.com/zhanshen02154/product/internal/intefaces/subscriber"
 	"testing"
 
@@ -12,9 +13,9 @@ import (
 
 // TestEventDispatcher_RegisterHandler 测试注册处理器
 func TestEventDispatcher_RegisterHandler(t *testing.T) {
-	dispatcher := NewEventDispatcher()
+	dispatcher := event2.NewEventDispatcher()
 
-	handler := NewHandlerAdapter("test.event", func(ctx context.Context, e *event.BaseEvent) error {
+	handler := event2.NewHandlerAdapter("test.event", func(ctx context.Context, e *event.BaseEvent) error {
 		return nil
 	})
 
@@ -43,10 +44,10 @@ func TestEventDispatcher_RegisterHandler(t *testing.T) {
 
 // TestEventDispatcher_Dispatch 测试事件分发
 func TestEventDispatcher_Dispatch(t *testing.T) {
-	dispatcher := NewEventDispatcher()
+	dispatcher := event2.NewEventDispatcher()
 
 	processed := false
-	handler := NewHandlerAdapter("test.event", func(ctx context.Context, e *event.BaseEvent) error {
+	handler := event2.NewHandlerAdapter("test.event", func(ctx context.Context, e *event.BaseEvent) error {
 		processed = true
 		return nil
 	})
@@ -72,7 +73,7 @@ func TestEventDispatcher_Dispatch(t *testing.T) {
 
 // TestEventDispatcher_Dispatch_UnknownEventType 测试未知事件类型
 func TestEventDispatcher_Dispatch_UnknownEventType(t *testing.T) {
-	dispatcher := NewEventDispatcher()
+	dispatcher := event2.NewEventDispatcher()
 
 	baseEvent := &event.BaseEvent{
 		EventType: "unknown.event",
@@ -106,7 +107,7 @@ func TestGenericHandler(t *testing.T) {
 
 	// 创建处理器
 	processed := false
-	handler := NewGenericHandler(
+	handler := event2.NewGenericHandler(
 		"order.OnPaymentSuccess",
 		func(ctx context.Context, e *order.OnPaymentSuccess) error {
 			processed = true
@@ -152,7 +153,7 @@ func TestUnmarshalPayload(t *testing.T) {
 
 	// 测试成功反序列化
 	target := &order.OnPaymentSuccess{}
-	err = UnmarshalPayload(&event.BaseEvent{Payload: payload}, target)
+	err = event2.UnmarshalPayload(&event.BaseEvent{Payload: payload}, target)
 	if err != nil {
 		t.Fatalf("failed to unmarshal: %v", err)
 	}
@@ -162,13 +163,13 @@ func TestUnmarshalPayload(t *testing.T) {
 	}
 
 	// 测试 nil BaseEvent
-	err = UnmarshalPayload(nil, target)
+	err = event2.UnmarshalPayload(nil, target)
 	if err == nil {
 		t.Fatal("expected error for nil base event")
 	}
 
 	// 测试空 Payload
-	err = UnmarshalPayload(&event.BaseEvent{Payload: []byte{}}, target)
+	err = event2.UnmarshalPayload(&event.BaseEvent{Payload: []byte{}}, target)
 	if err == nil {
 		t.Fatal("expected error for empty payload")
 	}
@@ -181,7 +182,7 @@ func TestPaymentEventHandler_AsEventHandlers(t *testing.T) {
 
 	// 类型断言获取 AsEventHandlers 方法
 	adapter, ok := interface{}(handler).(interface {
-		AsEventHandlers() []EventHandler
+		AsEventHandlers() []event2.EventHandler
 	})
 	if !ok {
 		t.Fatal("PaymentEventHandler does not implement AsEventHandlers")
@@ -201,11 +202,11 @@ func TestPaymentEventHandler_AsEventHandlers(t *testing.T) {
 
 // TestEventDispatcher_RegisterHandlers 测试批量注册
 func TestEventDispatcher_RegisterHandlers(t *testing.T) {
-	dispatcher := NewEventDispatcher()
+	dispatcher := event2.NewEventDispatcher()
 
-	handlers := []EventHandler{
-		NewHandlerAdapter("event.1", func(ctx context.Context, e *event.BaseEvent) error { return nil }),
-		NewHandlerAdapter("event.2", func(ctx context.Context, e *event.BaseEvent) error { return nil }),
+	handlers := []event2.EventHandler{
+		event2.NewHandlerAdapter("event.1", func(ctx context.Context, e *event.BaseEvent) error { return nil }),
+		event2.NewHandlerAdapter("event.2", func(ctx context.Context, e *event.BaseEvent) error { return nil }),
 	}
 
 	err := dispatcher.RegisterHandlers(handlers, "test_topic", "test-consumer")

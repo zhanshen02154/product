@@ -146,3 +146,8 @@ func (svc *ServiceContext) NewSkuRestockRepository() repository.SkuRestockReposi
 func (svc *ServiceContext) NewSkuRestockAuditRepository() repository.SkuRestockAuditRepository {
 	return gorm2.NewSkuRestockAuditRepository(svc.db)
 }
+
+// NewSupplierRepository 创建供应商仓储层
+func (svc *ServiceContext) NewSupplierRepository() repository.SupplierRepository {
+	return gorm2.NewSupplierRepository(svc.db)
+}

@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"strconv"
+
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/event/order"
 	productEvent "github.com/zhanshen02154/product/internal/domain/event/product"
@@ -14,7 +16,6 @@ import (
 	"go-micro.dev/v4/logger"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"strconv"
 )
 
 type IProductApplicationService interface {
@@ -23,8 +24,12 @@ type IProductApplicationService interface {
 	DeductInvetoryRevert(ctx context.Context, req *dto.OrderProductInvetoryDto) error
 	GetProductSkuDetail(ctx context.Context, skuID int64) (*productProto.GetProductSkuDetailResponse, error)
 	CheckSkuInventoryThreshold(ctx context.Context, skuIDs []int64, threshold uint32) (*productProto.CheckSkuInventoryThresholdResponse, error)
-	GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*productProto.GetSkuStockBySkuNoResponse, error)
+	GetSkuStockBySkuNo(ctx context.Context, skuCode string) (*productProto.GetSkuStockBySkuNoResponse, error)
 	CreateRestockApply(ctx context.Context, req *dto.CreateRestockApplyDto) (*dto.CreateRestockApplyResponseDto, error)
+	GetSkuSalesVolume(ctx context.Context, skuCode string, startTime, endTime string) (*productProto.GetSkuSalesVolumeResponse, error)
+	GetSupplierInfo(ctx context.Context, skuCode string) (*productProto.GetSupplierInfoResponse, error)
+	GetRestockApplyInfo(ctx context.Context, applicationNo string, userID int32) (*productProto.GetRestockApplyInfoResponse, error)
+	GetSkuDailySales(ctx context.Context, skuCode string, startDate, endDate string) (*productProto.GetSkuDailySalesResponse, error)
 }
 
 // ProductApplicationService 商品服务应用层
@@ -46,10 +51,12 @@ func NewProductApplicationService(serviceContext *infrastructure.ServiceContext,
 			serviceContext.NewOrderInventoryEventRepo(),
 			serviceContext.NewProductSkuRepository(),
 			serviceContext.NewInventoryStockChangeRecordRepository(),
+			serviceContext.NewSupplierRepository(),
 		),
 		skuRestockService: service.NewSkuRestockService(
 			serviceContext.NewProductSkuRepository(),
 			serviceContext.NewSkuRestockRepository(),
+			serviceContext.NewSkuRestockAuditRepository(),
 		),
 		serviceContext: serviceContext,
 		eb:             eb,
@@ -243,12 +250,12 @@ func (appService *ProductApplicationService) CheckSkuInventoryThreshold(ctx cont
 }
 
 // GetSkuStockBySkuNo 根据SKU编号查询SKU库存信息
-func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*productProto.GetSkuStockBySkuNoResponse, error) {
-	if skuNo == "" {
-		return nil, status.Error(codes.InvalidArgument, "sku_id cannot be empty")
+func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Context, skuCode string) (*productProto.GetSkuStockBySkuNoResponse, error) {
+	if skuCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "sku_code cannot be empty")
 	}
 
-	sku, err := appService.productDomainService.GetSkuStockBySkuNo(ctx, skuNo)
+	sku, err := appService.productDomainService.GetSkuStockBySkuNo(ctx, skuCode)
 	if err != nil {
 		return nil, status.Error(codes.Internal, "failed to get sku stock: "+err.Error())
 	}
@@ -257,7 +264,7 @@ func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Cont
 	}
 
 	return &productProto.GetSkuStockBySkuNoResponse{
-		SkuId:     sku.SkuNo,
+		SkuCode:   sku.SkuNo,
 		Name:      sku.SkuName,
 		Stock:     sku.Stock,
 		Status:    int32(sku.Status),
@@ -267,5 +274,177 @@ func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Cont
 
 // CreateRestockApply 提交补货申请
 func (appService *ProductApplicationService) CreateRestockApply(ctx context.Context, req *dto.CreateRestockApplyDto) (*dto.CreateRestockApplyResponseDto, error) {
-	return appService.skuRestockService.CreateRestockApply(ctx, req)
+	var response *dto.CreateRestockApplyResponseDto
+
+	err := appService.serviceContext.TxManager.Execute(ctx, func(txCtx context.Context) error {
+		var txErr error
+		response, txErr = appService.skuRestockService.CreateRestockApply(txCtx, req)
+		return txErr
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to create restock apply: "+err.Error())
+	}
+
+	return response, nil
+}
+
+// GetSkuSalesVolume 获取SKU在指定时间范围内的销量和日均销量
+func (appService *ProductApplicationService) GetSkuSalesVolume(ctx context.Context, skuCode string, startTime, endTime string) (*productProto.GetSkuSalesVolumeResponse, error) {
+	if skuCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "sku_code cannot be empty")
+	}
+
+	// 先通过skuCode获取skuID
+	sku, err := appService.productDomainService.GetSkuBySkuNo(ctx, skuCode)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get sku info: "+err.Error())
+	}
+	if sku == nil {
+		return nil, status.Error(codes.NotFound, "sku not found")
+	}
+
+	salesVolume, dailyAvgSales, err := appService.productDomainService.GetSkuSalesVolume(ctx, int64(sku.ID), startTime, endTime)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get sku sales volume: "+err.Error())
+	}
+
+	return &productProto.GetSkuSalesVolumeResponse{
+		SkuCode:       skuCode,
+		SalesVolume:   salesVolume,
+		DailyAvgSales: dailyAvgSales,
+	}, nil
+}
+
+// GetSupplierInfo 获取指定SKU的供应商信息列表
+func (appService *ProductApplicationService) GetSupplierInfo(ctx context.Context, skuCode string) (*productProto.GetSupplierInfoResponse, error) {
+	if skuCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "sku_code cannot be empty")
+	}
+
+	// 先通过skuCode获取skuID
+	sku, err := appService.productDomainService.GetSkuBySkuNo(ctx, skuCode)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get sku info: "+err.Error())
+	}
+	if sku == nil {
+		return nil, status.Error(codes.NotFound, "sku not found")
+	}
+
+	supplierInfoList, err := appService.productDomainService.GetSupplierInfo(ctx, int64(sku.ID))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get supplier info: "+err.Error())
+	}
+
+	if supplierInfoList == nil || len(supplierInfoList) == 0 {
+		return nil, nil
+	}
+
+	suppliers := make([]*productProto.SupplierInfoItem, 0, len(supplierInfoList))
+	for _, supplierInfo := range supplierInfoList {
+		supplierDTO := &productProto.SupplierDTO{
+			Id:            supplierInfo.Supplier.ID,
+			Name:          supplierInfo.Supplier.Name,
+			ContactPerson: supplierInfo.Supplier.ContactPerson,
+			Phone:         supplierInfo.Supplier.Phone,
+			Email:         supplierInfo.Supplier.Email,
+			Address:       supplierInfo.Supplier.Address,
+			Rating:        supplierInfo.Supplier.Rating,
+			LeadTimeDays:  int32(supplierInfo.Supplier.LeadTimeDays),
+			PaymentTerms:  supplierInfo.Supplier.PaymentTerms,
+		}
+		suppliers = append(suppliers, &productProto.SupplierInfoItem{
+			SkuCode:          skuCode,
+			SupplierId:       supplierInfo.SupplierID,
+			SupplyPrice:      supplierInfo.SupplyPrice,
+			MinOrderQuantity: int32(supplierInfo.MinOrderQuantity),
+			IsPreferred:      supplierInfo.IsPreferred,
+			Supplier:         supplierDTO,
+		})
+	}
+
+	return &productProto.GetSupplierInfoResponse{
+		Suppliers: suppliers,
+	}, nil
+}
+
+// GetRestockApplyInfo 获取补货申请信息
+func (appService *ProductApplicationService) GetRestockApplyInfo(ctx context.Context, applicationNo string, userID int32) (*productProto.GetRestockApplyInfoResponse, error) {
+	if applicationNo == "" {
+		return nil, status.Error(codes.InvalidArgument, "application_no cannot be empty")
+	}
+
+	record, err := appService.skuRestockService.GetRestockApplyInfo(ctx, applicationNo, int(userID))
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get restock apply info: "+err.Error())
+	}
+	if record == nil {
+		return nil, status.Error(codes.NotFound, "restock apply not found")
+	}
+
+	// 构建审核信息
+	var audit *productProto.RestockAuditInfo
+	if len(record.Audits) > 0 {
+		latestAudit := record.Audits[0]
+		audit = &productProto.RestockAuditInfo{
+			Id:                latestAudit.ID,
+			RestockId:         int64(latestAudit.RestockID),
+			AuditUserId:       uint32(latestAudit.AuditUserID),
+			AuditStatus:       uint32(latestAudit.AuditStatus),
+			AuditFailedReason: latestAudit.AuditFailedReason,
+			CreatedAt:         latestAudit.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt:         latestAudit.UpdatedAt.Format("2006-01-02 15:04:05"),
+		}
+	}
+
+	return &productProto.GetRestockApplyInfoResponse{
+		Id:            record.ID,
+		SkuId:         int64(record.SkuID),
+		Quantity:      record.Quantity,
+		Reason:        record.Reason,
+		Status:        uint32(record.Status),
+		ApplicationNo: record.ApplicationNo,
+		Audit:         audit,
+	}, nil
+}
+
+// GetSkuDailySales 获取SKU在指定时间段内每天的销量数据
+func (appService *ProductApplicationService) GetSkuDailySales(ctx context.Context, skuCode string, startDate, endDate string) (*productProto.GetSkuDailySalesResponse, error) {
+	if skuCode == "" {
+		return nil, status.Error(codes.InvalidArgument, "sku_code cannot be empty")
+	}
+	if startDate == "" {
+		return nil, status.Error(codes.InvalidArgument, "start_date cannot be empty")
+	}
+	if endDate == "" {
+		return nil, status.Error(codes.InvalidArgument, "end_date cannot be empty")
+	}
+
+	// 先通过skuCode获取skuID
+	sku, err := appService.productDomainService.GetSkuBySkuNo(ctx, skuCode)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get sku info: "+err.Error())
+	}
+	if sku == nil {
+		return nil, status.Error(codes.NotFound, "sku not found")
+	}
+
+	dailySalesData, err := appService.productDomainService.GetDailySales(ctx, int64(sku.ID), skuCode, startDate, endDate)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "failed to get daily sales: "+err.Error())
+	}
+
+	// 转换为响应格式
+	dailySales := make([]*productProto.DailySalesItem, 0, len(dailySalesData))
+	for _, data := range dailySalesData {
+		dailySales = append(dailySales, &productProto.DailySalesItem{
+			SkuCode:     data.SkuCode,
+			SalesVolume: data.SalesVolume,
+			Date:        data.Date,
+		})
+	}
+
+	return &productProto.GetSkuDailySalesResponse{
+		DailySales: dailySales,
+	}, nil
 }

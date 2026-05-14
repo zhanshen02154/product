@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"errors"
+
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/domain/event/order"
 	"github.com/zhanshen02154/product/internal/domain/model"
@@ -20,11 +21,15 @@ type IProductDataService interface {
 	GetProductSkuDetail(ctx context.Context, skuID int64) (*model.ProductSku, error)
 	BatchGetSkuInventoryInfo(ctx context.Context, skuIDs []int64) ([]model.ProductSku, error)
 	GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error)
+	GetSkuBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error)
+	GetSkuSalesVolume(ctx context.Context, skuID int64, startTime, endTime string) (int64, float64, error)
+	GetSupplierInfo(ctx context.Context, skuID int64) ([]*repository.SupplierInfo, error)
+	GetDailySales(ctx context.Context, skuID int64, skuCode string, startDate, endDate string) ([]*repository.DailySalesData, error)
 }
 
 // NewProductDataService 创建
-func NewProductDataService(productRepository repository.IProductRepository, orderInventoryRepo repository.OrderInventoryEventRepository, skuRepo repository.ProductSkuRepository, stockChangeRepo repository.InventoryStockChangeRecordRepository) IProductDataService {
-	return &ProductDataService{productRepository: productRepository, orderInventoryRepo: orderInventoryRepo, skuRepo: skuRepo, stockChangeRepo: stockChangeRepo}
+func NewProductDataService(productRepository repository.IProductRepository, orderInventoryRepo repository.OrderInventoryEventRepository, skuRepo repository.ProductSkuRepository, stockChangeRepo repository.InventoryStockChangeRecordRepository, supplierRepo repository.SupplierRepository) IProductDataService {
+	return &ProductDataService{productRepository: productRepository, orderInventoryRepo: orderInventoryRepo, skuRepo: skuRepo, stockChangeRepo: stockChangeRepo, supplierRepo: supplierRepo}
 }
 
 type ProductDataService struct {
@@ -32,6 +37,7 @@ type ProductDataService struct {
 	orderInventoryRepo repository.OrderInventoryEventRepository
 	skuRepo            repository.ProductSkuRepository
 	stockChangeRepo    repository.InventoryStockChangeRecordRepository
+	supplierRepo       repository.SupplierRepository
 }
 
 // AddProduct 插入
@@ -171,4 +177,24 @@ func (u *ProductDataService) BatchGetSkuInventoryInfo(ctx context.Context, skuID
 // GetSkuStockBySkuNo 根据SKU编号获取SKU库存信息
 func (u *ProductDataService) GetSkuStockBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error) {
 	return u.skuRepo.GetSkuStockBySkuNo(ctx, skuNo)
+}
+
+// GetSkuBySkuNo 根据SKU编号获取SKU信息
+func (u *ProductDataService) GetSkuBySkuNo(ctx context.Context, skuNo string) (*model.ProductSku, error) {
+	return u.skuRepo.GetSkuStockBySkuNo(ctx, skuNo)
+}
+
+// GetSkuSalesVolume 获取SKU在指定时间范围内的销量和平均销量
+func (u *ProductDataService) GetSkuSalesVolume(ctx context.Context, skuID int64, startTime, endTime string) (int64, float64, error) {
+	return u.stockChangeRepo.GetSalesVolume(ctx, skuID, startTime, endTime)
+}
+
+// GetSupplierInfo 获取指定SKU的供应商信息
+func (u *ProductDataService) GetSupplierInfo(ctx context.Context, skuID int64) ([]*repository.SupplierInfo, error) {
+	return u.supplierRepo.GetSupplierInfoBySkuID(ctx, skuID)
+}
+
+// GetDailySales 获取SKU在指定时间范围内的每日销量数据
+func (u *ProductDataService) GetDailySales(ctx context.Context, skuID int64, skuCode string, startDate, endDate string) ([]*repository.DailySalesData, error) {
+	return u.stockChangeRepo.GetDailySales(ctx, skuID, skuCode, startDate, endDate)
 }

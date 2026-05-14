@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+
 	"github.com/zhanshen02154/product/internal/application/dto"
 	"github.com/zhanshen02154/product/internal/application/service"
 	"github.com/zhanshen02154/product/pkg/swap"
@@ -134,11 +135,11 @@ func (h *ProductHandler) CheckSkuInventoryThreshold(ctx context.Context, req *pr
 //	@param resp
 //	@return error
 func (h *ProductHandler) GetSkuStockBySkuNo(ctx context.Context, req *product.GetSkuStockBySkuNoRequest, resp *product.GetSkuStockBySkuNoResponse) error {
-	response, err := h.ProductApplicationService.GetSkuStockBySkuNo(ctx, req.SkuId)
+	response, err := h.ProductApplicationService.GetSkuStockBySkuNo(ctx, req.SkuCode)
 	if err != nil {
 		return err
 	}
-	resp.SkuId = response.SkuId
+	resp.SkuCode = response.SkuCode
 	resp.Name = response.Name
 	resp.Stock = response.Stock
 	resp.Status = response.Status
@@ -191,6 +192,112 @@ func (h *ProductHandler) CreateRestockApply(ctx context.Context, req *product.Cr
 			SpecValueText: response.SkuInfo.SpecValueText,
 		}
 	}
+
+	return nil
+}
+
+// GetRestockApplyInfo
+//
+//	@Description: 获取补货申请信息
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) GetRestockApplyInfo(ctx context.Context, req *product.GetRestockApplyInfoRequest, resp *product.GetRestockApplyInfoResponse) error {
+	response, err := h.ProductApplicationService.GetRestockApplyInfo(ctx, req.ApplicationNo, req.UserId)
+	if err != nil {
+		return err
+	}
+
+	resp.Id = response.Id
+	resp.SkuId = response.SkuId
+	resp.Quantity = response.Quantity
+	resp.Reason = response.Reason
+	resp.Status = response.Status
+	resp.ApplicationNo = response.ApplicationNo
+
+	if response.Audit != nil {
+		resp.Audit = &product.RestockAuditInfo{
+			Id:                response.Audit.Id,
+			RestockId:         response.Audit.RestockId,
+			AuditUserId:       response.Audit.AuditUserId,
+			AuditStatus:       response.Audit.AuditStatus,
+			AuditFailedReason: response.Audit.AuditFailedReason,
+			CreatedAt:         response.Audit.CreatedAt,
+			UpdatedAt:         response.Audit.UpdatedAt,
+		}
+	}
+
+	return nil
+}
+
+// GetSkuSalesVolume
+//
+//	@Description: 获取SKU在指定时间范围内的销量和日均销量
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) GetSkuSalesVolume(ctx context.Context, req *product.GetSkuSalesVolumeRequest, resp *product.GetSkuSalesVolumeResponse) error {
+	// 调用应用层服务
+	response, err := h.ProductApplicationService.GetSkuSalesVolume(ctx, req.SkuCode, req.StartTime, req.EndTime)
+	if err != nil {
+		return err
+	}
+
+	// 复制响应数据
+	resp.SkuCode = response.SkuCode
+	resp.SalesVolume = response.SalesVolume
+	resp.DailyAvgSales = response.DailyAvgSales
+
+	return nil
+}
+
+// GetSupplierInfo
+//
+//	@Description: 获取指定SKU的供应商信息列表
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) GetSupplierInfo(ctx context.Context, req *product.GetSupplierInfoRequest, resp *product.GetSupplierInfoResponse) error {
+	// 调用应用层服务
+	response, err := h.ProductApplicationService.GetSupplierInfo(ctx, req.SkuCode)
+	if err != nil {
+		return err
+	}
+
+	// 如果没有找到供应商信息，返回空列表
+	if response == nil {
+		return nil
+	}
+
+	// 复制响应数据
+	resp.Suppliers = response.Suppliers
+
+	return nil
+}
+
+// GetSkuDailySales
+//
+//	@Description: 获取SKU在指定时间段内每天的销量数据
+//	@receiver h
+//	@param ctx
+//	@param req
+//	@param resp
+//	@return error
+func (h *ProductHandler) GetSkuDailySales(ctx context.Context, req *product.GetSkuDailySalesRequest, resp *product.GetSkuDailySalesResponse) error {
+	// 调用应用层服务
+	response, err := h.ProductApplicationService.GetSkuDailySales(ctx, req.SkuCode, req.StartDate, req.EndDate)
+	if err != nil {
+		return err
+	}
+
+	// 复制响应数据
+	resp.DailySales = response.DailySales
 
 	return nil
 }
