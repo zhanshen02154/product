@@ -144,6 +144,8 @@ func (h *ProductHandler) GetSkuStockBySkuNo(ctx context.Context, req *product.Ge
 	resp.Stock = response.Stock
 	resp.Status = response.Status
 	resp.StockWarn = response.StockWarn
+	resp.Sales = response.Sales
+	resp.SafeRate = response.SafeRate
 	return nil
 }
 

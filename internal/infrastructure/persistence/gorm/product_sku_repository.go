@@ -109,7 +109,7 @@ func (s *ProductSkuRepositoryImpl) GetSkuStockBySkuNo(ctx context.Context, skuNo
 	var result model.ProductSku
 
 	err := db.Model(model.ProductSku{}).
-		Select("id", "sku_no", "sku_name", "stock", "status", "stock_warn").
+		Select("id", "sku_no", "sku_name", "stock", "status", "stock_warn", "safe_rate", "sales").
 		Where("sku_no = ?", skuNo).
 		First(&result).Error
 
