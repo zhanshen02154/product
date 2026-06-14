@@ -747,6 +747,7 @@ type GetSkuStockBySkuNoResponse struct {
 	Status        int32                  `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
 	StockWarn     uint32                 `protobuf:"varint,5,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
 	SafeRate      float64                `protobuf:"fixed64,6,opt,name=safe_rate,json=safeRate,proto3" json:"safe_rate,omitempty"`   // 安全库存比例
+	Sales         int32                  `protobuf:"varint,7,opt,name=sales,proto3" json:"sales,omitempty"`                          // 销量
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -819,6 +820,13 @@ func (x *GetSkuStockBySkuNoResponse) GetStockWarn() uint32 {
 func (x *GetSkuStockBySkuNoResponse) GetSafeRate() float64 {
 	if x != nil {
 		return x.SafeRate
+	}
+	return 0
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetSales() int32 {
+	if x != nil {
+		return x.Sales
 	}
 	return 0
 }
@@ -1995,7 +2003,7 @@ const file_product_product_proto_rawDesc = "" +
 	"\"CheckSkuInventoryThresholdResponse\x12C\n" +
 	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults\"6\n" +
 	"\x19GetSkuStockBySkuNoRequest\x12\x19\n" +
-	"\bsku_code\x18\x01 \x01(\tR\askuCode\"\xb5\x01\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\"\xcb\x01\n" +
 	"\x1aGetSkuStockBySkuNoResponse\x12\x19\n" +
 	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
@@ -2003,7 +2011,8 @@ const file_product_product_proto_rawDesc = "" +
 	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1d\n" +
 	"\n" +
 	"stock_warn\x18\x05 \x01(\rR\tstockWarn\x12\x1b\n" +
-	"\tsafe_rate\x18\x06 \x01(\x01R\bsafeRate\"\x83\x01\n" +
+	"\tsafe_rate\x18\x06 \x01(\x01R\bsafeRate\x12\x14\n" +
+	"\x05sales\x18\a \x01(\x05R\x05sales\"\x83\x01\n" +
 	"\x19CreateRestockApplyRequest\x12\x19\n" +
 	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x1a\n" +

@@ -270,6 +270,7 @@ func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Cont
 		Status:    int32(sku.Status),
 		StockWarn: sku.StockWarn,
 		SafeRate:  sku.SafeRate,
+		Sales:     int32(sku.Sales),
 	}, nil
 }
 

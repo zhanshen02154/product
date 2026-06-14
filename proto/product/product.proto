@@ -103,6 +103,7 @@ message GetSkuStockBySkuNoResponse {
   int32 status = 4;        // 商品状态（1上架 0下架）
   uint32 stock_warn = 5;   // 库存预警值
   double safe_rate = 6;     // 安全库存比例
+  int32 sales = 7;          // 销量
 }
 
 // 提交补货申请请求
