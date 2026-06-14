@@ -1,8 +1,9 @@
 package model
 
 import (
-	"gorm.io/gorm"
 	"time"
+
+	"gorm.io/gorm"
 )
 
 // ProductSku 对应SKU表 (product_skus)
@@ -21,6 +22,7 @@ type ProductSku struct {
 	MainImage     *string        `gorm:"type:varchar(500);comment:SKU主图"`
 	Status        int8           `gorm:"not null;default:1;index:idx_status;comment:状态：0-下架 1-上架"`
 	CreatedAt     time.Time      `gorm:"autoCreateTime;index:idx_created_at;comment:创建时间"`
+	SafeRate      float64        `gorm:"type:decimal(10,4);default:0.0000;comment:安全库存比例(0-1之间)"`
 	UpdatedAt     time.Time      `gorm:"autoUpdateTime;comment:更新时间"`
 	DeletedAt     gorm.DeletedAt `gorm:"index"`
 

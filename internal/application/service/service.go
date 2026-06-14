@@ -269,6 +269,8 @@ func (appService *ProductApplicationService) GetSkuStockBySkuNo(ctx context.Cont
 		Stock:     sku.Stock,
 		Status:    int32(sku.Status),
 		StockWarn: sku.StockWarn,
+		SafeRate:  sku.SafeRate,
+		Sales:     int32(sku.Sales),
 	}, nil
 }
 
@@ -399,7 +401,7 @@ func (appService *ProductApplicationService) GetRestockApplyInfo(ctx context.Con
 
 	return &productProto.GetRestockApplyInfoResponse{
 		Id:            record.ID,
-		SkuId:         int64(record.SkuID),
+		SkuCode:       record.Sku.SkuNo,
 		Quantity:      record.Quantity,
 		Reason:        record.Reason,
 		Status:        uint32(record.Status),

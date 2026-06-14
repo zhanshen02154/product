@@ -746,6 +746,8 @@ type GetSkuStockBySkuNoResponse struct {
 	Stock         uint32                 `protobuf:"varint,3,opt,name=stock,proto3" json:"stock,omitempty"`                          // 当前库存
 	Status        int32                  `protobuf:"varint,4,opt,name=status,proto3" json:"status,omitempty"`                        // 商品状态（1上架 0下架）
 	StockWarn     uint32                 `protobuf:"varint,5,opt,name=stock_warn,json=stockWarn,proto3" json:"stock_warn,omitempty"` // 库存预警值
+	SafeRate      float64                `protobuf:"fixed64,6,opt,name=safe_rate,json=safeRate,proto3" json:"safe_rate,omitempty"`   // 安全库存比例
+	Sales         int32                  `protobuf:"varint,7,opt,name=sales,proto3" json:"sales,omitempty"`                          // 销量
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -815,13 +817,27 @@ func (x *GetSkuStockBySkuNoResponse) GetStockWarn() uint32 {
 	return 0
 }
 
+func (x *GetSkuStockBySkuNoResponse) GetSafeRate() float64 {
+	if x != nil {
+		return x.SafeRate
+	}
+	return 0
+}
+
+func (x *GetSkuStockBySkuNoResponse) GetSales() int32 {
+	if x != nil {
+		return x.Sales
+	}
+	return 0
+}
+
 // 提交补货申请请求
 type CreateRestockApplyRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SkuId         string                 `protobuf:"bytes,1,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`     // SKU编号(SkuNo)
-	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"` // 用户ID（一律为-1）
-	Quantity      int32                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`           // 补货数量（必须大于0）
-	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`                // 补货原因
+	SkuCode       string                 `protobuf:"bytes,1,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"` // SKU编号(SkuNo)
+	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`   // 用户ID（一律为-1）
+	Quantity      int32                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`             // 补货数量（必须大于0）
+	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`                  // 补货原因
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -856,9 +872,9 @@ func (*CreateRestockApplyRequest) Descriptor() ([]byte, []int) {
 	return file_product_product_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *CreateRestockApplyRequest) GetSkuId() string {
+func (x *CreateRestockApplyRequest) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
 	return ""
 }
@@ -942,7 +958,7 @@ type RestockRecordInfo struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                        // 补货记录ID
 	UserId        int32                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`                  // 用户ID
-	SkuId         uint64                 `protobuf:"varint,3,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                     // SKU ID
+	SkuCode       string                 `protobuf:"bytes,3,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`                // SKU编号
 	Quantity      int32                  `protobuf:"varint,4,opt,name=quantity,proto3" json:"quantity,omitempty"`                            // 补货数量
 	Reason        string                 `protobuf:"bytes,5,opt,name=reason,proto3" json:"reason,omitempty"`                                 // 补货原因
 	Status        uint32                 `protobuf:"varint,6,opt,name=status,proto3" json:"status,omitempty"`                                // 补货状态：1=待订货 2=部分订货 3=已订货 4=失败
@@ -996,11 +1012,11 @@ func (x *RestockRecordInfo) GetUserId() int32 {
 	return 0
 }
 
-func (x *RestockRecordInfo) GetSkuId() uint64 {
+func (x *RestockRecordInfo) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
-	return 0
+	return ""
 }
 
 func (x *RestockRecordInfo) GetQuantity() int32 {
@@ -1830,7 +1846,7 @@ func (x *RestockAuditInfo) GetUpdatedAt() string {
 type GetRestockApplyInfoResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`                                           // ID
-	SkuId         int64                  `protobuf:"varint,2,opt,name=sku_id,json=skuId,proto3" json:"sku_id,omitempty"`                        // SKU ID
+	SkuCode       string                 `protobuf:"bytes,2,opt,name=sku_code,json=skuCode,proto3" json:"sku_code,omitempty"`                   // SKU编号
 	Quantity      int32                  `protobuf:"varint,3,opt,name=quantity,proto3" json:"quantity,omitempty"`                               // 补货数量
 	Reason        string                 `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`                                    // 补货原因
 	Status        uint32                 `protobuf:"varint,5,opt,name=status,proto3" json:"status,omitempty"`                                   // 状态（补货状态：1=待订货 2=部分订货 3=已订货 4=失败）
@@ -1877,11 +1893,11 @@ func (x *GetRestockApplyInfoResponse) GetId() int64 {
 	return 0
 }
 
-func (x *GetRestockApplyInfoResponse) GetSkuId() int64 {
+func (x *GetRestockApplyInfoResponse) GetSkuCode() string {
 	if x != nil {
-		return x.SkuId
+		return x.SkuCode
 	}
-	return 0
+	return ""
 }
 
 func (x *GetRestockApplyInfoResponse) GetQuantity() int32 {
@@ -1987,26 +2003,28 @@ const file_product_product_proto_rawDesc = "" +
 	"\"CheckSkuInventoryThresholdResponse\x12C\n" +
 	"\aresults\x18\x01 \x03(\v2).go.micro.service.SkuInventoryCheckResultR\aresults\"6\n" +
 	"\x19GetSkuStockBySkuNoRequest\x12\x19\n" +
-	"\bsku_code\x18\x01 \x01(\tR\askuCode\"\x98\x01\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\"\xcb\x01\n" +
 	"\x1aGetSkuStockBySkuNoResponse\x12\x19\n" +
 	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x14\n" +
 	"\x05stock\x18\x03 \x01(\rR\x05stock\x12\x16\n" +
 	"\x06status\x18\x04 \x01(\x05R\x06status\x12\x1d\n" +
 	"\n" +
-	"stock_warn\x18\x05 \x01(\rR\tstockWarn\"\x7f\n" +
-	"\x19CreateRestockApplyRequest\x12\x15\n" +
-	"\x06sku_id\x18\x01 \x01(\tR\x05skuId\x12\x17\n" +
+	"stock_warn\x18\x05 \x01(\rR\tstockWarn\x12\x1b\n" +
+	"\tsafe_rate\x18\x06 \x01(\x01R\bsafeRate\x12\x14\n" +
+	"\x05sales\x18\a \x01(\x05R\x05sales\"\x83\x01\n" +
+	"\x19CreateRestockApplyRequest\x12\x19\n" +
+	"\bsku_code\x18\x01 \x01(\tR\askuCode\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x1a\n" +
 	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\"\xa3\x01\n" +
 	"\x1aCreateRestockApplyResponse\x12J\n" +
 	"\x0erestock_record\x18\x01 \x01(\v2#.go.micro.service.RestockRecordInfoR\rrestockRecord\x129\n" +
-	"\bsku_info\x18\x02 \x01(\v2\x1e.go.micro.service.SkuBasicInfoR\askuInfo\"\xe3\x01\n" +
+	"\bsku_info\x18\x02 \x01(\v2\x1e.go.micro.service.SkuBasicInfoR\askuInfo\"\xe7\x01\n" +
 	"\x11RestockRecordInfo\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x15\n" +
-	"\x06sku_id\x18\x03 \x01(\x04R\x05skuId\x12\x1a\n" +
+	"\auser_id\x18\x02 \x01(\x05R\x06userId\x12\x19\n" +
+	"\bsku_code\x18\x03 \x01(\tR\askuCode\x12\x1a\n" +
 	"\bquantity\x18\x04 \x01(\x05R\bquantity\x12\x16\n" +
 	"\x06reason\x18\x05 \x01(\tR\x06reason\x12\x16\n" +
 	"\x06status\x18\x06 \x01(\rR\x06status\x12#\n" +
@@ -2074,10 +2092,10 @@ const file_product_product_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\tR\tcreatedAt\x12\x1d\n" +
 	"\n" +
-	"updated_at\x18\a \x01(\tR\tupdatedAt\"\xf1\x01\n" +
+	"updated_at\x18\a \x01(\tR\tupdatedAt\"\xf5\x01\n" +
 	"\x1bGetRestockApplyInfoResponse\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x15\n" +
-	"\x06sku_id\x18\x02 \x01(\x03R\x05skuId\x12\x1a\n" +
+	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x19\n" +
+	"\bsku_code\x18\x02 \x01(\tR\askuCode\x12\x1a\n" +
 	"\bquantity\x18\x03 \x01(\x05R\bquantity\x12\x16\n" +
 	"\x06reason\x18\x04 \x01(\tR\x06reason\x12\x16\n" +
 	"\x06status\x18\x05 \x01(\rR\x06status\x12%\n" +

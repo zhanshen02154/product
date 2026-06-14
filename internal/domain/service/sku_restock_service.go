@@ -37,7 +37,7 @@ type SkuRestockService struct {
 func (s *SkuRestockService) CreateRestockApply(ctx context.Context, req *dto.CreateRestockApplyDto) (*dto.CreateRestockApplyResponseDto, error) {
 	// 1. 参数验证
 	if req.SkuID == "" {
-		return nil, errors.New("sku_id不能为空")
+		return nil, errors.New("sku_code不能为空")
 	}
 	if req.Quantity <= 0 {
 		return nil, errors.New("补货数量必须大于0")
@@ -86,6 +86,7 @@ func (s *SkuRestockService) CreateRestockApply(ctx context.Context, req *dto.Cre
 			ID:           createdRecord.ID,
 			UserID:       int32(createdRecord.UserID),
 			SkuID:        createdRecord.SkuID,
+			SkuCode:      sku.SkuNo,
 			Quantity:     createdRecord.Quantity,
 			Reason:       createdRecord.Reason,
 			Status:       createdRecord.Status,
