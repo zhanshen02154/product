@@ -102,11 +102,12 @@ message GetSkuStockBySkuNoResponse {
   uint32 stock = 3;        // 当前库存
   int32 status = 4;        // 商品状态（1上架 0下架）
   uint32 stock_warn = 5;   // 库存预警值
+  double safe_rate = 6;     // 安全库存比例
 }
 
 // 提交补货申请请求
 message CreateRestockApplyRequest {
-  string sku_id = 1;    // SKU编号(SkuNo)
+  string sku_code = 1;    // SKU编号(SkuNo)
   int32 user_id = 2;    // 用户ID（一律为-1）
   int32 quantity = 3;   // 补货数量（必须大于0）
   string reason = 4;    // 补货原因
@@ -122,7 +123,7 @@ message CreateRestockApplyResponse {
 message RestockRecordInfo {
   int64 id = 1;             // 补货记录ID
   int32 user_id = 2;        // 用户ID
-  uint64 sku_id = 3;        // SKU ID
+  string sku_code = 3;      // SKU编号
   int32 quantity = 4;       // 补货数量
   string reason = 5;        // 补货原因
   uint32 status = 6;        // 补货状态：1=待订货 2=部分订货 3=已订货 4=失败
@@ -224,7 +225,7 @@ message RestockAuditInfo {
 // 获取补货申请信息响应
 message GetRestockApplyInfoResponse {
   int64 id = 1;                // ID
-  int64 sku_id = 2;            // SKU ID
+  string sku_code = 2;          // SKU编号
   int32 quantity = 3;          // 补货数量
   string reason = 4;            // 补货原因
   uint32 status = 5;           // 状态（补货状态：1=待订货 2=部分订货 3=已订货 4=失败）

@@ -147,7 +147,7 @@ func (r *SkuRestockRepositoryImpl) UpdateStatus(ctx context.Context, id int64, s
 func (r *SkuRestockRepositoryImpl) GetByApplicationNo(ctx context.Context, applicationNo string, userID int) (*model.SkuRestockRecord, error) {
 	db := GetDBFromContext(ctx, r.db)
 	var record model.SkuRestockRecord
-	err := db.Where("application_no = ? AND user_id = ? AND deleted_at IS NULL", applicationNo, userID).First(&record).Error
+	err := db.Preload("Sku").Where("application_no = ? AND user_id = ? AND deleted_at IS NULL", applicationNo, userID).First(&record).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

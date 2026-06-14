@@ -13,6 +13,7 @@ type RestockRecordDto struct {
 	ID           int64  `json:"id"`
 	UserID       int32  `json:"user_id"`
 	SkuID        uint64 `json:"sku_id"`
+	SkuCode      string `json:"sku_code"`
 	Quantity     int32  `json:"quantity"`
 	Reason       string `json:"reason"`
 	Status       uint8  `json:"status"`

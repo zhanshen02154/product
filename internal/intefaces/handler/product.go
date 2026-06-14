@@ -158,7 +158,7 @@ func (h *ProductHandler) GetSkuStockBySkuNo(ctx context.Context, req *product.Ge
 func (h *ProductHandler) CreateRestockApply(ctx context.Context, req *product.CreateRestockApplyRequest, resp *product.CreateRestockApplyResponse) error {
 	// 构建DTO
 	applyDto := &dto.CreateRestockApplyDto{
-		SkuID:    req.SkuId,
+		SkuID:    req.SkuCode,
 		UserID:   req.UserId,
 		Quantity: req.Quantity,
 		Reason:   req.Reason,
@@ -175,7 +175,7 @@ func (h *ProductHandler) CreateRestockApply(ctx context.Context, req *product.Cr
 		resp.RestockRecord = &product.RestockRecordInfo{
 			Id:           response.RestockRecord.ID,
 			UserId:       response.RestockRecord.UserID,
-			SkuId:        response.RestockRecord.SkuID,
+			SkuCode:      response.RestockRecord.SkuCode,
 			Quantity:     response.RestockRecord.Quantity,
 			Reason:       response.RestockRecord.Reason,
 			Status:       uint32(response.RestockRecord.Status),
@@ -211,7 +211,7 @@ func (h *ProductHandler) GetRestockApplyInfo(ctx context.Context, req *product.G
 	}
 
 	resp.Id = response.Id
-	resp.SkuId = response.SkuId
+	resp.SkuCode = response.SkuCode
 	resp.Quantity = response.Quantity
 	resp.Reason = response.Reason
 	resp.Status = response.Status
